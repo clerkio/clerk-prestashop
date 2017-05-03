@@ -1,0 +1,22 @@
+.clerk-pull-right { float: right; }
+.clerk-pull-left { float: left; }
+.clerk-continue,
+.clerk-cart {
+    width: 20%;
+    display: block;
+    float: left;
+}
+.clerk-powerstep-content {
+    width: 60%;
+    display: block;
+    float: left;
+    text-align: center;
+    color: #090;
+}
+.clerk-powerstep-content i {
+    margin-right: 5px;
+}
+.clerk-powerstep {
+    overflow: hidden;
+    margin-bottom: 40px;
+}

@@ -47,7 +47,7 @@ class Clerk extends Module
 		Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', '');
 
 		Configuration::updateValue('CLERK_POWERSTEP_ENABLED', 0);
-		Configuration::updateValue('CLERK_POWER_TEMPLATES', '');
+		Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', '');
 
 		return parent::install() &&
             $this->registerHook('top') &&
@@ -70,7 +70,7 @@ class Clerk extends Module
 		Configuration::deleteByName('CLERK_LIVESEARCH_INCLUDE_CATEGORIES');
 		Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
 		Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
-		Configuration::deleteByName('CLERK_POWER_TEMPLATES');
+		Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
 
 		// Delete configuration
 		return parent::uninstall();
@@ -92,7 +92,7 @@ class Clerk extends Module
 			Configuration::updateValue('CLERK_LIVESEARCH_INCLUDE_CATEGORIES', Tools::getValue('clerk_livesearch_include_categories', ''));
 			Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', Tools::getValue('clerk_livesearch_template', ''));
 			Configuration::updateValue('CLERK_POWERSTEP_ENABLED', Tools::getValue('clerk_powerstep_enabled', 0));
-			Configuration::updateValue('CLERK_POWER_TEMPLATES', Tools::getValue('clerk_powerstep_templates', ''));
+			Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', Tools::getValue('clerk_powerstep_templates', ''));
 
 			$output .= $this->displayConfirmation($this->l('Settings updated.'));
 		}
