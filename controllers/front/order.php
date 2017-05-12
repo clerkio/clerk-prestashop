@@ -45,7 +45,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
     {
         $response = array();
 
-        $orders = Order::getOrdersWithInformations();
+        $orders = Order::getOrdersWithInformations($this->offset, $this->limit);
 
         $fields = array_flip($this->fieldMap);
 
