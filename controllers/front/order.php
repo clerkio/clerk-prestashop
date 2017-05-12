@@ -45,7 +45,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
     {
         $response = array();
 
-        $orders = Order::getOrdersWithInformations($this->offset, $this->limit);
+        $orders = $this->getOrdersWithInformations($this->offset, $this->limit);
 
         $fields = array_flip($this->fieldMap);
 
@@ -79,5 +79,31 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             'email',
             'customer',
         ];
+    }
+
+    /**
+     * Get orders with start and limit
+     * @param  int $start [description]
+     * @param  int $limit [description]
+     * @return mixed        [description]
+     */
+    protected function getOrdersWithInformations($start = null, $limit = null)
+    {
+        $context = Context::getContext();
+
+        $sql = 'SELECT *, (
+                    SELECT osl.`name`
+                    FROM `'._DB_PREFIX_.'order_state_lang` osl
+                    WHERE osl.`id_order_state` = o.`current_state`
+                    AND osl.`id_lang` = '.(int)$context->language->id.'
+                    LIMIT 1
+                ) AS `state_name`, o.`date_add` AS `date_add`, o.`date_upd` AS `date_upd`
+                FROM `'._DB_PREFIX_.'orders` o
+                LEFT JOIN `'._DB_PREFIX_.'customer` c ON (c.`id_customer` = o.`id_customer`)
+                WHERE 1
+                    '.Shop::addSqlRestriction(false, 'o').'
+                ORDER BY o.`date_add` DESC
+                '.((int)$limit ? 'LIMIT '.(int)$start.','.(int)$limit : '');
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
 }
