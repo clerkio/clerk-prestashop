@@ -12,7 +12,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '1.0.0';
+		$this->version = '1.1.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -71,6 +71,7 @@ class Clerk extends Module
 		Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
 		Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
 		Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
+        Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
 
 		// Delete configuration
 		return parent::uninstall();
@@ -93,6 +94,7 @@ class Clerk extends Module
 			Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', Tools::getValue('clerk_livesearch_template', ''));
 			Configuration::updateValue('CLERK_POWERSTEP_ENABLED', Tools::getValue('clerk_powerstep_enabled', 0));
 			Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', Tools::getValue('clerk_powerstep_templates', ''));
+            Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', Tools::getValue('clerk_datasync_collect_emails', 1));
 
 			$output .= $this->displayConfirmation($this->l('Settings updated.'));
 		}
@@ -134,6 +136,35 @@ class Clerk extends Module
 				),
 			),
 		);
+
+        //Data-sync settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Data-sync settings'),
+                    'icon' => 'icon-cloud-upload'
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->l('Collect Emails'),
+                        'name' => 'clerk_datasync_collect_emails',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_collect_emails_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_collect_emails_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                ),
+            ),
+        );
 
 		//Search settings
 		$this->fields_form[] = array(
@@ -297,6 +328,7 @@ class Clerk extends Module
 			'clerk_livesearch_template' => Tools::getValue('clerk_livesearch_template', Configuration::get('CLERK_LIVESEARCH_TEMPLATE')),
 			'clerk_powerstep_enabled' => Tools::getValue('clerk_powerstep_enabled', Configuration::get('CLERK_POWERSTEP_ENABLED')),
 			'clerk_powerstep_templates' => Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES')),
+            'clerk_datasync_collect_emails' => Tools::getValue('clerk_datasync_collect_emails', Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS')),
 		);
 	}
 
@@ -327,10 +359,19 @@ class Clerk extends Module
 	 */
 	public function hookFooter()
 	{
+	    //Determine if we should redirect to powerstep
+        if ($this->context->controller instanceof OrderController) {
+            if (Tools::getValue('ipa') && Configuration::get('CLERK_POWERSTEP_ENABLED')) {
+                $url = $this->context->link->getModuleLink('clerk', 'added', ['id_product' => Tools::getValue('ipa')]);
+                Tools::redirect($url);
+            }
+        }
+
 		//Assign template variables
 		$this->context->smarty->assign(
 			array(
-				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', ''),
+				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY'),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS'),
 			)
 		);
 
@@ -364,6 +405,7 @@ class Clerk extends Module
 				'clerk_order_id' => $order->id,
 				'clerk_customer_email' => $this->context->customer->email,
 				'clerk_products' => json_encode($productArray),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS'),
 			)
 		);
 

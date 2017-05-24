@@ -2,7 +2,8 @@
 <script type="text/javascript">
     window.clerkAsyncInit = function() {
         Clerk.config({
-            key: '{$clerk_public_key}'
+            key: '{$clerk_public_key}',
+            collect_email: {$clerk_datasync_collect_emails}
         });
     };
 
