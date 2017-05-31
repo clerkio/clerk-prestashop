@@ -38,7 +38,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $this->addFieldHandler('categories', function($product) {
             $categories = array();
-            $categoriesFull = Product::getProductCategoriesFull($product[id_product]);
+            $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
 
             foreach ($categoriesFull as $category) {
                 $categories[] = (int)$category['id_category'];
