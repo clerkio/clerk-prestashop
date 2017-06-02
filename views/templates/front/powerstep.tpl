@@ -15,7 +15,7 @@
     {foreach from=$templates item=template}
     <span class="clerk"
           data-template="@{$template}"
-          data-product="{$product->id}"
+          data-products="[{$product->id}]"
           data-category="{$category}"
     ></span>
     {/foreach}

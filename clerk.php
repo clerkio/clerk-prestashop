@@ -12,7 +12,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '1.2.0';
+		$this->version = '1.2.1';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -40,14 +40,14 @@ class Clerk extends Module
 		Configuration::updateValue('CLERK_PRIVATE_KEY', '');
 
 		Configuration::updateValue('CLERK_SEARCH_ENABLED', 0);
-		Configuration::updateValue('CLERK_SEARCH_TEMPLATE', '');
+		Configuration::updateValue('CLERK_SEARCH_TEMPLATE', 'search-page');
 
 		Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', 0);
 		Configuration::updateValue('CLERK_LIVESEARCH_INCLUDE_CATEGORIES', 0);
-		Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', '');
+		Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', 'live-search');
 
 		Configuration::updateValue('CLERK_POWERSTEP_ENABLED', 0);
-		Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', '');
+		Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular');
 
 		return parent::install() &&
             $this->registerHook('top') &&
@@ -318,16 +318,16 @@ class Clerk extends Module
 	public function getConfigFieldsValues()
 	{
 		return array(
-			'clerk_public_key' => Tools::getValue('clerk_public_key', Configuration::get('CLERK_PUBLIC_KEY')),
-			'clerk_private_key' => Tools::getValue('clerk_private_key', Configuration::get('CLERK_PRIVATE_KEY')),
+			'clerk_public_key' => trim(Tools::getValue('clerk_public_key', Configuration::get('CLERK_PUBLIC_KEY'))),
+			'clerk_private_key' => trim(Tools::getValue('clerk_private_key', Configuration::get('CLERK_PRIVATE_KEY'))),
 			'clerk_import_url' => _PS_BASE_URL_,
 			'clerk_search_enabled' => Tools::getValue('clerk_search_enabled', Configuration::get('CLERK_SEARCH_ENABLED')),
-			'clerk_search_template' => Tools::getValue('clerk_search_template', Configuration::get('CLERK_SEARCH_TEMPLATE')),
+			'clerk_search_template' => str_replace(' ', '', Tools::getValue('clerk_search_template', Configuration::get('CLERK_SEARCH_TEMPLATE'))),
 			'clerk_livesearch_enabled' => Tools::getValue('clerk_livesearch_enabled', Configuration::get('CLERK_LIVESEARCH_ENABLED')),
 			'clerk_livesearch_include_categories' => Tools::getValue('clerk_livesearch_include_categories', Configuration::get('CLERK_LIVESEARCH_INCLUDE_CATEGORIES')),
-			'clerk_livesearch_template' => Tools::getValue('clerk_livesearch_template', Configuration::get('CLERK_LIVESEARCH_TEMPLATE')),
+			'clerk_livesearch_template' => str_replace(' ', '', Tools::getValue('clerk_livesearch_template', Configuration::get('CLERK_LIVESEARCH_TEMPLATE'))),
 			'clerk_powerstep_enabled' => Tools::getValue('clerk_powerstep_enabled', Configuration::get('CLERK_POWERSTEP_ENABLED')),
-			'clerk_powerstep_templates' => Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES')),
+			'clerk_powerstep_templates' => str_replace(' ', '', Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES'))),
             'clerk_datasync_collect_emails' => Tools::getValue('clerk_datasync_collect_emails', Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS')),
 		);
 	}
