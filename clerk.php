@@ -12,7 +12,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '1.2.1';
+		$this->version = '1.2.2';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -85,15 +85,15 @@ class Clerk extends Module
 		$output = '';
 
 		if (Tools::isSubmit('submitClerk')) {
-			Configuration::updateValue('CLERK_PUBLIC_KEY', Tools::getValue('clerk_public_key', ''));
-			Configuration::updateValue('CLERK_PRIVATE_KEY', Tools::getValue('clerk_private_key', ''));
+			Configuration::updateValue('CLERK_PUBLIC_KEY', trim(Tools::getValue('clerk_public_key', '')));
+			Configuration::updateValue('CLERK_PRIVATE_KEY', trim(Tools::getValue('clerk_private_key', '')));
 			Configuration::updateValue('CLERK_SEARCH_ENABLED', Tools::getValue('clerk_search_enabled', 0));
-			Configuration::updateValue('CLERK_SEARCH_TEMPLATE', Tools::getValue('clerk_search_template', ''));
+			Configuration::updateValue('CLERK_SEARCH_TEMPLATE', str_replace(' ', '', Tools::getValue('clerk_search_template', '')));
 			Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', Tools::getValue('clerk_livesearch_enabled', 0));
 			Configuration::updateValue('CLERK_LIVESEARCH_INCLUDE_CATEGORIES', Tools::getValue('clerk_livesearch_include_categories', ''));
-			Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', Tools::getValue('clerk_livesearch_template', ''));
+			Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', str_replace(' ', '', Tools::getValue('clerk_livesearch_template', '')));
 			Configuration::updateValue('CLERK_POWERSTEP_ENABLED', Tools::getValue('clerk_powerstep_enabled', 0));
-			Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', Tools::getValue('clerk_powerstep_templates', ''));
+			Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', str_replace(' ', '', Tools::getValue('clerk_powerstep_templates', '')));
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', Tools::getValue('clerk_datasync_collect_emails', 1));
 
 			$output .= $this->displayConfirmation($this->l('Settings updated.'));
@@ -318,16 +318,16 @@ class Clerk extends Module
 	public function getConfigFieldsValues()
 	{
 		return array(
-			'clerk_public_key' => trim(Tools::getValue('clerk_public_key', Configuration::get('CLERK_PUBLIC_KEY'))),
-			'clerk_private_key' => trim(Tools::getValue('clerk_private_key', Configuration::get('CLERK_PRIVATE_KEY'))),
+			'clerk_public_key' => Tools::getValue('clerk_public_key', Configuration::get('CLERK_PUBLIC_KEY')),
+			'clerk_private_key' => Tools::getValue('clerk_private_key', Configuration::get('CLERK_PRIVATE_KEY')),
 			'clerk_import_url' => _PS_BASE_URL_,
 			'clerk_search_enabled' => Tools::getValue('clerk_search_enabled', Configuration::get('CLERK_SEARCH_ENABLED')),
-			'clerk_search_template' => str_replace(' ', '', Tools::getValue('clerk_search_template', Configuration::get('CLERK_SEARCH_TEMPLATE'))),
+			'clerk_search_template' => Tools::getValue('clerk_search_template', Configuration::get('CLERK_SEARCH_TEMPLATE')),
 			'clerk_livesearch_enabled' => Tools::getValue('clerk_livesearch_enabled', Configuration::get('CLERK_LIVESEARCH_ENABLED')),
 			'clerk_livesearch_include_categories' => Tools::getValue('clerk_livesearch_include_categories', Configuration::get('CLERK_LIVESEARCH_INCLUDE_CATEGORIES')),
-			'clerk_livesearch_template' => str_replace(' ', '', Tools::getValue('clerk_livesearch_template', Configuration::get('CLERK_LIVESEARCH_TEMPLATE'))),
+			'clerk_livesearch_template' => Tools::getValue('clerk_livesearch_template', Configuration::get('CLERK_LIVESEARCH_TEMPLATE')),
 			'clerk_powerstep_enabled' => Tools::getValue('clerk_powerstep_enabled', Configuration::get('CLERK_POWERSTEP_ENABLED')),
-			'clerk_powerstep_templates' => str_replace(' ', '', Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES'))),
+			'clerk_powerstep_templates' => Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES')),
             'clerk_datasync_collect_emails' => Tools::getValue('clerk_datasync_collect_emails', Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS')),
 		);
 	}

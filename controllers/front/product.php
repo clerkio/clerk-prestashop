@@ -36,6 +36,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 		    return Product::getPriceStatic($product['id_product'], true);
         });
 
+		$this->addFieldHandler('list_price', function($product) {
+		    //Get price without reduction
+		   return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
+        });
+
         $this->addFieldHandler('categories', function($product) {
             $categories = array();
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
@@ -95,6 +100,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             'name',
             'description',
             'price',
+            'list_price',
             'image',
             'url',
             'categories',
