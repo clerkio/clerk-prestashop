@@ -172,4 +172,34 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         return array();
     }
+
+    /**
+     * Dies and echoes output value
+     *
+     * @param string|null $value
+     * @param string|null $controller
+     * @param string|null $method
+     */
+    protected function ajaxDie($value = null, $controller = null, $method = null)
+    {
+        //Call parent ajaxDie if available
+        if (is_callable('parent::ajaxDie')) {
+            return parent::ajaxDie($value, $controller, $method);
+        }
+
+        //Replicate functionality if not
+        if ($controller === null) {
+            $controller = get_class($this);
+        }
+
+        if ($method === null) {
+            $bt = debug_backtrace();
+            $method = $bt[1]['function'];
+        }
+
+        Hook::exec('actionBeforeAjaxDie', array('controller' => $controller, 'method' => $method, 'value' => $value));
+        Hook::exec('actionBeforeAjaxDie'.$controller.$method, array('value' => $value));
+
+        die($value);
+    }
 }
