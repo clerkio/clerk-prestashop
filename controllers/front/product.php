@@ -32,6 +32,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return $this->context->link->getImageLink($product['link_rewrite'], $image['id_image']);
         });
 
+        $this->addFieldHandler('is_in_stock', function($product) {
+            return Product::getRealQuantity($product['id_product']) >= 1 ? true:false;
+        });
+
+        $this->addFieldHandler('stock_amount', function($product) {
+            return Product::getRealQuantity($product['id_product']);
+        });
+
 		$this->addFieldHandler('price', function($product) {
 		    return Product::getPriceStatic($product['id_product'], true);
         });
@@ -107,6 +115,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             'brand',
             'sku',
             'on_sale',
+            'is_in_stock',
+            'stock_amount'
         ];
     }
 }
