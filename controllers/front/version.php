@@ -13,7 +13,7 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
         $clerk = Module::getInstanceByName('clerk');
 
         $response = array(
-            'platform' => 'PrestaShop',
+            'platform' => sprintf('PrestaShop %s', _PS_VERSION_),
             'version' => $clerk->version,
         );
 

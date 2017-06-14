@@ -15,9 +15,9 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     /**
      * ClerkProductModuleFrontController constructor.
      */
-	public function __construct()
+    public function __construct()
     {
-		parent::__construct();
+        parent::__construct();
 
         $this->addFieldHandler('on_sale', function($product) {
             return (bool) $product['on_sale'];
@@ -27,18 +27,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return $this->context->link->getProductLink($product['id_product']);
         });
 
-		$this->addFieldHandler('image', function($product) {
+        $this->addFieldHandler('image', function($product) {
             $image = Image::getCover($product['id_product']);
-            return $this->context->link->getImageLink($product['link_rewrite'], $image['id_image']);
+            return $this->context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
         });
 
-		$this->addFieldHandler('price', function($product) {
-		    return Product::getPriceStatic($product['id_product'], true);
+        $this->addFieldHandler('price', function($product) {
+            return Product::getPriceStatic($product['id_product'], true);
         });
 
-		$this->addFieldHandler('list_price', function($product) {
-		    //Get price without reduction
-		   return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
+        $this->addFieldHandler('list_price', function($product) {
+            //Get price without reduction
+            return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
         });
 
         $this->addFieldHandler('categories', function($product) {
@@ -51,18 +51,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             return $categories;
         });
-	}
+    }
 
-	/**
-	 * Get response
-	 *
-	 * @return array
-	 */
-	public function getJsonResponse()
-	{
-		/** @var ProductCore $product */
-		$product = new Product();
-		$products = $product->getProducts(Configuration::get('PS_LANG_DEFAULT'), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
+    /**
+     * Get response
+     *
+     * @return array
+     */
+    public function getJsonResponse()
+    {
+        /** @var ProductCore $product */
+        $product = new Product();
+        $products = $product->getProducts(Configuration::get('PS_LANG_DEFAULT'), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
 
         $response = array();
         $fields = array_flip($this->fieldMap);
@@ -86,7 +86,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         }
 
         return $response;
-	}
+    }
 
     /**
      * Get default fields for products

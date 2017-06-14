@@ -12,10 +12,10 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '1.3.0';
+		$this->version = '1.4.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
-		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
 		$this->bootstrap = true;
 
 		parent::__construct();
@@ -43,7 +43,7 @@ class Clerk extends Module
 		Configuration::updateValue('CLERK_SEARCH_TEMPLATE', 'search-page');
 
 		Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', 0);
-		Configuration::updateValue('CLERK_LIVESEARCH_INCLUDE_CATEGORIES', 0);
+		Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', 0);
 		Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', 'live-search');
 
 		Configuration::updateValue('CLERK_POWERSTEP_ENABLED', 0);
@@ -67,7 +67,7 @@ class Clerk extends Module
 		Configuration::deleteByName('CLERK_SEARCH_ENABLED');
 		Configuration::deleteByName('CLERK_SEARCH_TEMPLATE');
 		Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
-		Configuration::deleteByName('CLERK_LIVESEARCH_INCLUDE_CATEGORIES');
+		Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
 		Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
 		Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
 		Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
@@ -90,7 +90,7 @@ class Clerk extends Module
 			Configuration::updateValue('CLERK_SEARCH_ENABLED', Tools::getValue('clerk_search_enabled', 0));
 			Configuration::updateValue('CLERK_SEARCH_TEMPLATE', str_replace(' ', '', Tools::getValue('clerk_search_template', '')));
 			Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', Tools::getValue('clerk_livesearch_enabled', 0));
-			Configuration::updateValue('CLERK_LIVESEARCH_INCLUDE_CATEGORIES', Tools::getValue('clerk_livesearch_include_categories', ''));
+			Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', Tools::getValue('clerk_livesearch_categories', ''));
 			Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', str_replace(' ', '', Tools::getValue('clerk_livesearch_template', '')));
 			Configuration::updateValue('CLERK_POWERSTEP_ENABLED', Tools::getValue('clerk_powerstep_enabled', 0));
 			Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', str_replace(' ', '', Tools::getValue('clerk_powerstep_templates', '')));
@@ -109,6 +109,13 @@ class Clerk extends Module
 	 */
 	public function renderForm()
 	{
+	    $booleanType = 'radio';
+
+	    //Use switch if available, looks better
+        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
+            $booleanType = 'switch';
+        }
+
 		//General settings
 		$this->fields_form[] = array(
 			'form' => array(
@@ -146,9 +153,11 @@ class Clerk extends Module
                 ),
                 'input' => array(
                     array(
-                        'type' => 'switch',
+                        'type' => $booleanType,
                         'label' => $this->l('Collect Emails'),
                         'name' => 'clerk_datasync_collect_emails',
+                        'is_bool' => true,
+                        'class' => 't',
                         'values' => array(
                             array(
                                 'id' => 'clerk_datasync_collect_emails_on',
@@ -175,9 +184,11 @@ class Clerk extends Module
 				),
 				'input' => array(
 					array(
-						'type' => 'switch',
+						'type' => $booleanType,
 						'label' => $this->l('Enabled'),
 						'name' => 'clerk_search_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
 						'values' => array(
 							array(
 								'id' => 'clerk_search_enabled_on',
@@ -209,9 +220,11 @@ class Clerk extends Module
 				),
 				'input' => array(
 					array(
-						'type' => 'switch',
+						'type' => $booleanType,
 						'label' => $this->l('Enabled'),
 						'name' => 'clerk_livesearch_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
 						'values' => array(
 							array(
 								'id' => 'clerk_livesearch_enabled_on',
@@ -226,9 +239,11 @@ class Clerk extends Module
 						)
 					),
 					array(
-						'type' => 'switch',
+						'type' => $booleanType,
 						'label' => $this->l('Include Categories'),
-						'name' => 'clerk_livesearch_include_categories',
+						'name' => 'clerk_livesearch_categories',
+                        'is_bool' => true,
+                        'class' => 't',
 						'values' => array(
 							array(
 								'id' => 'clerk_include_categories_on',
@@ -260,9 +275,11 @@ class Clerk extends Module
 				),
 				'input' => array(
 					array(
-						'type' => 'switch',
+						'type' => $booleanType,
 						'label' => $this->l('Enabled'),
 						'name' => 'clerk_powerstep_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
 						'values' => array(
 							array(
 								'id' => 'clerk_powerstep_enabled_on',
@@ -324,7 +341,7 @@ class Clerk extends Module
 			'clerk_search_enabled' => Tools::getValue('clerk_search_enabled', Configuration::get('CLERK_SEARCH_ENABLED')),
 			'clerk_search_template' => Tools::getValue('clerk_search_template', Configuration::get('CLERK_SEARCH_TEMPLATE')),
 			'clerk_livesearch_enabled' => Tools::getValue('clerk_livesearch_enabled', Configuration::get('CLERK_LIVESEARCH_ENABLED')),
-			'clerk_livesearch_include_categories' => Tools::getValue('clerk_livesearch_include_categories', Configuration::get('CLERK_LIVESEARCH_INCLUDE_CATEGORIES')),
+			'clerk_livesearch_categories' => Tools::getValue('clerk_livesearch_categories', Configuration::get('CLERK_LIVESEARCH_CATEGORIES')),
 			'clerk_livesearch_template' => Tools::getValue('clerk_livesearch_template', Configuration::get('CLERK_LIVESEARCH_TEMPLATE')),
 			'clerk_powerstep_enabled' => Tools::getValue('clerk_powerstep_enabled', Configuration::get('CLERK_POWERSTEP_ENABLED')),
 			'clerk_powerstep_templates' => Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES')),
@@ -342,7 +359,7 @@ class Clerk extends Module
                         'clerksearch_type' => 'top',
                         'search_query'     => (string)Tools::getValue('search_query'),
                         'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED'),
-                        'livesearch_include_categories' => (int)Configuration::get('CLERK_LIVESEARCH_INCLUDE_CATEGORIES'),
+                        'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES'),
                         'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE'))),
                     )
                 );
