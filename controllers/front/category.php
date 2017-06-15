@@ -35,11 +35,11 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
                     continue;
                 }
 
-                $item = [
+                $item = array(
                     'id' => $category['id_category'],
                     'name' => $category['name'],
                     'url' => $this->context->link->getCategoryLink($category['id_category'], null, $id_lang),
-                ];
+                );
 
                 //Append parent id
                 if ($category['id_parent'] !== $root_category) {

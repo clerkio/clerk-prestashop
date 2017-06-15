@@ -3,10 +3,10 @@ require "ClerkAbstractFrontController.php";
 
 class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 {
-    protected $fieldMap = [
+    protected $fieldMap = array(
         'id_order' => 'id',
         'id_customer' => 'customer',
-    ];
+    );
 
     public function __construct()
     {
@@ -81,13 +81,13 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 
     protected function getDefaultFields()
     {
-        return [
+        return array(
             'id',
             'products',
             'time',
             'email',
             'customer',
-        ];
+        );
     }
 
     protected function getOrdersWithInformations($limit = null, Context $context = null)

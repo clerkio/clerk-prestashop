@@ -379,7 +379,7 @@ class Clerk extends Module
 	    //Determine if we should redirect to powerstep
         if ($this->context->controller instanceof OrderController) {
             if (Tools::getValue('ipa') && Configuration::get('CLERK_POWERSTEP_ENABLED')) {
-                $url = $this->context->link->getModuleLink('clerk', 'added', ['id_product' => Tools::getValue('ipa')]);
+                $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => Tools::getValue('ipa')));
                 Tools::redirect($url);
             }
         }

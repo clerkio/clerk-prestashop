@@ -6,11 +6,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     /**
      * @var array
      */
-    protected $fieldMap = [
+    protected $fieldMap = array(
         'id_product' => 'id',
         'manufacturer_name' => 'brand',
         'reference' => 'sku',
-    ];
+    );
 
     /**
      * ClerkProductModuleFrontController constructor.
@@ -95,7 +95,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
      */
     protected function getDefaultFields()
     {
-        return [
+        return array(
             'id',
             'name',
             'description',
@@ -107,6 +107,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             'brand',
             'sku',
             'on_sale',
-        ];
+        );
     }
 }
