@@ -148,7 +148,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         } else {
             $this->fields = $this->getDefaultFields();
         }
-        $this->fields = array_merge(['id'], $this->fields);
+        $this->fields = array_merge(array('id'), $this->fields);
     }
 
     /**
