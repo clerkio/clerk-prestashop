@@ -158,7 +158,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      *
      * @param callable $handler
      */
-    protected function addFieldHandler($field, callable $handler)
+    protected function addFieldHandler($field, $handler)
     {
         $this->fieldHandlers[$field] = $handler;
     }
