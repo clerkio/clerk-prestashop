@@ -23,13 +23,16 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return (bool) $product['on_sale'];
         });
 
-        $this->addFieldHandler('url', function($product) {
-            return $this->context->link->getProductLink($product['id_product']);
+        //Needed for PHP 5.3 support
+        $context = $this->context;
+
+        $this->addFieldHandler('url', function($product) use($context) {
+            return $context->link->getProductLink($product['id_product']);
         });
 
-        $this->addFieldHandler('image', function($product) {
+        $this->addFieldHandler('image', function($product) use($context) {
             $image = Image::getCover($product['id_product']);
-            return $this->context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
+            return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
         });
 
         $this->addFieldHandler('price', function($product) {
