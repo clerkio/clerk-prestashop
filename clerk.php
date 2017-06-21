@@ -12,7 +12,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '1.4.5';
+		$this->version = '1.5.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -72,6 +72,7 @@ class Clerk extends Module
 		Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
 		Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
+        Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
 
 		// Delete configuration
 		return parent::uninstall();
@@ -95,6 +96,7 @@ class Clerk extends Module
 			Configuration::updateValue('CLERK_POWERSTEP_ENABLED', Tools::getValue('clerk_powerstep_enabled', 0));
 			Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', str_replace(' ', '', Tools::getValue('clerk_powerstep_templates', '')));
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', Tools::getValue('clerk_datasync_collect_emails', 1));
+            Configuration::updateValue('CLERK_DATASYNC_FIELDS', str_replace(' ', '', Tools::getValue('clerk_datasync_fields', '')));
 
 			$output .= $this->displayConfirmation($this->l('Settings updated.'));
 		}
@@ -170,6 +172,11 @@ class Clerk extends Module
                                 'label' => $this->l('Disabled')
                             )
                         )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Additional Fields'),
+                        'name' => 'clerk_datasync_fields',
                     ),
                 ),
             ),
@@ -346,6 +353,7 @@ class Clerk extends Module
 			'clerk_powerstep_enabled' => Tools::getValue('clerk_powerstep_enabled', Configuration::get('CLERK_POWERSTEP_ENABLED')),
 			'clerk_powerstep_templates' => Tools::getValue('clerk_powerstep_templates', Configuration::get('CLERK_POWERSTEP_TEMPLATES')),
             'clerk_datasync_collect_emails' => Tools::getValue('clerk_datasync_collect_emails', Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS')),
+            'clerk_datasync_fields' => Tools::getValue('clerk_datasync_fields', Configuration::get('CLERK_DATASYNC_FIELDS')),
 		);
 	}
 

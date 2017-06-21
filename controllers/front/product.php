@@ -98,7 +98,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
      */
     protected function getDefaultFields()
     {
-        return array(
+        $default = array(
             'id',
             'name',
             'description',
@@ -111,5 +111,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             'sku',
             'on_sale',
         );
+
+        //Get custom fields from configuration
+        $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', '');
+
+        $fields = explode(',', $fieldsConfig);
+
+        return array_merge($default, $fields);
     }
 }
