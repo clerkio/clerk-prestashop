@@ -17,6 +17,7 @@ class Clerk extends Module
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
 		$this->bootstrap = true;
+		$this->controllers = array('added', 'search');
 
 		parent::__construct();
 
