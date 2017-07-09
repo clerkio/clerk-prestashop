@@ -12,7 +12,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '1.5.1';
+		$this->version = '2.0.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -398,6 +398,7 @@ class Clerk extends Module
 			array(
 				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY'),
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS'),
+                'language' => $this->context->language->iso_code,
 			)
 		);
 
