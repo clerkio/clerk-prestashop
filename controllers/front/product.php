@@ -36,7 +36,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         $context = $this->context;
 
         $this->addFieldHandler('on_sale', function($product) {
-            return (bool) $product['on_sale'];
+            return (Product::getPriceStatic($product['id_product'], true) < Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false));
         });
 
         $this->addFieldHandler('url', function($product, $id_lang) use($context) {
