@@ -38,6 +38,11 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     protected $offset;
 
     /**
+     * @var string
+     */
+    protected $suffix;
+
+    /**
      * @var array
      */
     protected $fieldHandlers = array();
@@ -47,10 +52,14 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected $fieldMap = array();
 
+    /**
+     * ClerkAbstractFrontController constructor.
+     */
     public function __construct()
     {
         parent::__construct();
         $this->ajax = true;
+        $this->suffix = $this->getSuffix();
     }
 
     /**
@@ -81,7 +90,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         $public_key  = Tools::getValue('key', '');
         $private_key = Tools::getValue('private_key', '');
 
-        if ($public_key === Configuration::get('CLERK_PUBLIC_KEY') && $private_key === Configuration::get('CLERK_PRIVATE_KEY')) {
+        if ($public_key === Configuration::get('CLERK_PUBLIC_KEY' . $this->getSuffix()) && $private_key === Configuration::get('CLERK_PRIVATE_KEY' . $this->getSuffix())) {
             return true;
         }
 
@@ -201,5 +210,35 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         Hook::exec('actionBeforeAjaxDie'.$controller.$method, array('value' => $value));
 
         die($value);
+    }
+
+    /**
+     * Get configuration suffix
+     *
+     * @return string
+     */
+    protected function getSuffix()
+    {
+        return sprintf('_%s_%s', $this->context->shop->id, $this->context->language->id);
+    }
+
+    /**
+     * Get language id
+     *
+     * @return int
+     */
+    protected function getLanguageId()
+    {
+        return $this->context->language->id;
+    }
+
+    /**
+     * Get shop id
+     *
+     * @return int
+     */
+    protected function getShopId()
+    {
+        return $this->context->shop->id;
     }
 }
