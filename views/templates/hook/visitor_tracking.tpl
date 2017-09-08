@@ -3,8 +3,7 @@
     window.clerkAsyncInit = function() {
         Clerk.config({
             key: '{$clerk_public_key}',
-            collect_email: {$clerk_datasync_collect_emails},
-            language: '{$language}'
+            collect_email: {$clerk_datasync_collect_emails}
         });
     };
 
