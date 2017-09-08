@@ -74,6 +74,9 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_POWERSTEP_ENABLED' . $suffix, 0);
                 Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES' . $suffix, 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular');
+
+                Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix, 1);
+                Configuration::updateValue('CLERK_DATASYNC_FIELDS' . $suffix, '');
             }
         }
 
