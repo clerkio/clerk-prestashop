@@ -27,7 +27,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '3.0.0';
+		$this->version = '3.1.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -39,7 +39,7 @@ class Clerk extends Module
 		$this->displayName = $this->l('Clerk');
 		$this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
 
-		//Set store id
+		//Set shop id
         $this->shop_id = (! empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
 
 		//Set language id
@@ -59,25 +59,37 @@ class Clerk extends Module
 
         //Initialize empty settings for all shops and languages
 		foreach ($this->getAllShops() as $shop) {
+		    $emptyValues = array();
+		    $trueValues = array();
+		    $falseValues = array();
+		    $searchTemplateValues = array();
+            $liveSearchTemplateValues = array();
+            $powerstepTemplateValues = array();
+
 		    foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
-                $suffix = $this->getSuffix($shop['id_shop'], $language['id_lang']);
-
-                Configuration::updateValue('CLERK_PUBLIC_KEY' . $suffix, '');
-                Configuration::updateValue('CLERK_PRIVATE_KEY' . $suffix, '');
-
-                Configuration::updateValue('CLERK_SEARCH_ENABLED' . $suffix, 0);
-                Configuration::updateValue('CLERK_SEARCH_TEMPLATE' . $suffix, 'search-page');
-
-                Configuration::updateValue('CLERK_LIVESEARCH_ENABLED' . $suffix, 0);
-                Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES' . $suffix, 0);
-                Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE' . $suffix, 'live-search');
-
-                Configuration::updateValue('CLERK_POWERSTEP_ENABLED' . $suffix, 0);
-                Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES' . $suffix, 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular');
-
-                Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix, 1);
-                Configuration::updateValue('CLERK_DATASYNC_FIELDS' . $suffix, '');
+                $emptyValues[$language['id_lang']] = '';
+                $trueValues[$language['id_lang']] = 1;
+                $falseValues[$language['id_lang']] = 0;
+                $searchTemplateValues[$language['id_lang']] = 'search-page';
+                $liveSearchTemplateValues[$language['id_lang']] = 'live-search';
+                $powerstepTemplateValues[$language['id_lang']] = 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular';
             }
+
+            Configuration::updateValue('CLERK_PUBLIC_KEY', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_PRIVATE_KEY', $emptyValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $trueValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
         }
 
 		return parent::install() &&
@@ -93,25 +105,18 @@ class Clerk extends Module
 	 */
 	public function uninstall()
 	{
-        foreach ($this->getAllShops() as $shop) {
-            foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
-                $suffix = $this->getSuffix($shop['id_shop'], $language['id_lang']);
+        Configuration::deleteByName('CLERK_PUBLIC_KEY');
+        Configuration::deleteByName('CLERK_PRIVATE_KEY');
+        Configuration::deleteByName('CLERK_SEARCH_ENABLED');
+        Configuration::deleteByName('CLERK_SEARCH_TEMPLATE');
+        Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
+        Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
+        Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
+        Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
+        Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
+        Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
+        Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
 
-                Configuration::deleteByName('CLERK_PUBLIC_KEY' . $suffix);
-                Configuration::deleteByName('CLERK_PRIVATE_KEY' . $suffix);
-                Configuration::deleteByName('CLERK_SEARCH_ENABLED' . $suffix);
-                Configuration::deleteByName('CLERK_SEARCH_TEMPLATE' . $suffix);
-                Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED' . $suffix);
-                Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES' . $suffix);
-                Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE' . $suffix);
-                Configuration::deleteByName('CLERK_POWERSTEP_ENABLED' . $suffix);
-                Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES' . $suffix);
-                Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix);
-                Configuration::deleteByName('CLERK_DATASYNC_FIELDS' . $suffix);
-            }
-        }
-
-		// Delete configuration
 		return parent::uninstall();
 	}
 
@@ -147,25 +152,49 @@ class Clerk extends Module
                 || (Tools::getValue('clerk_language_select') === false
                 && (int)Configuration::get('PS_LANG_DEFAULT') === $this->language_id )) {
 
-                $suffix = $this->getSuffix($this->shop_id, $this->language_id);
+                Configuration::updateValue('CLERK_PUBLIC_KEY', array(
+                    $this->language_id => trim(Tools::getValue('clerk_public_key', ''))
+                ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_PUBLIC_KEY' . $suffix, trim(Tools::getValue('clerk_public_key' . $suffix, '')));
-                Configuration::updateValue('CLERK_PRIVATE_KEY' . $suffix, trim(Tools::getValue('clerk_private_key' . $suffix, '')));
-                Configuration::updateValue('CLERK_SEARCH_ENABLED' . $suffix, Tools::getValue('clerk_search_enabled' . $suffix, 0));
-                Configuration::updateValue('CLERK_SEARCH_TEMPLATE' . $suffix,
-                    str_replace(' ', '', Tools::getValue('clerk_search_template' . $suffix, '')));
-                Configuration::updateValue('CLERK_LIVESEARCH_ENABLED' . $suffix, Tools::getValue('clerk_livesearch_enabled' . $suffix, 0));
-                Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES' . $suffix,
-                    Tools::getValue('clerk_livesearch_categories' . $suffix, ''));
-                Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE' . $suffix,
-                    str_replace(' ', '', Tools::getValue('clerk_livesearch_template' . $suffix, '')));
-                Configuration::updateValue('CLERK_POWERSTEP_ENABLED' . $suffix, Tools::getValue('clerk_powerstep_enabled' . $suffix, 0));
-                Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES' . $suffix,
-                    str_replace(' ', '', Tools::getValue('clerk_powerstep_templates' . $suffix, '')));
-                Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix,
-                    Tools::getValue('clerk_datasync_collect_emails' . $suffix, 1));
-                Configuration::updateValue('CLERK_DATASYNC_FIELDS' . $suffix,
-                    str_replace(' ', '', Tools::getValue('clerk_datasync_fields' . $suffix, '')));
+                Configuration::updateValue('CLERK_PRIVATE_KEY', array(
+                    $this->language_id => trim(Tools::getValue('clerk_private_key', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_SEARCH_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_search_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_SEARCH_TEMPLATE', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_search_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_livesearch_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', array(
+                    $this->language_id => Tools::getValue('clerk_livesearch_categories', '')
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_POWERSTEP_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_powerstep_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_powerstep_templates', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_collect_emails', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_FIELDS', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_datasync_fields', ''))
+                ), false, null, $this->shop_id);
             }
 
             $this->settings_updated = true;
@@ -188,8 +217,6 @@ class Clerk extends Module
 
         $shops = $this->getAllShops();
         $languages = $this->getAllLanguages();
-
-        $suffix = $this->getSuffix($this->shop_id, $this->language_id);
 
         //Language selector
         $this->fields_form[] = array(
@@ -227,17 +254,17 @@ class Clerk extends Module
 					array(
 						'type' => 'text',
 						'label' => $this->l('Public Key'),
-						'name' => 'clerk_public_key' . $suffix,
+						'name' => 'clerk_public_key',
 					),
 					array(
 						'type' => 'text',
 						'label' => $this->l('Private Key'),
-						'name' => 'clerk_private_key' . $suffix,
+						'name' => 'clerk_private_key',
 					),
 					array(
 						'type' => 'text',
 						'label' => $this->l('Import Url'),
-						'name' => 'clerk_import_url' . $suffix,
+						'name' => 'clerk_import_url',
 						'readonly' => true,
 					),
 				),
@@ -255,7 +282,7 @@ class Clerk extends Module
                     array(
                         'type' => $booleanType,
                         'label' => $this->l('Collect Emails'),
-                        'name' => 'clerk_datasync_collect_emails' . $suffix,
+                        'name' => 'clerk_datasync_collect_emails',
                         'is_bool' => true,
                         'class' => 't',
                         'values' => array(
@@ -274,7 +301,7 @@ class Clerk extends Module
                     array(
                         'type' => 'text',
                         'label' => $this->l('Additional Fields'),
-                        'name' => 'clerk_datasync_fields' . $suffix,
+                        'name' => 'clerk_datasync_fields',
                     ),
                 ),
             ),
@@ -291,7 +318,7 @@ class Clerk extends Module
 					array(
 						'type' => $booleanType,
 						'label' => $this->l('Enabled'),
-						'name' => 'clerk_search_enabled' . $suffix,
+						'name' => 'clerk_search_enabled',
                         'is_bool' => true,
                         'class' => 't',
 						'values' => array(
@@ -310,7 +337,7 @@ class Clerk extends Module
 					array(
 						'type' => 'text',
 						'label' => $this->l('Template'),
-						'name' => 'clerk_search_template' . $suffix,
+						'name' => 'clerk_search_template',
 					),
 				),
 			),
@@ -327,7 +354,7 @@ class Clerk extends Module
 					array(
 						'type' => $booleanType,
 						'label' => $this->l('Enabled'),
-						'name' => 'clerk_livesearch_enabled' . $suffix,
+						'name' => 'clerk_livesearch_enabled',
                         'is_bool' => true,
                         'class' => 't',
 						'values' => array(
@@ -346,7 +373,7 @@ class Clerk extends Module
 					array(
 						'type' => $booleanType,
 						'label' => $this->l('Include Categories'),
-						'name' => 'clerk_livesearch_categories' . $suffix,
+						'name' => 'clerk_livesearch_categories',
                         'is_bool' => true,
                         'class' => 't',
 						'values' => array(
@@ -365,7 +392,7 @@ class Clerk extends Module
 					array(
 						'type' => 'text',
 						'label' => $this->l('Template'),
-						'name' => 'clerk_livesearch_template' . $suffix,
+						'name' => 'clerk_livesearch_template',
 					),
 				),
 			),
@@ -382,7 +409,7 @@ class Clerk extends Module
 					array(
 						'type' => $booleanType,
 						'label' => $this->l('Enabled'),
-						'name' => 'clerk_powerstep_enabled' . $suffix,
+						'name' => 'clerk_powerstep_enabled',
                         'is_bool' => true,
                         'class' => 't',
 						'values' => array(
@@ -401,7 +428,7 @@ class Clerk extends Module
 					array(
 						'type' => 'text',
 						'label' => $this->l('Templates'),
-						'name' => 'clerk_powerstep_templates' . $suffix,
+						'name' => 'clerk_powerstep_templates',
 						'desc' => $this->l('A comma separated list of clerk templates to render')
 					),
 				),
@@ -448,38 +475,34 @@ class Clerk extends Module
 	 */
 	public function getConfigFieldsValues()
 	{
-	    $suffix = $this->getSuffix($this->shop_id, $this->language_id);
-
 		return array(
-			'clerk_public_key' . $suffix => Tools::getValue('clerk_public_key' . $suffix, Configuration::get('CLERK_PUBLIC_KEY' . $suffix)),
-			'clerk_private_key' . $suffix => Tools::getValue('clerk_private_key' . $suffix, Configuration::get('CLERK_PRIVATE_KEY' . $suffix)),
-			'clerk_import_url' . $suffix => _PS_BASE_URL_,
-			'clerk_search_enabled' . $suffix => Tools::getValue('clerk_search_enabled' . $suffix, Configuration::get('CLERK_SEARCH_ENABLED' . $suffix)),
-			'clerk_search_template' . $suffix => Tools::getValue('clerk_search_template' . $suffix, Configuration::get('CLERK_SEARCH_TEMPLATE' . $suffix)),
-			'clerk_livesearch_enabled' . $suffix => Tools::getValue('clerk_livesearch_enabled' . $suffix, Configuration::get('CLERK_LIVESEARCH_ENABLED' . $suffix)),
-			'clerk_livesearch_categories' . $suffix => Tools::getValue('clerk_livesearch_categories' . $suffix, Configuration::get('CLERK_LIVESEARCH_CATEGORIES' . $suffix)),
-			'clerk_livesearch_template' . $suffix => Tools::getValue('clerk_livesearch_template' . $suffix, Configuration::get('CLERK_LIVESEARCH_TEMPLATE' . $suffix)),
-			'clerk_powerstep_enabled' . $suffix => Tools::getValue('clerk_powerstep_enabled' . $suffix, Configuration::get('CLERK_POWERSTEP_ENABLED' . $suffix)),
-			'clerk_powerstep_templates' . $suffix => Tools::getValue('clerk_powerstep_templates' . $suffix, Configuration::get('CLERK_POWERSTEP_TEMPLATES' . $suffix)),
-            'clerk_datasync_collect_emails' . $suffix => Tools::getValue('clerk_datasync_collect_emails' . $suffix, Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix)),
-            'clerk_datasync_fields' . $suffix => Tools::getValue('clerk_datasync_fields' . $suffix, Configuration::get('CLERK_DATASYNC_FIELDS' . $suffix)),
+			'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
+			'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
+			'clerk_import_url' => _PS_BASE_URL_,
+			'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
+			'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+			'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
+			'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
+			'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+			'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
+			'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
 		);
 	}
 
     public function hookTop($params)
     {
-        $suffix = $this->getSuffix($this->context->shop->id, $this->context->language->id);
-
-        if (Configuration::get('CLERK_SEARCH_ENABLED' . $suffix)) {
+        if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . (( ! isset($params['hook_mobile']) || ! $params['hook_mobile']) ? '' : '-hook_mobile'));
             if (Tools::getValue('search_query') || ! $this->isCached('search-top.tpl', $key)) {
-                //            $this->calculHookCommon($params);
+
                 $this->smarty->assign(array(
                         'clerksearch_type' => 'top',
                         'search_query'     => (string)Tools::getValue('search_query'),
-                        'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED' . $suffix),
-                        'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES' . $suffix),
-                        'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE' . $suffix))),
+                        'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
                     )
                 );
             }
@@ -495,11 +518,9 @@ class Clerk extends Module
 	 */
 	public function hookFooter()
 	{
-        $suffix = $this->getSuffix($this->context->shop->id, $this->context->language->id);
-
 	    //Determine if we should redirect to powerstep
         if ($this->context->controller instanceof OrderController) {
-            if (Tools::getValue('ipa') && Configuration::get('CLERK_POWERSTEP_ENABLED' . $suffix)) {
+            if (Tools::getValue('ipa') && Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
                 $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => Tools::getValue('ipa')));
                 Tools::redirect($url);
             }
@@ -508,8 +529,8 @@ class Clerk extends Module
 		//Assign template variables
 		$this->context->smarty->assign(
 			array(
-				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY' . $suffix),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix)
+				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id)
 			)
 		);
 
@@ -525,8 +546,6 @@ class Clerk extends Module
 	 */
 	public function hookDisplayOrderConfirmation($params)
 	{
-        $suffix = $this->getSuffix($this->context->shop->id, $this->context->language->id);
-
 		$order = $params['objOrder'];
 		$products = $order->getProducts();
 
@@ -545,7 +564,7 @@ class Clerk extends Module
 				'clerk_order_id' => $order->id,
 				'clerk_customer_email' => $this->context->customer->email,
 				'clerk_products' => json_encode($productArray),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS' . $suffix),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
 			)
 		);
 
@@ -595,17 +614,5 @@ class Clerk extends Module
         }
 
         return $languages;
-    }
-
-    /**
-     * Generate suffix
-     *
-     * @param $shop_id
-     * @param $language_id
-     * @return string
-     */
-    private function getSuffix($shop_id, $language_id)
-    {
-        return sprintf('_%s_%s', $shop_id, $language_id);
     }
 }

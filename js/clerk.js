@@ -4,4 +4,8 @@ jQuery(document).ready(function() {
         $("#clerk_language_switch").prop('disabled', true);
         $(this).closest("form").submit();
     });
+
+    $("#clerk_language_switch").on("click", function() {
+        $("#ignore_changes").val(1);
+    });
 });

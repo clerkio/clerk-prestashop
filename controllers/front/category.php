@@ -36,7 +36,7 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 $item = array(
-                    'id' => $category['id_category'],
+                    'id' => (int) $category['id_category'],
                     'name' => $category['name'],
                     'url' => $this->context->link->getCategoryLink($category['id_category'], null, $id_lang),
                 );

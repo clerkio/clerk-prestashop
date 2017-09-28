@@ -113,7 +113,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         );
 
         //Get custom fields from configuration
-        $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS' . $this->getSuffix(), '');
+        $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->getLanguageId(), null, $this->getShopId());
 
         $fields = explode(',', $fieldsConfig);
 

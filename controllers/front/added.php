@@ -15,9 +15,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
 
         $image = Image::getCover($id_product);
 
-        $suffix = $this->getSuffix();
-
-        $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES' . $suffix);
+        $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
         $templates = array_filter(explode(',', $templatesConfig));
 
         $this->context->smarty->assign(array(
@@ -39,15 +37,5 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
     {
         parent::setMedia();
         $this->addCSS(_MODULE_DIR_.$this->module->name.'/views/css/powerstep.css');
-    }
-
-    /**
-     * Get configuration suffix
-     *
-     * @return string
-     */
-    private function getSuffix()
-    {
-        return sprintf('_%s_%s', $this->context->shop->id, $this->context->language->id);
     }
 }

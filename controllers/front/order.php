@@ -100,7 +100,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 					SELECT osl.`name`
 					FROM `'._DB_PREFIX_.'order_state_lang` osl
 					WHERE osl.`id_order_state` = o.`current_state`
-					AND osl.`id_lang` = '.(int)$context->language->id.'
+					AND osl.`id_lang` = '.(int)$this->getLanguageId().'
 					LIMIT 1
 				) AS `state_name`, o.`date_add` AS `date_add`, o.`date_upd` AS `date_upd`
 				FROM `'._DB_PREFIX_.'orders` o
