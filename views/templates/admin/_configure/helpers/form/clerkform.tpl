@@ -33,7 +33,7 @@
                             {$shop['name']|escape}
                         </option>
                     {/foreach}
-                </select>                
+                </select>
             </div>
             {if !$input.monolanguage }
             <div class="col-md-4">

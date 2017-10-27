@@ -75,4 +75,6 @@ function upgrade_module_3_1_0($object)
         Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $trueValues, false, null, $shop['id_shop']);
         Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
     }
+
+    return true;
 }

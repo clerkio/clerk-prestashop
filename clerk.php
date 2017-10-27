@@ -27,7 +27,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '3.1.0';
+		$this->version = '4.0.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -56,6 +56,19 @@ class Clerk extends Module
 		if (Shop::isFeatureActive()) {
 			Shop::setContext(Shop::CONTEXT_ALL);
 		}
+
+		//Install tab
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->name = array();
+        $tab->class_name = 'AdminClerkDashboard';
+
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = 'Clerk';
+        }
+
+        $tab->id_parent = 0;
+        $tab->module = $this->name;
 
         //Initialize empty settings for all shops and languages
 		foreach ($this->getAllShops() as $shop) {
@@ -93,9 +106,12 @@ class Clerk extends Module
         }
 
 		return parent::install() &&
+            $tab->add() &&
             $this->registerHook('top') &&
 			$this->registerHook('footer') &&
-			$this->registerHook('displayOrderConfirmation');
+            $this->registerHook('actionCartSave') &&
+			$this->registerHook('displayOrderConfirmation') &&
+            $this->registerHook('actionAdminControllerSetMedia');
 	}
 
 	/**
@@ -105,6 +121,13 @@ class Clerk extends Module
 	 */
 	public function uninstall()
 	{
+        $id_tab = (int) Tab::getIdFromClassName('AdminClerkDashboard');
+
+        if ($id_tab) {
+            $tab = new Tab($id_tab);
+            $tab->delete();
+        }
+
         Configuration::deleteByName('CLERK_PUBLIC_KEY');
         Configuration::deleteByName('CLERK_PRIVATE_KEY');
         Configuration::deleteByName('CLERK_SEARCH_ENABLED');
@@ -519,10 +542,17 @@ class Clerk extends Module
 	public function hookFooter()
 	{
 	    //Determine if we should redirect to powerstep
-        if ($this->context->controller instanceof OrderController) {
-            if (Tools::getValue('ipa') && Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-                $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => Tools::getValue('ipa')));
-                Tools::redirect($url);
+        $controller = $this->context->controller;
+        $cookie = $this->context->cookie;
+        if ($controller instanceof OrderController || $controller instanceof OrderOpcController) {
+            //Determine if powerstep is enabled
+            if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+                if ($cookie->clerk_show_powerstep == true) {
+                    unset($cookie->clerk_show_powerstep);
+                    $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => $cookie->clerk_last_product));
+                    unset($cookie->clerk_last_product);
+                    Tools::redirect($url);
+                }
             }
         }
 
@@ -536,6 +566,14 @@ class Clerk extends Module
 
 		return $this->display(__FILE__, 'visitor_tracking.tpl', $this->getCacheId(BlockCMSModel::FOOTER));
 	}
+
+	public function hookActionCartSave()
+    {
+        if (Tools::getValue('add')) {
+            $this->context->cookie->clerk_show_powerstep = true;
+            $this->context->cookie->clerk_last_product = Tools::getValue('id_product');
+        }
+    }
 
 	/**
 	 * Add sales tracking to order confirmation
@@ -572,6 +610,19 @@ class Clerk extends Module
 	}
 
     /**
+     * Add clerk css to backend
+     *
+     * @param $arr
+     */
+    public function hookActionAdminControllerSetMedia($params) {
+        if (isset($this->context) && isset($this->context->controller)) {
+            $this->context->controller->addCss($this->_path.'views/css/clerk.css');
+        } else {
+            Tools::addCSS($this->_path.'/views/css/clerk.css');
+        }
+    }
+
+    /**
      * Get all shops
      *
      * @return array
@@ -597,7 +648,7 @@ class Clerk extends Module
      * @param $shop_id
      * @return array
      */
-    private function getAllLanguages($shop_id)
+    private function getAllLanguages($shop_id = null)
     {
         if (is_null($shop_id)) {
             $shop_id = $this->shop_id;
