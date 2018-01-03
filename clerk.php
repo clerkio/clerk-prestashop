@@ -27,7 +27,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '4.0.1';
+		$this->version = '4.0.2';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -103,6 +103,7 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $trueValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $powerstepTemplateValues, false, null, $shop['id_shop']);
@@ -141,6 +142,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
+        Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
         Configuration::deleteByName('CLERK_EXIT_INTENT_TEMPLATE');
@@ -218,6 +220,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', array(
                     $this->language_id => Tools::getValue('clerk_datasync_collect_emails', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_disable_order_synchronization', 1)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array(
@@ -338,6 +344,25 @@ class Clerk extends Module
                         'type' => 'text',
                         'label' => $this->l('Additional Fields'),
                         'name' => 'clerk_datasync_fields',
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Disable Order Synchronization'),
+                        'name' => 'clerk_datasync_disable_order_synchronization',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_disable_order_synchronization_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_disable_order_synchronization_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
                     ),
                 ),
             ),
@@ -559,6 +584,7 @@ class Clerk extends Module
 			'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
 			'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),

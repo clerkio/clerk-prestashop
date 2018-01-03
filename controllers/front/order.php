@@ -46,6 +46,10 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
         $response = array();
         $limit = '';
 
+        if (Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->getLanguageId(), null, $this->getShopId())) {
+            return $response;
+        }
+
         if ($this->limit > 0) {
             $limit = sprintf('LIMIT %s', $this->limit);
         }
