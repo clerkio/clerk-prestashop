@@ -14,3 +14,9 @@
     })();
 </script>
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
+{if ($exit_intent_enabled)}
+<span class="clerk"
+      data-template="@{$exit_intent_template}"
+      data-exit-intent="true">
+</span>
+{/if}

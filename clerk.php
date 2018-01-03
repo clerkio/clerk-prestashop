@@ -27,7 +27,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '4.0.0';
+		$this->version = '4.0.1';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -103,6 +103,9 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $trueValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $powerstepTemplateValues, false, null, $shop['id_shop']);
         }
 
 		return parent::install() &&
@@ -139,6 +142,8 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
+        Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
+        Configuration::deleteByName('CLERK_EXIT_INTENT_TEMPLATE');
 
 		return parent::uninstall();
 	}
@@ -217,6 +222,14 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_datasync_fields', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_exit_intent_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_exit_intent_template', ''))
                 ), false, null, $this->shop_id);
             }
 
@@ -454,12 +467,48 @@ class Clerk extends Module
 						'name' => 'clerk_powerstep_templates',
 						'desc' => $this->l('A comma separated list of clerk templates to render')
 					),
-				),
-				'submit' => array(
-					'title' => $this->l('Save'),
 				)
 			),
 		);
+
+        //Exit intent settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Exit Intent Settings'),
+                    'icon' => 'icon-shopping-cart'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_exit_intent_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_exit_intent_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_exit_intent_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Template'),
+                        'name' => 'clerk_exit_intent_template',
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                )
+            ),
+        );
 
 		$helper = new HelperForm();
 
@@ -511,6 +560,8 @@ class Clerk extends Module
 			'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
+            'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
 		);
 	}
 
@@ -560,7 +611,9 @@ class Clerk extends Module
 		$this->context->smarty->assign(
 			array(
 				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id)
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
 			)
 		);
 
