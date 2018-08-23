@@ -5,6 +5,9 @@ if (!defined('_PS_VERSION_')) {
 
 class Clerk extends Module
 {
+    const TYPE_PAGE = 'page';
+    const TYPE_POPUP = 'popup';
+
     /**
      * @var bool
      */
@@ -27,7 +30,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '4.0.2';
+		$this->version = '4.1.0';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -86,6 +89,8 @@ class Clerk extends Module
                 $searchTemplateValues[$language['id_lang']] = 'search-page';
                 $liveSearchTemplateValues[$language['id_lang']] = 'live-search';
                 $powerstepTemplateValues[$language['id_lang']] = 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular';
+                $powerstepTypeValues[$language['id_lang']] = self::TYPE_PAGE;
+                $exitIntentTemplateValues[$language['id_lang']] = 'exit-intent';
             }
 
             Configuration::updateValue('CLERK_PUBLIC_KEY', $emptyValues, false, null, $shop['id_shop']);
@@ -99,14 +104,15 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop['id_shop']);
 
-            Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $trueValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $powerstepTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
         }
 
 		return parent::install() &&
@@ -140,6 +146,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
         Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
+        Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
@@ -212,6 +219,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_POWERSTEP_ENABLED', array(
                     $this->language_id => Tools::getValue('clerk_powerstep_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_POWERSTEP_TYPE', array(
+                    $this->language_id => Tools::getValue('clerk_powerstep_type', self::TYPE_PAGE)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', array(
@@ -486,6 +497,26 @@ class Clerk extends Module
 							)
 						)
 					),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Powerstep Type'),
+                        'name' => 'clerk_powerstep_type',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => self::TYPE_PAGE,
+                                    'name' => $this->l('Page')
+                                ),
+                                array(
+                                    'value' => self::TYPE_POPUP,
+                                    'name' => $this->l('Popup')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
 					array(
 						'type' => 'text',
 						'label' => $this->l('Templates'),
@@ -582,6 +613,7 @@ class Clerk extends Module
 			'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
 			'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
 			'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
+			'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
 			'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
@@ -621,31 +653,73 @@ class Clerk extends Module
 	    //Determine if we should redirect to powerstep
         $controller = $this->context->controller;
         $cookie = $this->context->cookie;
+
+        $popup = '';
+
         if ($controller instanceof OrderController || $controller instanceof OrderOpcController) {
             //Determine if powerstep is enabled
             if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
                 if ($cookie->clerk_show_powerstep == true) {
-                    unset($cookie->clerk_show_powerstep);
-                    $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => $cookie->clerk_last_product));
-                    unset($cookie->clerk_last_product);
-                    Tools::redirect($url);
+
+                    if (Configuration::get('CLERK_POWERSTEP_TYPE') === self::TYPE_PAGE) {
+                        $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => $cookie->clerk_last_product));
+
+                        //Clear cookies
+                        unset($cookie->clerk_show_powerstep);
+                        unset($cookie->clerk_last_product);
+
+                        Tools::redirect($url);
+                    } else {
+                        $id_product = $cookie->clerk_last_product;
+
+                        $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
+
+                        if (!Validate::isLoadedObject($product)) {
+                            Tools::redirect('index.php');
+                        }
+
+                        $image = Image::getCover($id_product);
+
+                        $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
+                        $templates = array_filter(explode(',', $templatesConfig));
+
+                        $category = reset($product->getCategories());
+
+                        $this->context->smarty->assign(array(
+                            'templates' => $templates,
+                            'product' => $product,
+                            'category' => $category,
+                            'image' => $image,
+                            'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
+                        ));
+
+                        //Clear cookies
+                        unset($cookie->clerk_show_powerstep);
+                        unset($cookie->clerk_last_product);
+
+                        $popup .= $this->display(__FILE__, 'powerstep_popup.tpl');
+                    }
                 }
             }
         }
 
 		//Assign template variables
-		$this->context->smarty->assign(
-			array(
-				'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-                'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-			)
-		);
+		$this->context->smarty->assign(array(
+            'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+            'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+            'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+        ));
 
-		return $this->display(__FILE__, 'visitor_tracking.tpl', $this->getCacheId(BlockCMSModel::FOOTER));
+        $output = $this->display(__FILE__, 'visitor_tracking.tpl');
+        $output .= $popup;
+
+        return $output;
 	}
 
+    /**
+     * Hook cart save action
+     */
 	public function hookActionCartSave()
     {
         if (Tools::getValue('add')) {

@@ -10,7 +10,6 @@
 <span
         id="clerk-search"
         class="clerk"
-
         data-template="@{$search_template|escape:'html':'UTF-8'}"
         data-limit="40"
         data-offset="0"
