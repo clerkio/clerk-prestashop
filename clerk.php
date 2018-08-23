@@ -737,29 +737,32 @@ class Clerk extends Module
 	 */
 	public function hookDisplayOrderConfirmation($params)
 	{
-		$order = $params['objOrder'];
-		$products = $order->getProducts();
+		$order = isset($params['order']) ? $params['order'] : $params['objOrder'];
 
-		$productArray = array();
+		if ($order) {
+            $products = $order->getProducts();
 
-		foreach ($products as $product) {
-			$productArray[] = array(
-				'id' => $product['id_product'],
-				'quantity' => $product['product_quantity'],
-				'price' => $product['product_price_wt'],
-			);
-		}
+            $productArray = array();
 
-		$this->context->smarty->assign(
-			array(
-				'clerk_order_id' => $order->id,
-				'clerk_customer_email' => $this->context->customer->email,
-				'clerk_products' => json_encode($productArray),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-			)
-		);
+            foreach ($products as $product) {
+                $productArray[] = array(
+                    'id' => $product['id_product'],
+                    'quantity' => $product['product_quantity'],
+                    'price' => $product['product_price_wt'],
+                );
+            }
 
-		return $this->display(__FILE__, 'sales_tracking.tpl');
+            $this->context->smarty->assign(
+                array(
+                    'clerk_order_id' => $order->id,
+                    'clerk_customer_email' => $this->context->customer->email,
+                    'clerk_products' => json_encode($productArray),
+                    'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                )
+            );
+
+            return $this->display(__FILE__, 'sales_tracking.tpl');
+        }
 	}
 
     /**
