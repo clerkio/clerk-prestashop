@@ -1,5 +1,8 @@
 <div id="search_block_top" class="col-sm-4 clearfix">
     <form id="searchbox" method="get" action="{$link->getModuleLink('clerk', 'search')|escape:'html'}" >
+        <input type="hidden" name="fc" value="module">
+        <input type="hidden" name="module" value="clerk">
+        <input type="hidden" name="controller" value="search">
         <input class="search_query form-control" type="text" id="search_query_top" name="search_query" placeholder="{l s='Search' mod='blocksearch'}" value="{$search_query|escape:'htmlall':'UTF-8'|stripslashes}" />
         <button type="submit" class="btn btn-default button-search">
             <span>{l s='Search' mod='clerk'}</span>

@@ -627,11 +627,11 @@ class Clerk extends Module
     {
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . (( ! isset($params['hook_mobile']) || ! $params['hook_mobile']) ? '' : '-hook_mobile'));
-            if (Tools::getValue('search_query') || ! $this->isCached('search-top.tpl', $key)) {
 
+            if (Tools::getValue('search_query')) {
                 $this->smarty->assign(array(
                         'clerksearch_type' => 'top',
-                        'search_query'     => (string)Tools::getValue('search_query'),
+                        'search_query'     => (string)Tools::getValue('search_query', ''),
                         'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
@@ -639,7 +639,7 @@ class Clerk extends Module
                 );
             }
 
-            return $this->display(__FILE__, 'search-top.tpl', Tools::getValue('search_query') ? null : $key);
+            return $this->display(__FILE__, 'search-top.tpl', $key);
         }
     }
 

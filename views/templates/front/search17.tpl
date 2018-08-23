@@ -1,3 +1,6 @@
+{extends file='page.tpl'}
+
+{block name='page_content'}
 <h1 class="page-heading">
     {l s='Search'}&nbsp;
     {if isset($search_query) && $search_query}
@@ -45,3 +48,4 @@
         }
     }
 </script>
+{/block}
