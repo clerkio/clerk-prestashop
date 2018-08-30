@@ -3,6 +3,7 @@ if (!defined('_PS_VERSION_')) {
 	exit;
 }
 
+
 class Clerk extends Module
 {
     const TYPE_PAGE = 'page';
@@ -628,7 +629,7 @@ class Clerk extends Module
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . (( ! isset($params['hook_mobile']) || ! $params['hook_mobile']) ? '' : '-hook_mobile'));
 
-            if (Tools::getValue('search_query')) {
+//            if (Tools::getValue('search_query')) {
                 $this->smarty->assign(array(
                         'clerksearch_type' => 'top',
                         'search_query'     => (string)Tools::getValue('search_query', ''),
@@ -637,7 +638,6 @@ class Clerk extends Module
                         'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
                     )
                 );
-            }
 
             return $this->display(__FILE__, 'search-top.tpl', $key);
         }
@@ -709,6 +709,8 @@ class Clerk extends Module
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+            'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+            'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
         ));
 
         $output = $this->display(__FILE__, 'visitor_tracking.tpl');
@@ -821,5 +823,62 @@ class Clerk extends Module
         }
 
         return $languages;
+    }
+
+    /**
+     * Render powerstep modal for PS 1.7
+     *
+     * @param Cart $cart
+     * @param $id_product
+     * @param $id_product_attribute
+     * @return mixed
+     * @throws Exception
+     */
+    public function renderModal(Cart $cart, $id_product, $id_product_attribute)
+    {
+        $data = (new \PrestaShop\PrestaShop\Adapter\Cart\CartPresenter)->present($cart);
+        $product = null;
+
+        foreach ($data['products'] as $p) {
+            if ($p['id_product'] == $id_product && $p['id_product_attribute'] == $id_product_attribute) {
+                $product = $p;
+                break;
+            }
+        }
+
+        $contentConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
+        $contents = array_filter(explode(',', $contentConfig));
+
+        $category = $product['id_category_default'];
+
+        $this->smarty->assign(array(
+            'product' => $product,
+            'category' => $category,
+            'cart' => $data,
+            'cart_url' => $this->getCartSummaryURL(),
+            'contents' => $contents
+        ));
+
+        return $this->fetch('module:clerk/powerstepmodal.tpl');
+    }
+
+    /**
+     * Get URL for cart page
+     *
+     * @return string
+     */
+    private function getCartSummaryURL()
+    {
+        return $this->context->link->getPageLink(
+            'cart',
+            null,
+            $this->context->language->id,
+            array(
+                'action' => 'show'
+            ),
+            false,
+            null,
+            true
+        );
     }
 }

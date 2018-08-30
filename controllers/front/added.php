@@ -18,7 +18,8 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
         $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
         $templates = array_filter(explode(',', $templatesConfig));
 
-        $category = reset($product->getCategories());
+        $categories = $product->getCategories();
+        $category = reset($categories);
 
         $this->context->smarty->assign(array(
             'templates' => $templates,
@@ -29,7 +30,11 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
             'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite)
         ));
 
-        $this->setTemplate('powerstep.tpl');
+        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+            $this->setTemplate('module:clerk/views/templates/front/powerstep17.tpl');
+        } else {
+            $this->setTemplate('powerstep.tpl');
+        }
 
         return $this;
     }

@@ -11,17 +11,17 @@
 </h1>
 
 <span
-        id="clerk-search"
-        class="clerk"
-        data-template="@{$search_template|escape:'html':'UTF-8'}"
-        data-limit="40"
-        data-offset="0"
-        data-target="#clerk-search-results"
-        data-after-render="_clerk_after_load_event"
-        data-query="{$search_query|escape:'html':'UTF-8'}">
+    id="clerk-search"
+    class="clerk"
+    data-template="@{$search_template|escape:'html':'UTF-8'}"
+    data-limit="40"
+    data-offset="0"
+    data-target="#clerk-search-results"
+    data-after-render="_clerk_after_load_event"
+    data-query="{$search_query|escape:'html':'UTF-8'}">
 </span>
 
-<ul id="clerk-search-results"></ul>
+<ul id="clerk-search-results" style="overflow: hidden;"></ul>
 <div id="clerk-search-no-results" style="display: none;"></div>
 
 <button id="clerk-search-load-more-button" class="btn btn-default">{l s='Load More Results' mod='clerk'}</button>
