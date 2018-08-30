@@ -656,51 +656,54 @@ class Clerk extends Module
 
         $popup = '';
 
-        if ($controller instanceof OrderController || $controller instanceof OrderOpcController) {
-            //Determine if powerstep is enabled
-            if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-                if ($cookie->clerk_show_powerstep == true) {
+        //Determine if powerstep is enabled
+        if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+            if ($cookie->clerk_show_powerstep == true) {
+                if (Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id) === self::TYPE_PAGE) {
+                    $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => $cookie->clerk_last_product));
 
-                    if (Configuration::get('CLERK_POWERSTEP_TYPE') === self::TYPE_PAGE) {
-                        $url = $this->context->link->getModuleLink('clerk', 'added', array('id_product' => $cookie->clerk_last_product));
+                    //Clear cookies
+                    unset($cookie->clerk_show_powerstep);
+                    unset($cookie->clerk_last_product);
 
-                        //Clear cookies
-                        unset($cookie->clerk_show_powerstep);
-                        unset($cookie->clerk_last_product);
+                    Tools::redirect($url);
+                } else {
+                    $id_product = $cookie->clerk_last_product;
 
-                        Tools::redirect($url);
-                    } else {
-                        $id_product = $cookie->clerk_last_product;
+                    $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
 
-                        $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
-
-                        if (!Validate::isLoadedObject($product)) {
-                            Tools::redirect('index.php');
-                        }
-
-                        $image = Image::getCover($id_product);
-
-                        $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
-                        $templates = array_filter(explode(',', $templatesConfig));
-
-                        $category = reset($product->getCategories());
-
-                        $this->context->smarty->assign(array(
-                            'templates' => $templates,
-                            'product' => $product,
-                            'category' => $category,
-                            'image' => $image,
-                            'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
-                        ));
-
-                        //Clear cookies
-                        unset($cookie->clerk_show_powerstep);
-                        unset($cookie->clerk_last_product);
-
-                        $popup .= $this->display(__FILE__, 'powerstep_popup.tpl');
+                    if (!Validate::isLoadedObject($product)) {
+                        Tools::redirect('index.php');
                     }
+
+                    $image = Image::getCover($id_product);
+
+                    $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
+                    $templates = array_filter(explode(',', $templatesConfig));
+
+                    $category = reset($product->getCategories());
+
+                    $this->context->smarty->assign(array(
+                        'templates' => $templates,
+                        'product' => $product,
+                        'category' => $category,
+                        'image' => $image,
+                        'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
+                    ));
+
+                    //Clear cookies
+                    unset($cookie->clerk_show_powerstep);
+                    unset($cookie->clerk_last_product);
+
+                    $popup .= $this->display(__FILE__, 'powerstep_popup.tpl');
                 }
             }
+        }
+
+        $is_v16 = true;
+
+        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+            $is_v16 = false;
         }
 
 		//Assign template variables
@@ -711,6 +714,7 @@ class Clerk extends Module
             'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
+            'isv17' => $is_v16
         ));
 
         $output = $this->display(__FILE__, 'visitor_tracking.tpl');

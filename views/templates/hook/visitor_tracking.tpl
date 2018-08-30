@@ -6,7 +6,7 @@
             collect_email: {$clerk_datasync_collect_emails}
         });
 
-        {if ($powerstep_enabled)}
+        {if ($powerstep_enabled && !$isv17)}
         //Handle powerstep
         prestashop.on("updateCart", function(e) {
             if (e.resp.success) {
