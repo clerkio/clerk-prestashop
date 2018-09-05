@@ -681,7 +681,8 @@ class Clerk extends Module
                     $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
                     $templates = array_filter(explode(',', $templatesConfig));
 
-                    $category = reset($product->getCategories());
+                    $categories = $product->getCategories();
+                    $category = reset($categories);
 
                     $this->context->smarty->assign(array(
                         'templates' => $templates,
