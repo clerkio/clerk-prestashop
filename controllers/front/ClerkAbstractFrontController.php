@@ -78,6 +78,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      * Validate request
      *
      * @param $request
+     * @return bool
      */
     protected function validateRequest()
     {

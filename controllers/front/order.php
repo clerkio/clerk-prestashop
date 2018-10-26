@@ -77,6 +77,10 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
                 }
             }
 
+            if (isset($item['email']) && !Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->getLanguageId(), null, $this->getShopId())) {
+                unset($item['email']);
+            }
+
             $response[] = $item;
         }
 
