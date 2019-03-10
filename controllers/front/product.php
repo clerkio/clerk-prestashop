@@ -12,6 +12,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         'reference' => 'sku',
     );
 
+    protected $stock;
+
     /**
      * ClerkProductModuleFrontController constructor.
      */
@@ -42,6 +44,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         $this->addFieldHandler('list_price', function($product) {
             //Get price without reduction
             return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
+        });
+
+        $this->addFieldHandler('qty', function($product) {
+            return $this->getStockForProduct($product);
+        });
+
+        $this->addFieldHandler('in_stock', function($product) {
+            return $this->getStockForProduct($product) > 0;
         });
 
         $this->addFieldHandler('categories', function($product) {
@@ -110,6 +120,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             'brand',
             'sku',
             'on_sale',
+            'qty',
+            'in_stock'
         );
 
         //Get custom fields from configuration
@@ -118,5 +130,21 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         $fields = explode(',', $fieldsConfig);
 
         return array_merge($default, $fields);
+    }
+
+    private function getStockForProduct($product)
+    {
+        $id_product_attribute = isset($product['id_product_attribute']) ? $product['id_product_attribute'] : null;
+
+        if (isset($this->stock[$product['id_product']][$id_product_attribute])) {
+            return $this->stock[$product['id_product']][$id_product_attribute];
+        }
+
+        $availableQuantity = StockAvailable::getQuantityAvailableByProduct($product['id_product'], $id_product_attribute);
+
+        $this->stock[$product['id_product']][$id_product_attribute] = $availableQuantity;
+
+        return $this->stock[$product['id_product']][$id_product_attribute];
+
     }
 }
