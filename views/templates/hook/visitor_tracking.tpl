@@ -14,7 +14,7 @@
                 var product_id_attribute = e.resp.id_product_attribute;
 
                 {if ($powerstep_type === 'page')}
-                window.location.replace('{$link->getModuleLink('clerk', 'added') nofilter}' + "&id_product=" + encodeURIComponent(product_id));
+                window.location.replace('{$link->getModuleLink('clerk', 'added') nofilter}' + "?id_product=" + encodeURIComponent(product_id));
                 {else}
                 $('#clerk_powerstep, #__clerk_overlay').remove();
 
