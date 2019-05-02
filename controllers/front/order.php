@@ -22,13 +22,16 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             $orderObj = new Order($order['id_order']);
             $products = $orderObj->getProducts();
 
+            $discounts = $orderObj->total_discounts_tax_incl;
+            $discount_per_product = $discounts / count($products);
+
             $response = array();
 
             foreach ($products as $product) {
                 $response[] = array(
                     'id' => $product['product_id'],
                     'quantity' => $product['product_quantity'],
-                    'price' => $product['product_price_wt'],
+                    'price' => $product['product_price_wt'] - $discount_per_product,
                 );
             }
 
