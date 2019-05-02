@@ -31,7 +31,7 @@ class Clerk extends Module
 	{
 		$this->name = 'clerk';
 		$this->tab = 'advertising_marketing';
-		$this->version = '4.1.2';
+		$this->version = '4.1.3';
 		$this->author = 'Clerk';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -751,11 +751,14 @@ class Clerk extends Module
 
             $productArray = array();
 
+            $discounts = $order->total_discounts_tax_incl;
+            $discount_per_product = $discounts / count($products);
+
             foreach ($products as $product) {
                 $productArray[] = array(
                     'id' => $product['id_product'],
                     'quantity' => $product['product_quantity'],
-                    'price' => $product['product_price_wt'],
+                    'price' => $product['product_price_wt'] - $discount_per_product,
                 );
             }
 
