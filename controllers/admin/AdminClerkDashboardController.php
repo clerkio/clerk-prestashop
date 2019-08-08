@@ -1,4 +1,28 @@
 <?php
+/**
+ *  @author Clerk.io
+ *  @copyright Copyright (c) 2017 Clerk.io
+ *
+ *  @license MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 class AdminClerkDashboardController extends ModuleAdminController
 {
@@ -51,7 +75,7 @@ class AdminClerkDashboardController extends ModuleAdminController
             'id_language' => $this->language_id,
             'id_shop' => $this->shop_id,
             'mode' => $this->mode,
-            'logoImg' => $this->module->getPathUri().'img/logo.png',
+            'logoImg' => $this->module->getPathUri().'views/img/logo.png',
             'moduleName' => $this->module->displayName,
             'moduleVersion' => $this->module->version,
         );
@@ -137,7 +161,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         $helper->base_tpl = 'dashboard.tpl';
 
-        $jsPath = $this->module->getPathUri() . '/js/clerk.js';
+        $jsPath = $this->module->getPathUri() . ' /views/js/clerk.js';
         if (isset($this->context) && isset($this->context->controller)) {
             $this->context->controller->addJs($jsPath);
         } else {
@@ -175,6 +199,6 @@ class AdminClerkDashboardController extends ModuleAdminController
      */
     protected function getStorePart($publicKey)
     {
-        return substr($publicKey, 0, 8);
+        return Tools::substr($publicKey, 0, 8);
     }
 }

@@ -1,14 +1,41 @@
+{*
+*  @author Clerk.io
+*  @copyright Copyright (c) 2017 Clerk.io
+*
+*  @license MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*}
+
+
+
 {extends file="helpers/form/form.tpl"}
 
 {block name="label"}
     {if $input.type == 'languageselector'}
          <div class="col-md-3 row" style="background-color: transparent;">
             <div class="top-logo">
-                <img src="{$input.logoImg|escape:html}" alt="Clerk.io" style="float:left;max-width:64px;">
+                <img src="{$input.logoImg}" alt="Clerk.io" style="float:left;max-width:64px;">
             </div>
             <div class="col-md-8 top-module-description">
-                <h1 class="top-module-title" style="margin-top:0;">{$input.moduleName|escape:html}</h1>
-                <div class="top-module-my-name">Version <strong>{$input.moduleVersion|escape:html}</strong></div>
+                <h1 class="top-module-title" style="margin-top:0;">{$input.moduleName}</h1>
+                <div class="top-module-my-name">Version <strong>{$input.moduleVersion}</strong></div>
             </div>
         </div>
     {else}

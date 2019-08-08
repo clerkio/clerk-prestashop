@@ -1,6 +1,33 @@
 <?php
+/**
+ *  @author Clerk.io
+ *  @copyright Copyright (c) 2017 Clerk.io
+ *
+ *  @license MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+use PrestaShop\PrestaShop\Adapter\Cart\CartPresenter;
+
 if (!defined('_PS_VERSION_')) {
-	exit;
+    exit;
 }
 
 
@@ -24,44 +51,44 @@ class Clerk extends Module
      */
     protected $shop_id;
 
-	/**
-	 * Clerk constructor.
-	 */
-	public function __construct()
-	{
-		$this->name = 'clerk';
-		$this->tab = 'advertising_marketing';
-		$this->version = '4.1.3';
-		$this->author = 'Clerk';
-		$this->need_instance = 0;
-		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
-		$this->bootstrap = true;
-		$this->controllers = array('added', 'search');
+    /**
+     * Clerk constructor.
+     */
+    public function __construct()
+    {
+        $this->name = 'clerk';
+        $this->tab = 'advertising_marketing';
+        $this->version = '4.1.3';
+        $this->author = 'Clerk';
+        $this->need_instance = 0;
+        $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
+        $this->bootstrap = true;
+        $this->controllers = array('added', 'search');
 
-		parent::__construct();
+        parent::__construct();
 
-		$this->displayName = $this->l('Clerk');
-		$this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
+        $this->displayName = $this->l('Clerk');
+        $this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
 
-		//Set shop id
-        $this->shop_id = (! empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
+        //Set shop id
+        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
 
-		//Set language id
-        $this->language_id = (! empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $this->context->language->id;
-	}
+        //Set language id
+        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $this->context->language->id;
+    }
 
-	/**
-	 * Register hooks & create configuration
-	 *
-	 * @return bool
-	 */
-	public function install()
-	{
-		if (Shop::isFeatureActive()) {
-			Shop::setContext(Shop::CONTEXT_ALL);
-		}
+    /**
+     * Register hooks & create configuration
+     *
+     * @return bool
+     */
+    public function install()
+    {
+        if (Shop::isFeatureActive()) {
+            Shop::setContext(Shop::CONTEXT_ALL);
+        }
 
-		//Install tab
+        //Install tab
         $tab = new Tab();
         $tab->active = 1;
         $tab->name = array();
@@ -75,15 +102,17 @@ class Clerk extends Module
         $tab->module = $this->name;
 
         //Initialize empty settings for all shops and languages
-		foreach ($this->getAllShops() as $shop) {
-		    $emptyValues = array();
-		    $trueValues = array();
-		    $falseValues = array();
-		    $searchTemplateValues = array();
+        foreach ($this->getAllShops() as $shop) {
+            $emptyValues = array();
+            $trueValues = array();
+            $falseValues = array();
+            $searchTemplateValues = array();
             $liveSearchTemplateValues = array();
             $powerstepTemplateValues = array();
+            $powerstepTypeValues = array();
+            $exitIntentTemplateValues  = array();
 
-		    foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
+            foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
                 $emptyValues[$language['id_lang']] = '';
                 $trueValues[$language['id_lang']] = 1;
                 $falseValues[$language['id_lang']] = 0;
@@ -116,23 +145,68 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
         }
 
-		return parent::install() &&
+        return parent::install() &&
             $tab->add() &&
             $this->registerHook('top') &&
-			$this->registerHook('footer') &&
+            $this->registerHook('footer') &&
             $this->registerHook('actionCartSave') &&
-			$this->registerHook('displayOrderConfirmation') &&
+            $this->registerHook('displayOrderConfirmation') &&
             $this->registerHook('actionAdminControllerSetMedia');
-	}
+    }
 
-	/**
-	 * Delete configuration
-	 *
-	 * @return bool
-	 */
-	public function uninstall()
-	{
-        $id_tab = (int) Tab::getIdFromClassName('AdminClerkDashboard');
+    /**
+     * Get all shops
+     *
+     * @return array
+     */
+    private function getAllShops()
+    {
+        $shops = array();
+        $allShops = Shop::getShops();
+
+        foreach ($allShops as $shop) {
+            $shops[] = array(
+                'id_shop' => $shop['id_shop'],
+                'name' => $shop['name']
+            );
+        }
+
+        return $shops;
+    }
+
+    /**
+     * Get all languages
+     *
+     * @param $shop_id
+     * @return array
+     */
+    private function getAllLanguages($shop_id = null)
+    {
+        if (is_null($shop_id)) {
+            $shop_id = $this->shop_id;
+        }
+
+        $languages = array();
+        $allLanguages = Language::getLanguages(false, $shop_id);
+
+        foreach ($allLanguages as $lang) {
+            $languages[] = array(
+                'id_lang' => $lang['id_lang'],
+                'name' => $lang['name']
+            );
+        }
+
+        return $languages;
+    }
+
+    /**
+     * Delete configuration
+     *
+     * @return bool
+     */
+    public function uninstall()
+    {
+        $id_tab = (int)Tab::getIdFromClassName('AdminClerkDashboard');
 
         if ($id_tab) {
             $tab = new Tab($id_tab);
@@ -155,44 +229,42 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
         Configuration::deleteByName('CLERK_EXIT_INTENT_TEMPLATE');
 
-		return parent::uninstall();
-	}
+        return parent::uninstall();
+    }
 
-	/**
-	 * Save configuration and show form
-	 */
-	public function getContent()
-	{
-		$output = '';
+    /**
+     * Save configuration and show form
+     */
+    public function getContent()
+    {
+        $output = '';
 
-		$this->processSubmit();
+        $this->processSubmit();
 
-		if ($this->settings_updated) {
+        if ($this->settings_updated) {
             $output .= $this->displayConfirmation($this->l('Settings updated.'));
         }
 
-		return $output.$this->renderForm();
-	}
+        return $output . $this->renderForm();
+    }
 
     /**
      * Handle form submission
      */
-	public function processSubmit()
+    public function processSubmit()
     {
         if (Tools::isSubmit('submitClerk')) {
-
             //Determine if we're changing shop or language
-            if (! empty(Tools::getValue('ignore_changes'))) {
+            if (!empty(Tools::getValue('ignore_changes'))) {
                 return true;
             }
 
             if ((Tools::getValue('clerk_language_select') !== false && (int)Tools::getValue('clerk_language_select') === $this->language_id)
                 || (Tools::getValue('clerk_language_select') === false
-                && (int)Configuration::get('PS_LANG_DEFAULT') === $this->language_id )) {
-
-                Configuration::updateValue('CLERK_PUBLIC_KEY', array(
-                    $this->language_id => trim(Tools::getValue('clerk_public_key', ''))
-                ), false, null, $this->shop_id);
+                    && (int)Configuration::get('PS_LANG_DEFAULT') === $this->language_id)) {
+                        Configuration::updateValue('CLERK_PUBLIC_KEY', array(
+                            $this->language_id => trim(Tools::getValue('clerk_public_key', ''))
+                        ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_PRIVATE_KEY', array(
                     $this->language_id => trim(Tools::getValue('clerk_private_key', ''))
@@ -255,16 +327,16 @@ class Clerk extends Module
         }
     }
 
-	/**
-	 * Render configuration form
-	 *
-	 * @return mixed
-	 */
-	public function renderForm()
-	{
-	    $booleanType = 'radio';
+    /**
+     * Render configuration form
+     *
+     * @return mixed
+     */
+    public function renderForm()
+    {
+        $booleanType = 'radio';
 
-	    //Use switch if available, looks better
+        //Use switch if available, looks better
         if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
             $booleanType = 'switch';
         }
@@ -288,7 +360,7 @@ class Clerk extends Module
                         'current_shop' => $this->shop_id,
                         'languages' => $languages,
                         'current_language' => $this->language_id,
-                        'logoImg' => $this->_path.'img/logo.png',
+                        'logoImg' => $this->_path . 'views/img/logo.png',
                         'moduleName' => $this->displayName,
                         'moduleVersion' => $this->version,
                     )
@@ -297,33 +369,33 @@ class Clerk extends Module
         );
 
 
-		//General settings
-		$this->fields_form[] = array(
-			'form' => array(
-				'legend' => array(
-					'title' => $this->l('General'),
-					'icon' => 'icon-cogs'
-				),
-				'input' => array(
-					array(
-						'type' => 'text',
-						'label' => $this->l('Public Key'),
-						'name' => 'clerk_public_key',
-					),
-					array(
-						'type' => 'text',
-						'label' => $this->l('Private Key'),
-						'name' => 'clerk_private_key',
-					),
-					array(
-						'type' => 'text',
-						'label' => $this->l('Import Url'),
-						'name' => 'clerk_import_url',
-						'readonly' => true,
-					),
-				),
-			),
-		);
+        //General settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('General'),
+                    'icon' => 'icon-cogs'
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Public Key'),
+                        'name' => 'clerk_public_key',
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Private Key'),
+                        'name' => 'clerk_private_key',
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Import Url'),
+                        'name' => 'clerk_import_url',
+                        'readonly' => true,
+                    ),
+                ),
+            ),
+        );
 
         //Data-sync settings
         $this->fields_form[] = array(
@@ -380,124 +452,124 @@ class Clerk extends Module
             ),
         );
 
-		//Search settings
-		$this->fields_form[] = array(
-			'form' => array(
-				'legend' => array(
-					'title' => $this->l('Search Settings'),
-					'icon' => 'icon-search'
-				),
-				'input' => array(
-					array(
-						'type' => $booleanType,
-						'label' => $this->l('Enabled'),
-						'name' => 'clerk_search_enabled',
+        //Search settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Search Settings'),
+                    'icon' => 'icon-search'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_search_enabled',
                         'is_bool' => true,
                         'class' => 't',
-						'values' => array(
-							array(
-								'id' => 'clerk_search_enabled_on',
-								'value' => 1,
-								'label' => $this->l('Enabled')
-							),
-							array(
-								'id' => 'clerk_search_enabled_off',
-								'value' => 0,
-								'label' => $this->l('Disabled')
-							)
-						)
-					),
-					array(
-						'type' => 'text',
-						'label' => $this->l('Template'),
-						'name' => 'clerk_search_template',
-					),
-				),
-			),
-		);
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_search_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_search_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Template'),
+                        'name' => 'clerk_search_template',
+                    ),
+                ),
+            ),
+        );
 
-		//Livesearch settings
-		$this->fields_form[] = array(
-			'form' => array(
-				'legend' => array(
-					'title' => $this->l('Live search Settings'),
-					'icon' => 'icon-search'
-				),
-				'input' => array(
-					array(
-						'type' => $booleanType,
-						'label' => $this->l('Enabled'),
-						'name' => 'clerk_livesearch_enabled',
+        //Livesearch settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Live search Settings'),
+                    'icon' => 'icon-search'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_livesearch_enabled',
                         'is_bool' => true,
                         'class' => 't',
-						'values' => array(
-							array(
-								'id' => 'clerk_livesearch_enabled_on',
-								'value' => 1,
-								'label' => $this->l('Enabled')
-							),
-							array(
-								'id' => 'clerk_livesearch_enabled_off',
-								'value' => 0,
-								'label' => $this->l('Disabled')
-							)
-						)
-					),
-					array(
-						'type' => $booleanType,
-						'label' => $this->l('Include Categories'),
-						'name' => 'clerk_livesearch_categories',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_livesearch_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_livesearch_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Categories'),
+                        'name' => 'clerk_livesearch_categories',
                         'is_bool' => true,
                         'class' => 't',
-						'values' => array(
-							array(
-								'id' => 'clerk_include_categories_on',
-								'value' => 1,
-								'label' => $this->l('Enabled')
-							),
-							array(
-								'id' => 'clerk_include_categories_off',
-								'value' => 0,
-								'label' => $this->l('Disabled')
-							)
-						)
-					),
-					array(
-						'type' => 'text',
-						'label' => $this->l('Template'),
-						'name' => 'clerk_livesearch_template',
-					),
-				),
-			),
-		);
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_include_categories_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_include_categories_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Template'),
+                        'name' => 'clerk_livesearch_template',
+                    ),
+                ),
+            ),
+        );
 
-		//Powerstep settings
-		$this->fields_form[] = array(
-			'form' => array(
-				'legend' => array(
-					'title' => $this->l('Powerstep Settings'),
-					'icon' => 'icon-shopping-cart'
-				),
-				'input' => array(
-					array(
-						'type' => $booleanType,
-						'label' => $this->l('Enabled'),
-						'name' => 'clerk_powerstep_enabled',
+        //Powerstep settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Powerstep Settings'),
+                    'icon' => 'icon-shopping-cart'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_powerstep_enabled',
                         'is_bool' => true,
                         'class' => 't',
-						'values' => array(
-							array(
-								'id' => 'clerk_powerstep_enabled_on',
-								'value' => 1,
-								'label' => $this->l('Enabled')
-							),
-							array(
-								'id' => 'clerk_powerstep_enabled_off',
-								'value' => 0,
-								'label' => $this->l('Disabled')
-							)
-						)
-					),
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_powerstep_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_powerstep_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
                     array(
                         'type' => 'select',
                         'label' => $this->l('Powerstep Type'),
@@ -518,15 +590,15 @@ class Clerk extends Module
                             'name' => 'name',
                         )
                     ),
-					array(
-						'type' => 'text',
-						'label' => $this->l('Templates'),
-						'name' => 'clerk_powerstep_templates',
-						'desc' => $this->l('A comma separated list of clerk templates to render')
-					),
-				)
-			),
-		);
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Templates'),
+                        'name' => 'clerk_powerstep_templates',
+                        'desc' => $this->l('A comma separated list of clerk templates to render')
+                    ),
+                )
+            ),
+        );
 
         //Exit intent settings
         $this->fields_form[] = array(
@@ -567,90 +639,86 @@ class Clerk extends Module
             ),
         );
 
-		$helper = new HelperForm();
+        $helper = new HelperForm();
 
-		$helper->show_toolbar = false;
-		$helper->table = $this->table;
-		$lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
+        $helper->show_toolbar = false;
+        $helper->table = $this->table;
+        $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
 
-		$helper->default_form_language = $lang->id;
-		$helper->allow_employee_form_lang = $lang->id;
+        $helper->default_form_language = $lang->id;
+        $helper->allow_employee_form_lang = $lang->id;
 
-		$helper->identifier = $this->identifier;
-		$helper->submit_action = 'submitClerk';
-		$helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
-		$helper->token = Tools::getAdminTokenLite('AdminModules');
-		$helper->tpl_vars = array(
-			'fields_value' => $this->getConfigFieldsValues(),
-			'languages' => $this->context->controller->getLanguages(),
-			'id_language' => $this->context->language->id
-		);
+        $helper->identifier = $this->identifier;
+        $helper->submit_action = 'submitClerk';
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->tpl_vars = array(
+            'fields_value' => $this->getConfigFieldsValues(),
+            'languages' => $this->context->controller->getLanguages(),
+            'id_language' => $this->context->language->id
+        );
 
-		$helper->module = $this;
+        $helper->module = $this;
         $helper->base_tpl = 'clerkform.tpl';
 
         if (isset($this->context) && isset($this->context->controller)) {
-            $this->context->controller->addJs($this->_path.'/js/clerk.js');
+            $this->context->controller->addJs($this->_path . ' /views/js/clerk.js');
         } else {
-            Tools::addJs($this->_path.'/js/clerk.js');
+            Tools::addJs($this->_path . ' /views/js/clerk.js');
         }
 
-		return $helper->generateForm($this->fields_form);
-	}
+        return $helper->generateForm($this->fields_form);
+    }
 
-	/**
-	 * Get configuration field values
-	 * @return array
-	 */
-	public function getConfigFieldsValues()
-	{
-		return array(
-			'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
-			'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
-			'clerk_import_url' => _PS_BASE_URL_,
-			'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
-			'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
-			'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
-			'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
-			'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
-			'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
-			'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
-			'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
+    /**
+     * Get configuration field values
+     * @return array
+     */
+    public function getConfigFieldsValues()
+    {
+        return array(
+            'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
+            'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
+            'clerk_import_url' => _PS_BASE_URL_,
+            'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
+            'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
-		);
-	}
+        );
+    }
 
     public function hookTop($params)
     {
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-            $key = $this->getCacheId('clerksearch-top' . (( ! isset($params['hook_mobile']) || ! $params['hook_mobile']) ? '' : '-hook_mobile'));
-
-//            if (Tools::getValue('search_query')) {
-                $this->smarty->assign(array(
-                        'clerksearch_type' => 'top',
-                        'search_query'     => (string)Tools::getValue('search_query', ''),
-                        'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                        'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                        'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-                    )
-                );
+            $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
+            $this->smarty->assign(array(
+                    'clerksearch_type' => 'top',
+                    'search_query' => (string)Tools::getValue('search_query', ''),
+                    'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
             return $this->display(__FILE__, 'search-top.tpl', $key);
         }
     }
 
-	/**
-	 * Add visitor tracking to footer
-	 *
-	 * @return mixed
-	 */
-	public function hookFooter()
-	{
-	    //Determine if we should redirect to powerstep
+    /**
+     * Add visitor tracking to footer
+     *
+     * @return mixed
+     */
+    public function hookFooter()
+    {
+        //Determine if we should redirect to powerstep
         $controller = $this->context->controller;
         $cookie = $this->context->cookie;
 
@@ -707,8 +775,8 @@ class Clerk extends Module
             $is_v16 = false;
         }
 
-		//Assign template variables
-		$this->context->smarty->assign(array(
+        //Assign template variables
+        $this->context->smarty->assign(array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
@@ -722,12 +790,12 @@ class Clerk extends Module
         $output .= $popup;
 
         return $output;
-	}
+    }
 
     /**
      * Hook cart save action
      */
-	public function hookActionCartSave()
+    public function hookActionCartSave()
     {
         if (Tools::getValue('add')) {
             $this->context->cookie->clerk_show_powerstep = true;
@@ -735,18 +803,18 @@ class Clerk extends Module
         }
     }
 
-	/**
-	 * Add sales tracking to order confirmation
-	 *
-	 * @param $params
-	 *
-	 * @return mixed
-	 */
-	public function hookDisplayOrderConfirmation($params)
-	{
-		$order = isset($params['order']) ? $params['order'] : $params['objOrder'];
+    /**
+     * Add sales tracking to order confirmation
+     *
+     * @param $params
+     *
+     * @return mixed
+     */
+    public function hookDisplayOrderConfirmation($params)
+    {
+        $order = isset($params['order']) ? $params['order'] : $params['objOrder'];
 
-		if ($order) {
+        if ($order) {
             $products = $order->getProducts();
 
             $productArray = array();
@@ -773,64 +841,20 @@ class Clerk extends Module
 
             return $this->display(__FILE__, 'sales_tracking.tpl');
         }
-	}
+    }
 
     /**
      * Add clerk css to backend
      *
      * @param $arr
      */
-    public function hookActionAdminControllerSetMedia($params) {
+    public function hookActionAdminControllerSetMedia($params)
+    {
         if (isset($this->context) && isset($this->context->controller)) {
-            $this->context->controller->addCss($this->_path.'views/css/clerk.css');
+            $this->context->controller->addCss($this->_path . 'views/css/clerk.css');
         } else {
-            Tools::addCSS($this->_path.'/views/css/clerk.css');
+            Tools::addCSS($this->_path . '/views/css/clerk.css');
         }
-    }
-
-    /**
-     * Get all shops
-     *
-     * @return array
-     */
-    private function getAllShops()
-    {
-        $shops = array();
-        $allShops = Shop::getShops();
-
-        foreach ($allShops as $shop) {
-            $shops[] = array(
-                'id_shop' => $shop['id_shop'],
-                'name' => $shop['name']
-            );
-        }
-
-        return $shops;
-    }
-
-    /**
-     * Get all languages
-     *
-     * @param $shop_id
-     * @return array
-     */
-    private function getAllLanguages($shop_id = null)
-    {
-        if (is_null($shop_id)) {
-            $shop_id = $this->shop_id;
-        }
-
-        $languages = array();
-        $allLanguages = Language::getLanguages(false, $shop_id);
-
-        foreach ($allLanguages as $lang) {
-            $languages[] = array(
-                'id_lang' => $lang['id_lang'],
-                'name' => $lang['name']
-            );
-        }
-
-        return $languages;
     }
 
     /**
@@ -844,7 +868,7 @@ class Clerk extends Module
      */
     public function renderModal(Cart $cart, $id_product, $id_product_attribute)
     {
-        $data = (new \PrestaShop\PrestaShop\Adapter\Cart\CartPresenter)->present($cart);
+        $data = (new CartPresenter)->present($cart);
         $product = null;
 
         foreach ($data['products'] as $p) {
@@ -867,7 +891,7 @@ class Clerk extends Module
             'contents' => $contents
         ));
 
-        return $this->fetch('module:clerk/powerstepmodal.tpl');
+        return $this->fetch('module:clerk/views/templates/front/powerstepmodal.tpl');
     }
 
     /**

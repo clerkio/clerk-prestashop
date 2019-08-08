@@ -1,13 +1,10 @@
-<?php
 /**
- *  @author Clerk.io
- *  @copyright Copyright (c) 2017 Clerk.io
+ * MIT License
  *
- *  @license MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
+ * Copyright (c) 2017 Clerk.io
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
@@ -24,11 +21,14 @@
  * SOFTWARE.
  */
 
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
+jQuery(document).ready(function() {
+    $("#clerk_shop_select, #clerk_language_select").on("change", function () {
+        $("#ignore_changes").val(1);
+        $("#clerk_language_switch").prop('disabled', true);
+        $(this).closest("form").submit();
+    });
 
-function upgrade_module_1_1_0($object)
-{
-    return Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', 1);
-}
+    $("#clerk_language_switch").on("click", function() {
+        $("#ignore_changes").val(1);
+    });
+});
