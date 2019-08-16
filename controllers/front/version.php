@@ -28,6 +28,21 @@ require "ClerkAbstractFrontController.php";
 
 class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
 {
+
+    /**
+     * @var ClerkLogger
+     */
+    protected $logger;
+
+    /**
+     * ClerkCategoryModuleFrontController constructor.
+     */
+    public function __construct()
+    {
+        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        $this->logger = new ClerkLogger();
+    }
+
     /**
      * Get response
      *
@@ -35,13 +50,24 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
      */
     public function getJsonResponse()
     {
-        $clerk = Module::getInstanceByName('clerk');
+        try {
 
-        $response = array(
-            'platform' => sprintf('PrestaShop %s', _PS_VERSION_),
-            'version' => $clerk->version,
-        );
+            $this->logger->log('Fetching Platform Started', []);
+            $clerk = Module::getInstanceByName('clerk');
 
-        return $response;
+            $response = array(
+                'platform' => sprintf('PrestaShop %s', _PS_VERSION_),
+                'version' => $clerk->version,
+            );
+
+            $this->logger->log('Fetched Platform Version Done', ['response' => $response]);
+
+            return $response;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR Version getJsonResponse', ['error' => $e]);
+
+        }
     }
 }

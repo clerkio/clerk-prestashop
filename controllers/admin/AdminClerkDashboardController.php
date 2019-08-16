@@ -26,6 +26,8 @@
 
 class AdminClerkDashboardController extends ModuleAdminController
 {
+
+    protected $logger;
     /**
      * @var int
      */
@@ -43,6 +45,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
     public function __construct()
     {
+        $this->logger = new ClerkLogger();
         $this->bootstrap = true;
         $this->display = 'view';
         parent::__construct();
@@ -83,6 +86,7 @@ class AdminClerkDashboardController extends ModuleAdminController
         if ($this->getEmbedUrl()) {
             $this->tpl_view_vars['embed_url'] = $this->getEmbedurl();
         }
+
     }
 
     public function initContent()
@@ -98,9 +102,18 @@ class AdminClerkDashboardController extends ModuleAdminController
     public function renderView()
     {
 //        $content = $this->renderForm();
-        $content = $this->renderDashboard();
 
-        return $content;
+        try {
+
+            $content = $this->renderDashboard();
+
+            return $content;
+
+        }catch (Exception $e) {
+
+            $this->logger->error('ERROR renderView',['error' => $e]);
+
+        }
     }
 
     /**
@@ -110,17 +123,27 @@ class AdminClerkDashboardController extends ModuleAdminController
      */
     private function getAllShops()
     {
-        $shops = array();
-        $allShops = Shop::getShops();
+        try {
 
-        foreach ($allShops as $shop) {
-            $shops[] = array(
-                'id_shop' => $shop['id_shop'],
-                'name' => $shop['name']
-            );
+            $shops = array();
+            $allShops = Shop::getShops();
+
+            foreach ($allShops as $shop) {
+                $shops[] = array(
+                    'id_shop' => $shop['id_shop'],
+                    'name' => $shop['name']
+                );
+            }
+
+            $this->logger->log('Fetched All Shops',['shops' => $shops]);
+
+            return $shops;
+
+        }catch (Exception $e) {
+
+            $this->logger->error('ERROR getAllShops',['error' => $e]);
+
         }
-
-        return $shops;
     }
 
     /**
@@ -131,21 +154,32 @@ class AdminClerkDashboardController extends ModuleAdminController
      */
     private function getAllLanguages($shop_id = null)
     {
-        if (is_null($shop_id)) {
-            $shop_id = $this->shop_id;
+        try {
+
+            if (is_null($shop_id)) {
+                $shop_id = $this->shop_id;
+            }
+
+            $languages = array();
+            $allLanguages = Language::getLanguages(false, $shop_id);
+
+            foreach ($allLanguages as $lang) {
+                $languages[] = array(
+                    'id_lang' => $lang['id_lang'],
+                    'name' => $lang['name']
+                );
+            }
+
+            $this->logger->log('Fetched All Languages',['languages' => $languages]);
+
+            return $languages;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getAllLanguages', ['error' => $e]);
+
         }
 
-        $languages = array();
-        $allLanguages = Language::getLanguages(false, $shop_id);
-
-        foreach ($allLanguages as $lang) {
-            $languages[] = array(
-                'id_lang' => $lang['id_lang'],
-                'name' => $lang['name']
-            );
-        }
-
-        return $languages;
     }
 
     /**
@@ -155,22 +189,32 @@ class AdminClerkDashboardController extends ModuleAdminController
      */
     public function renderDashboard()
     {
-        $helper = new HelperView($this);
-        $this->setHelperDisplay($helper);
-        $helper->tpl_vars = $this->getTemplateViewVars();
+        try {
 
-        $helper->base_tpl = 'dashboard.tpl';
+            $helper = new HelperView($this);
+            $this->setHelperDisplay($helper);
+            $helper->tpl_vars = $this->getTemplateViewVars();
 
-        $jsPath = $this->module->getPathUri() . ' /views/js/clerk.js';
-        if (isset($this->context) && isset($this->context->controller)) {
-            $this->context->controller->addJs($jsPath);
-        } else {
-            Tools::addJs($jsPath);
+            $helper->base_tpl = 'dashboard.tpl';
+
+            $jsPath = $this->module->getPathUri() . ' /views/js/clerk.js';
+            if (isset($this->context) && isset($this->context->controller)) {
+                $this->context->controller->addJs($jsPath);
+            } else {
+                Tools::addJs($jsPath);
+            }
+
+            $view = $helper->generateView();
+
+            $this->logger->log('Rendered Dashboard',['response' => '']);
+
+            return $view;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR renderDashboard', ['error' => $e]);
+
         }
-
-        $view = $helper->generateView();
-
-        return $view;
     }
 
     /**
@@ -180,15 +224,26 @@ class AdminClerkDashboardController extends ModuleAdminController
      */
     private function getEmbedUrl()
     {
-        $publicKey = Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id);
-        $privateKey = Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id);
+        try {
 
-        if (!$publicKey || !$privateKey) {
-            return false;
+            $publicKey = Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id);
+            $privateKey = Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id);
+
+            if (!$publicKey || !$privateKey) {
+                return false;
+            }
+
+            $storePart = $this->getStorePart($publicKey);
+
+            $this->logger->log('Fetched EmberUrl',['response' => sprintf('https://my.clerk.io/#/store/%s/analytics/%s?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey)]);
+
+            return sprintf('https://my.clerk.io/#/store/%s/analytics/%s?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getEmbedUrl', ['error' => $e]);
+
         }
-
-        $storePart = $this->getStorePart($publicKey);
-        return sprintf('https://my.clerk.io/#/store/%s/analytics/%s?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey);
     }
 
     /**
@@ -199,6 +254,14 @@ class AdminClerkDashboardController extends ModuleAdminController
      */
     protected function getStorePart($publicKey)
     {
+        try {
+
         return Tools::substr($publicKey, 0, 8);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getStorePart', ['error' => $e]);
+
+        }
     }
 }

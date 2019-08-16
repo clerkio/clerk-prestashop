@@ -28,15 +28,28 @@ require "ClerkAbstractFrontController.php";
 
 class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 {
+
+    /**
+     * @var
+     */
+    protected $logger;
+
+    /**
+     * @var array
+     */
     protected $fieldMap = array(
         'id_order' => 'id',
         'id_customer' => 'customer',
     );
 
+    /**
+     * ClerkOrderModuleFrontController constructor.
+     */
     public function __construct()
     {
         parent::__construct();
-
+        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        $this->logger = new ClerkLogger();
         $this->addFieldHandler('time', function ($order) {
             return strtotime($order['date_add']);
         });
@@ -71,48 +84,59 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
      */
     public function getJsonResponse()
     {
-        $response = array();
-        $limit = '';
+        try {
 
-        if (Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->getLanguageId(), null, $this->getShopId())) {
+            $this->logger->log('Fetching Orders Started', []);
+            $response = array();
+            $limit = '';
+
+            if (Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->getLanguageId(), null, $this->getShopId())) {
+                return $response;
+            }
+
+            if ($this->limit > 0) {
+                $limit = sprintf('LIMIT %s', $this->limit);
+            }
+
+            if ($this->offset > 0) {
+                $limit .= sprintf(' OFFSET %s', $this->offset);
+            }
+
+            $orders = $this->getOrdersWithInformations($limit);
+
+            $fields = array_flip($this->fieldMap);
+
+            foreach ($orders as $order) {
+                $item = array();
+                foreach ($this->fields as $field) {
+                    if (array_key_exists($field, array_flip($this->fieldMap))) {
+                        $item[$field] = $order[$fields[$field]];
+                    } elseif (isset($order[$field])) {
+                        $item[$field] = $order[$field];
+                    }
+
+                    //Check if there's a fieldHandler assigned for this field
+                    if (isset($this->fieldHandlers[$field])) {
+                        $item[$field] = $this->fieldHandlers[$field]($order);
+                    }
+                }
+
+                if (isset($item['email']) && !Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->getLanguageId(), null, $this->getShopId())) {
+                    unset($item['email']);
+                }
+
+                $response[] = $item;
+            }
+
+            $this->logger->log('Fetched Orders Done', ['response' => $response]);
+
             return $response;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR Order getJsonResponse', ['error' => $e]);
+
         }
-
-        if ($this->limit > 0) {
-            $limit = sprintf('LIMIT %s', $this->limit);
-        }
-
-        if ($this->offset > 0) {
-            $limit .= sprintf(' OFFSET %s', $this->offset);
-        }
-
-        $orders = $this->getOrdersWithInformations($limit);
-
-        $fields = array_flip($this->fieldMap);
-
-        foreach ($orders as $order) {
-            $item = array();
-            foreach ($this->fields as $field) {
-                if (array_key_exists($field, array_flip($this->fieldMap))) {
-                    $item[$field] = $order[$fields[$field]];
-                } elseif (isset($order[$field])) {
-                    $item[$field] = $order[$field];
-                }
-
-                //Check if there's a fieldHandler assigned for this field
-                if (isset($this->fieldHandlers[$field])) {
-                    $item[$field] = $this->fieldHandlers[$field]($order);
-                }
-            }
-
-            if (isset($item['email']) && !Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->getLanguageId(), null, $this->getShopId())) {
-                unset($item['email']);
-            }
-
-            $response[] = $item;
-        }
-
-        return $response;
     }
 
     protected function getDefaultFields()
@@ -128,23 +152,34 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 
     protected function getOrdersWithInformations($limit = null, Context $context = null)
     {
-        if (!$context) {
-            $context = Context::getContext();
-        }
+        try {
 
-        $sql = 'SELECT *, (
+            if (!$context) {
+                $context = Context::getContext();
+            }
+
+            $sql = 'SELECT *, (
 					SELECT osl.`name`
-					FROM `'._DB_PREFIX_.'order_state_lang` osl
+					FROM `' . _DB_PREFIX_ . 'order_state_lang` osl
 					WHERE osl.`id_order_state` = o.`current_state`
-					AND osl.`id_lang` = '.(int)$this->getLanguageId().'
+					AND osl.`id_lang` = ' . (int)$this->getLanguageId() . '
 					LIMIT 1
 				) AS `state_name`, o.`date_add` AS `date_add`, o.`date_upd` AS `date_upd`
-				FROM `'._DB_PREFIX_.'orders` o
-				LEFT JOIN `'._DB_PREFIX_.'customer` c ON (c.`id_customer` = o.`id_customer`)
+				FROM `' . _DB_PREFIX_ . 'orders` o
+				LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON (c.`id_customer` = o.`id_customer`)
 				WHERE 1
-					'.Shop::addSqlRestriction(false, 'o').'
+					' . Shop::addSqlRestriction(false, 'o') . '
 				ORDER BY o.`date_add` DESC
-				'.($limit != '' ? $limit : '');
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+				' . ($limit != '' ? $limit : '');
+
+            $this->logger->log('Fetched Orders with informations', ['response' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql)]);
+
+            return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getOrdersWithInformations', ['error' => $e]);
+
+        }
     }
 }

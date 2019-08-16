@@ -24,8 +24,10 @@
  * SOFTWARE.
  */
 
+
 abstract class ClerkAbstractFrontController extends ModuleFrontController
 {
+    protected $logger;
     /**
      * @var bool
      */
@@ -78,6 +80,8 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         parent::__construct();
         $this->ajax = true;
+        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        $this->logger = new ClerkLogger();
     }
 
     /**
@@ -85,17 +89,25 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     public function displayAjax()
     {
-        header('Content-type: application/json;charset=utf-8');
+        try {
 
-        if (! $this->validateRequest()) {
-            $this->jsonUnauthorized();
+            header('Content-type: application/json;charset=utf-8');
+
+            if (!$this->validateRequest()) {
+                $this->jsonUnauthorized();
+            }
+
+            $this->getArguments();
+
+            $response = $this->getJsonResponse();
+
+            $this->ajaxDie(Tools::jsonEncode($response));
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR displayAjax', ['error' => $e]);
+
         }
-
-        $this->getArguments();
-
-        $response = $this->getJsonResponse();
-
-        $this->ajaxDie(Tools::jsonEncode($response));
     }
 
     /**
@@ -106,14 +118,27 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function validateRequest()
     {
-        $public_key  = Tools::getValue('key', '');
-        $private_key = Tools::getValue('private_key', '');
+        try {
 
-        if ($public_key === Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId()) && $private_key === Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId())) {
-            return true;
+            $this->logger->warn('Validating API keys Started', []);
+            $public_key = Tools::getValue('key', '');
+            $private_key = Tools::getValue('private_key', '');
+
+            if ($public_key === Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId()) && $private_key === Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId())) {
+
+                $this->logger->log('API key was validated', ['response' => true]);
+                return true;
+
+            }
+
+            $this->logger->warn('API keys was not validated', ['response' => false]);
+            return false;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR validateRequest', ['error' => $e]);
+
         }
-
-        return false;
     }
 
     /**
@@ -121,17 +146,28 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     public function jsonUnauthorized()
     {
-        header('HTTP/1.1 403');
 
-        $response = array(
-            'code' => 403,
-            'message'     => 'Invalid keys supplied',
-            'description' => $this->module->l('The supplied public or private key is invalid'),
-            'how_to_fix'  => $this->module->l('Ensure that the proper keys are set up in the configuration'),
-        );
+        try {
 
-        $this->ajaxDie(Tools::jsonEncode($response));
-        return;
+            header('HTTP/1.1 403');
+
+            $response = array(
+                'code' => 403,
+                'message' => 'Invalid keys supplied',
+                'description' => $this->module->l('The supplied public or private key is invalid'),
+                'how_to_fix' => $this->module->l('Ensure that the proper keys are set up in the configuration'),
+            );
+
+            $this->logger->warn('Invalid API keys supplied', ['response' => $response]);
+            $this->ajaxDie(Tools::jsonEncode($response));
+
+            return;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR jsonUnauthorized', ['error' => $e]);
+
+        }
     }
 
     /**
@@ -143,11 +179,19 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getFieldName($field)
     {
-        if (isset($this->fieldMap[$field])) {
-            return $this->fieldMap[$field];
-        }
+        try {
 
-        return $field;
+            if (isset($this->fieldMap[$field])) {
+                return $this->fieldMap[$field];
+            }
+            $this->logger->log('Fetched file name', ['response' => $field]);
+            return $field;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getFieldName', ['error' => $e]);
+
+        }
     }
 
     /**
@@ -155,28 +199,38 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getArguments()
     {
-        $this->debug = (bool) Tools::getValue('debug', false);
-        $this->limit = (int) Tools::getValue('limit', 0);
-        $this->page = (int) Tools::getValue('page', 0);
-        $this->order_by = Tools::getValue('orderby', 'id_product');
-        $this->order = Tools::getValue('order', 'desc');
+        try {
 
-        $this->offset = 0;
+            $this->debug = (bool)Tools::getValue('debug', false);
+            $this->limit = (int)Tools::getValue('limit', 0);
+            $this->page = (int)Tools::getValue('page', 0);
+            $this->order_by = Tools::getValue('orderby', 'id_product');
+            $this->order = Tools::getValue('order', 'desc');
 
-        if ($this->page > 0) {
-            $this->offset = $this->page * $this->limit;
+            $this->offset = 0;
+
+            if ($this->page > 0) {
+                $this->offset = $this->page * $this->limit;
+            }
+
+            /**
+             * Explode fields on , and filter out "empty" entries
+             */
+            $fields = (string)Tools::getValue('fields');
+            if ($fields) {
+                $this->fields = array_filter(explode(',', $fields), 'strlen');
+            } else {
+                $this->fields = $this->getDefaultFields();
+            }
+            $this->fields = array_merge(array('id'), $this->fields);
+
+            $this->logger->log('Arguments are now set', ['response' => '']);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getArguments', ['error' => $e]);
+
         }
-
-        /**
-         * Explode fields on , and filter out "empty" entries
-         */
-        $fields = (string) Tools::getValue('fields');
-        if ($fields) {
-            $this->fields = array_filter(explode(',', $fields), 'strlen');
-        } else {
-            $this->fields = $this->getDefaultFields();
-        }
-        $this->fields = array_merge(array('id'), $this->fields);
     }
 
     /**
@@ -188,7 +242,15 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function addFieldHandler($field, $handler)
     {
+        try {
+
         $this->fieldHandlers[$field] = $handler;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR addFieldHandler', ['error' => $e]);
+
+        }
     }
 
     /**
@@ -207,28 +269,40 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      * @param string|null $value
      * @param string|null $controller
      * @param string|null $method
+     * @return
      */
     protected function ajaxDie($value = null, $controller = null, $method = null)
     {
-        //Call parent ajaxDie if available
-        if (is_callable('parent::ajaxDie')) {
-            return parent::ajaxDie($value, $controller, $method);
+        try {
+
+            //Call parent ajaxDie if available
+            if (is_callable('parent::ajaxDie')) {
+                return parent::ajaxDie($value, $controller, $method);
+            }
+
+            //Replicate functionality if not
+            if ($controller === null) {
+                $controller = get_class($this);
+            }
+
+            if ($method === null) {
+                $bt = debug_backtrace();
+                $method = $bt[1]['function'];
+            }
+
+            Hook::exec('actionBeforeAjaxDie', array('controller' => $controller, 'method' => $method, 'value' => $value));
+            Hook::exec('actionBeforeAjaxDie' . $controller . $method, array('value' => $value));
+
+            $this->logger->log('AJAX Killed', ['response' => '']);
+
+            die($value);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR ajaxDie', ['error' => $e]);
+
         }
 
-        //Replicate functionality if not
-        if ($controller === null) {
-            $controller = get_class($this);
-        }
-
-        if ($method === null) {
-            $bt = debug_backtrace();
-            $method = $bt[1]['function'];
-        }
-
-        Hook::exec('actionBeforeAjaxDie', array('controller' => $controller, 'method' => $method, 'value' => $value));
-        Hook::exec('actionBeforeAjaxDie'.$controller.$method, array('value' => $value));
-
-        die($value);
     }
 
     /**
@@ -238,7 +312,10 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getLanguageId()
     {
+
+        $this->logger->log('Fetched language id', ['response' => '']);
         return $this->context->language->id;
+
     }
 
     /**
@@ -248,6 +325,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getShopId()
     {
+        $this->logger->log('Fetched shop id', ['response' => '']);
         return $this->context->shop->id;
     }
 }

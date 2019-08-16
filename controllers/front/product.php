@@ -29,6 +29,11 @@ require "ClerkAbstractFrontController.php";
 class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 {
     /**
+     * @var
+     */
+    protected $logger;
+
+    /**
      * @var array
      */
     protected $fieldMap = array(
@@ -45,6 +50,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     public function __construct()
     {
         parent::__construct();
+        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        $this->logger = new ClerkLogger();
 
         $this->addFieldHandler('on_sale', function ($product) {
             return (Product::getPriceStatic($product['id_product'], true) < Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false));
@@ -98,32 +105,43 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
      */
     public function getJsonResponse()
     {
-        /** @var ProductCore $product */
-        $product = new Product();
-        $products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
+        try {
 
-        $response = array();
-        $fields = array_flip($this->fieldMap);
+            $this->logger->log('Fetching Products Started', []);
+            /** @var ProductCore $product */
+            $product = new Product();
+            $products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
 
-        foreach ($products as $product) {
-            $item = array();
-            foreach ($this->fields as $field) {
-                if (array_key_exists($field, array_flip($this->fieldMap))) {
-                    $item[$field] = $product[$fields[$field]];
-                } elseif (isset($product[$field])) {
-                    $item[$field] = $product[$field];
+            $response = array();
+            $fields = array_flip($this->fieldMap);
+
+            foreach ($products as $product) {
+                $item = array();
+                foreach ($this->fields as $field) {
+                    if (array_key_exists($field, array_flip($this->fieldMap))) {
+                        $item[$field] = $product[$fields[$field]];
+                    } elseif (isset($product[$field])) {
+                        $item[$field] = $product[$field];
+                    }
+
+                    //Check if there's a fieldHandler assigned for this field
+                    if (isset($this->fieldHandlers[$field])) {
+                        $item[$field] = $this->fieldHandlers[$field]($product);
+                    }
                 }
 
-                //Check if there's a fieldHandler assigned for this field
-                if (isset($this->fieldHandlers[$field])) {
-                    $item[$field] = $this->fieldHandlers[$field]($product);
-                }
+                $response[] = $item;
             }
 
-            $response[] = $item;
-        }
+            $this->logger->log('Fetched Products Done', ['response' => $response]);
 
-        return $response;
+            return $response;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR Products getJsonResponse', ['error' => $e]);
+
+        }
     }
 
     /**
@@ -133,42 +151,62 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
      */
     protected function getDefaultFields()
     {
-        $default = array(
-            'id',
-            'name',
-            'description',
-            'price',
-            'list_price',
-            'image',
-            'url',
-            'categories',
-            'brand',
-            'sku',
-            'on_sale',
-            'qty',
-            'in_stock'
-        );
+        try {
 
-        //Get custom fields from configuration
-        $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->getLanguageId(), null, $this->getShopId());
+            $default = array(
+                'id',
+                'name',
+                'description',
+                'price',
+                'list_price',
+                'image',
+                'url',
+                'categories',
+                'brand',
+                'sku',
+                'on_sale',
+                'qty',
+                'in_stock'
+            );
 
-        $fields = explode(',', $fieldsConfig);
+            //Get custom fields from configuration
+            $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->getLanguageId(), null, $this->getShopId());
 
-        return array_merge($default, $fields);
+            $fields = explode(',', $fieldsConfig);
+
+            $this->logger->log('Fetch default fields', ['response' => $fields]);
+
+            return array_merge($default, $fields);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getDefaultFields', ['error' => $e]);
+
+        }
     }
 
     private function getStockForProduct($product)
     {
-        $id_product_attribute = isset($product['id_product_attribute']) ? $product['id_product_attribute'] : null;
+        try {
 
-        if (isset($this->stock[$product['id_product']][$id_product_attribute])) {
+            $id_product_attribute = isset($product['id_product_attribute']) ? $product['id_product_attribute'] : null;
+
+            if (isset($this->stock[$product['id_product']][$id_product_attribute])) {
+                return $this->stock[$product['id_product']][$id_product_attribute];
+            }
+
+            $availableQuantity = StockAvailable::getQuantityAvailableByProduct($product['id_product'], $id_product_attribute);
+
+            $this->stock[$product['id_product']][$id_product_attribute] = $availableQuantity;
+
+            $this->logger->log('Fetch Product Stock', ['response' => $this->stock[$product['id_product']][$id_product_attribute]]);
+
             return $this->stock[$product['id_product']][$id_product_attribute];
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getStockForProduct', ['error' => $e]);
+
         }
-
-        $availableQuantity = StockAvailable::getQuantityAvailableByProduct($product['id_product'], $id_product_attribute);
-
-        $this->stock[$product['id_product']][$id_product_attribute] = $availableQuantity;
-
-        return $this->stock[$product['id_product']][$id_product_attribute];
     }
 }

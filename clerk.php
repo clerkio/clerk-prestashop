@@ -35,6 +35,11 @@ class Clerk extends Module
 {
     const TYPE_PAGE = 'page';
     const TYPE_POPUP = 'popup';
+    const LEVEL_ERROR = 'error';
+    const LEVEL_WARN = 'warn';
+    const LEVEL_ALL = 'all';
+    const LOGGING_TO_LOCAL = 'local';
+    const LOGGING_TO_COLLECT = 'collect';
 
     /**
      * @var bool
@@ -58,12 +63,13 @@ class Clerk extends Module
     {
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '4.1.3';
+        $this->version = '4.2.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
         $this->bootstrap = true;
         $this->controllers = array('added', 'search');
+        $this->module_key = '0273a44eac051eb3617d8db33cc07794';
 
         parent::__construct();
 
@@ -228,6 +234,8 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
         Configuration::deleteByName('CLERK_EXIT_INTENT_TEMPLATE');
+        Configuration::deleteByName('CLERK_LOGGING_LEVEL');
+        Configuration::deleteByName('CLERK_LOGGING_TO');
 
         return parent::uninstall();
     }
@@ -320,6 +328,14 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_exit_intent_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LOGGING_LEVEL', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_level', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LOGGING_TO', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_to', ''))
                 ), false, null, $this->shop_id);
             }
 
@@ -632,6 +648,82 @@ class Clerk extends Module
                         'label' => $this->l('Template'),
                         'name' => 'clerk_exit_intent_template',
                     ),
+                )
+            ),
+        );
+
+        //Logging settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Logging Settings'),
+                    'icon' => 'icon-cloud-upload'
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Logging Level'),
+                        'name' => 'clerk_logging_level',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => self::LEVEL_ERROR,
+                                    'name' => $this->l('Error')
+                                ),
+                                array(
+                                    'value' => self::LEVEL_WARN,
+                                    'name' => $this->l('Warn')
+                                ),
+                                array(
+                                    'value' => self::LEVEL_ALL,
+                                    'name' => $this->l('All')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Logging To'),
+                        'name' => 'clerk_logging_to',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => self::LOGGING_TO_LOCAL,
+                                    'name' => $this->l('Local')
+                                ),
+                                array(
+                                    'value' => self::LOGGING_TO_COLLECT,
+                                    'name' => $this->l('Collect')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'html',
+                        'label' => $this->l('Logging View'),
+                        'name' => 'LoggingViewer',
+                        'html_content' => '<script src="https://code.jquery.com/jquery-3.4.1.min.js"'.
+                    'integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>'.
+                    '<script type="text/javascript">'.
+                            '$(document).ready(function() {'.
+                            'document.getElementById(\'logger_view\').scrollTop = document.getElementById(\'logger_view\').scrollHeight;'.
+                            '});'.
+                            '(function () {'.
+                            '$.ajax({'.
+                            'url: "/modules/clerk/clerk_log.log", success: function (data) {'.
+                            'document.getElementById(\'clerk_logging_viewer\').innerHTML = data;'.
+                            '}, dataType: "html"'.
+                            '});'.
+                            'setTimeout(arguments.callee, 5000);'.
+                            '})();'.
+                            '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -693,6 +785,8 @@ class Clerk extends Module
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id),
+            'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id),
         );
     }
 
@@ -783,6 +877,8 @@ class Clerk extends Module
             'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
             'isv17' => $is_v16
         ));
 

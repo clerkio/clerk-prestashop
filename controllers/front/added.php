@@ -26,6 +26,23 @@
 
 class ClerkAddedModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @var ClerkLogger
+     */
+    protected $logger;
+
+    /**
+     * ClerkAddedModuleFrontController constructor.
+     */
+    public function __construct()
+    {
+        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        $this->logger = new ClerkLogger();
+    }
+
+    /**
+     * @return $this
+     */
     public function initContent()
     {
         parent::initContent();
@@ -69,7 +86,18 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
      */
     public function setMedia()
     {
-        parent::setMedia();
-        $this->addCSS(_MODULE_DIR_.$this->module->name.'/views/css/powerstep.css');
+
+        try {
+
+            parent::setMedia();
+            $this->addCSS(_MODULE_DIR_ . $this->module->name . '/views/css/powerstep.css');
+            $this->logger->log('Added Powerstep.css to the frontend', ['response' => '']);
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR setMedia', ['error' => $e]);
+
+        }
+
     }
 }
