@@ -40,15 +40,20 @@ class ClerkLogger extends ModuleAdminController
      */
     private $shop_id;
 
-    function __construct() {
+    /**
+     * ClerkLogger constructor.
+     * @throws Exception
+     */
+    function __construct()
+    {
 
         $context = Context::getContext();
 
         //Set shop id
-        $this->shop_id = (! empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
+        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
 
         //Set language id
-        $this->language_id = (! empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
         $this->Platform = 'Prestashop';
         $this->Key = Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id);
         $this->Date = new DateTime();
@@ -56,99 +61,75 @@ class ClerkLogger extends ModuleAdminController
 
     }
 
-    public function log ($Message, $Metadata) {
+    /**
+     * @param $Message
+     * @param $Metadata
+     */
+    public function log($Message, $Metadata)
+    {
 
         //Customize $Platform and the function for getting the public key.
         $JSON_Metadata_Encode = json_encode($Metadata);
         $Type = 'log';
 
-        if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) !== 'all') {
+        if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
 
 
-        }else {
+        } else {
 
-            if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
+            if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) !== 'all') {
 
-                if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
 
-                    $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+            } else {
 
-                } else {
+                if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                    $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+                    if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
+
+                        $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+
+                    } else {
+
+                        $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+
+                    }
+
+                    $curl = curl_init();
+
+                    curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    curl_exec($curl);
+                    curl_close($curl);
+
+                } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
+
+                    $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
+                        '-------------------------' . PHP_EOL;
+                    $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
+
+                    fopen($path, "a+");
+                    file_put_contents($path, $log, FILE_APPEND);
 
                 }
-
-                $curl = curl_init();
-
-                curl_setopt($curl, CURLOPT_URL, $Endpoint);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                curl_exec($curl);
-                curl_close($curl);
-
-            } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'local') {
-
-                $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
-                    '-------------------------' . PHP_EOL;
-                $path = _PS_MODULE_DIR_.'/clerk/clerk_log.log';
-
-                fopen($path, "a+");
-                file_put_contents($path, $log, FILE_APPEND);
-
             }
         }
-
     }
 
-    public function error ($Message, $Metadata) {
+    /**
+     * @param $Message
+     * @param $Metadata
+     */
+    public function error($Message, $Metadata)
+    {
 
         //Customize $Platform and the function for getting the public key.
         $JSON_Metadata_Encode = json_encode($Metadata);
         $Type = 'error';
 
-        if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
-
-            if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
-
-                $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-            } else {
-
-                $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-            }
-
-            $curl = curl_init();
-
-            curl_setopt($curl, CURLOPT_URL, $Endpoint);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_exec($curl);
-            curl_close($curl);
-
-        } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'local') {
-
-            $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
-                '-------------------------' . PHP_EOL;
-            $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
-
-            fopen($path, "a+");
-            file_put_contents($path, $log, FILE_APPEND);
-
-        }
+        if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
 
 
-    }
-
-    public function warn ($Message, $Metadata) {
-
-        //Customize $Platform and the function for getting the public key.
-        $JSON_Metadata_Encode = json_encode($Metadata);
-        $Type = 'warn';
-
-        if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'error') {
-
-
-        }else {
+        } else {
 
             if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
@@ -169,17 +150,70 @@ class ClerkLogger extends ModuleAdminController
                 curl_exec($curl);
                 curl_close($curl);
 
-            } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'local') {
+            } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
                 $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
                     '-------------------------' . PHP_EOL;
-                $path = _PS_MODULE_DIR_.'/clerk/clerk_log.log';
+                $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
 
                 fopen($path, "a+");
                 file_put_contents($path, $log, FILE_APPEND);
 
             }
         }
+    }
 
+    /**
+     * @param $Message
+     * @param $Metadata
+     */
+    public function warn($Message, $Metadata)
+    {
+
+        //Customize $Platform and the function for getting the public key.
+        $JSON_Metadata_Encode = json_encode($Metadata);
+        $Type = 'warn';
+
+        if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
+
+
+        } else {
+
+            if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'error') {
+
+
+            } else {
+
+                if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
+
+                    if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
+
+                        $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+
+                    } else {
+
+                        $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+
+                    }
+
+                    $curl = curl_init();
+
+                    curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    curl_exec($curl);
+                    curl_close($curl);
+
+                } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
+
+                    $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
+                        '-------------------------' . PHP_EOL;
+                    $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
+
+                    fopen($path, "a+");
+                    file_put_contents($path, $log, FILE_APPEND);
+
+                }
+            }
+        }
     }
 }

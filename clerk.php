@@ -38,8 +38,10 @@ class Clerk extends Module
     const LEVEL_ERROR = 'error';
     const LEVEL_WARN = 'warn';
     const LEVEL_ALL = 'all';
-    const LOGGING_TO_LOCAL = 'local';
+    const LOGGING_TO_FILE = 'file';
     const LOGGING_TO_COLLECT = 'collect';
+
+    private $logger;
 
     /**
      * @var bool
@@ -61,6 +63,8 @@ class Clerk extends Module
      */
     public function __construct()
     {
+        require_once (_PS_MODULE_DIR_. '/clerk/controllers/admin/ClerkLogger.php');
+        $this->logger = new ClerkLogger();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
         $this->version = '4.2.0';
@@ -69,7 +73,6 @@ class Clerk extends Module
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
         $this->bootstrap = true;
         $this->controllers = array('added', 'search');
-        $this->module_key = '0273a44eac051eb3617d8db33cc07794';
 
         parent::__construct();
 
@@ -84,9 +87,9 @@ class Clerk extends Module
     }
 
     /**
-     * Register hooks & create configuration
-     *
      * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function install()
     {
@@ -206,9 +209,9 @@ class Clerk extends Module
     }
 
     /**
-     * Delete configuration
-     *
      * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function uninstall()
     {
@@ -234,6 +237,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
         Configuration::deleteByName('CLERK_EXIT_INTENT_TEMPLATE');
+        Configuration::deleteByName('CLERK_LOGGING_ENABLED');
         Configuration::deleteByName('CLERK_LOGGING_LEVEL');
         Configuration::deleteByName('CLERK_LOGGING_TO');
 
@@ -330,27 +334,119 @@ class Clerk extends Module
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_exit_intent_template', ''))
                 ), false, null, $this->shop_id);
 
+                Configuration::updateValue('CLERK_LOGGING_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_logging_enabled', 0)
+                ), false, null, $this->shop_id);
+
                 Configuration::updateValue('CLERK_LOGGING_LEVEL', array(
-                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_level', ''))
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_level', 'warn'))
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LOGGING_TO', array(
-                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_to', ''))
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_to', 'collect'))
                 ), false, null, $this->shop_id);
-            }
 
+            }
+            $this->InitializeSearchPowerstep();
             $this->settings_updated = true;
         }
     }
 
     /**
-     * Render configuration form
      *
-     * @return mixed
+     */
+    public function InitializeSearchPowerstep()
+    {
+
+        if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
+
+        } else {
+
+            $livesearch_initiated = Configuration::get('CLERK_LOGGING_LIVESEARCHFIRST', $this->language_id, null, $this->shop_id);
+
+            $search_initiated = Configuration::get('CLERK_LOGGING_SEARCHFIRST', $this->language_id, null, $this->shop_id);
+
+            $powerstep_initiated = Configuration::get('CLERK_LOGGING_POWERSTEPFIRST', $this->language_id, null, $this->shop_id);
+
+            $livesearch_enabled = Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id);
+
+            $search_enabled = Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id);
+
+            $powerstep_enabled = Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id);
+
+
+            if ($livesearch_enabled == '1' && $livesearch_initiated !== '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_LIVESEARCHFIRST', array(
+                    $this->language_id => 1
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Live Search initiated', []);
+
+            }
+
+            if ($livesearch_enabled !== '1' && $livesearch_initiated == '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_LIVESEARCHFIRST', array(
+                    $this->language_id => 0
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Live Search uninitiated', []);
+
+            }
+
+            if ($search_enabled == '1' && $search_initiated !== '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_SEARCHFIRST', array(
+                    $this->language_id => 1
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Search initiated', []);
+
+            }
+
+            if ($search_enabled !== '1' && $search_initiated == '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_SEARCHFIRST', array(
+                    $this->language_id => 0
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Search uninitiated', []);
+
+            }
+
+            if ($powerstep_enabled == '1' && $powerstep_initiated !== '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_POWERSTEPFIRST', array(
+                    $this->language_id => 1
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Powerstep initiated', []);
+
+            }
+
+            if ($powerstep_enabled !== '1' && $powerstep_initiated == '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_POWERSTEPFIRST', array(
+                    $this->language_id => 0
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Powerstep uninitiated', []);
+
+            }
+        }
+
+    }
+
+    /**
+     * @return string
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function renderForm()
     {
         $booleanType = 'radio';
+        $LoggingView = '';
 
         //Use switch if available, looks better
         if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
@@ -652,6 +748,31 @@ class Clerk extends Module
             ),
         );
 
+        if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
+
+            $LoggingView = array(
+                'type' => 'html',
+                'label' => $this->l('Logging View'),
+                'name' => 'LoggingViewer',
+                'html_content' => '<script src="https://code.jquery.com/jquery-3.4.1.min.js"'.
+                    'integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>'.
+                    '<script type="text/javascript">'.
+                    '$(document).ready(function() {'.
+                    'document.getElementById(\'logger_view\').scrollTop = document.getElementById(\'logger_view\').scrollHeight;'.
+                    '});'.
+                    '(function () {'.
+                    '$.ajax({'.
+                    'url: "/modules/clerk/clerk_log.log", success: function (data) {'.
+                    'document.getElementById(\'clerk_logging_viewer\').innerHTML = data;'.
+                    '}, dataType: "html"'.
+                    '});'.
+                    'setTimeout(arguments.callee, 5000);'.
+                    '})();'.
+                    '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
+            );
+
+        }
+
         //Logging settings
         $this->fields_form[] = array(
             'form' => array(
@@ -660,6 +781,25 @@ class Clerk extends Module
                     'icon' => 'icon-cloud-upload'
                 ),
                 'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_logging_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_logging_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_logging_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
                     array(
                         'type' => 'select',
                         'label' => $this->l('Logging Level'),
@@ -692,8 +832,8 @@ class Clerk extends Module
                         'options' => array(
                             'query' => array(
                                 array(
-                                    'value' => self::LOGGING_TO_LOCAL,
-                                    'name' => $this->l('Local')
+                                    'value' => self::LOGGING_TO_FILE,
+                                    'name' => $this->l('File')
                                 ),
                                 array(
                                     'value' => self::LOGGING_TO_COLLECT,
@@ -704,26 +844,7 @@ class Clerk extends Module
                             'name' => 'name',
                         )
                     ),
-                    array(
-                        'type' => 'html',
-                        'label' => $this->l('Logging View'),
-                        'name' => 'LoggingViewer',
-                        'html_content' => '<script src="https://code.jquery.com/jquery-3.4.1.min.js"'.
-                    'integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>'.
-                    '<script type="text/javascript">'.
-                            '$(document).ready(function() {'.
-                            'document.getElementById(\'logger_view\').scrollTop = document.getElementById(\'logger_view\').scrollHeight;'.
-                            '});'.
-                            '(function () {'.
-                            '$.ajax({'.
-                            'url: "/modules/clerk/clerk_log.log", success: function (data) {'.
-                            'document.getElementById(\'clerk_logging_viewer\').innerHTML = data;'.
-                            '}, dataType: "html"'.
-                            '});'.
-                            'setTimeout(arguments.callee, 5000);'.
-                            '})();'.
-                            '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
-                    ),
+                    $LoggingView
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -785,6 +906,7 @@ class Clerk extends Module
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id),
         );
@@ -806,9 +928,9 @@ class Clerk extends Module
     }
 
     /**
-     * Add visitor tracking to footer
-     *
-     * @return mixed
+     * @return string
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookFooter()
     {
@@ -878,6 +1000,7 @@ class Clerk extends Module
             'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
             'isv17' => $is_v16
         ));

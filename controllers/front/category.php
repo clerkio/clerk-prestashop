@@ -52,7 +52,6 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
     {
         try {
 
-            $this->logger->log('Fetching Categories Started', []);
             $response = array();
 
             $limit = '';
@@ -102,7 +101,7 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
                 }
             }
 
-            $this->logger->log('Fetched Categories Done', ['response' => $response]);
+            $this->logger->log('Fetched Categories', ['response' => $response]);
 
             return $response;
 

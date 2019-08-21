@@ -86,7 +86,6 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
     {
         try {
 
-            $this->logger->log('Fetching Orders Started', []);
             $response = array();
             $limit = '';
 
@@ -128,7 +127,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
                 $response[] = $item;
             }
 
-            $this->logger->log('Fetched Orders Done', ['response' => $response]);
+            $this->logger->log('Fetched Orders', ['response' => $response]);
 
             return $response;
 

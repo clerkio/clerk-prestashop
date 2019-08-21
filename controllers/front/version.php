@@ -52,7 +52,6 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
     {
         try {
 
-            $this->logger->log('Fetching Platform Started', []);
             $clerk = Module::getInstanceByName('clerk');
 
             $response = array(
@@ -60,7 +59,7 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
                 'version' => $clerk->version,
             );
 
-            $this->logger->log('Fetched Platform Version Done', ['response' => $response]);
+            $this->logger->log('Fetch Platform Version', ['response' => $response]);
 
             return $response;
 

@@ -120,7 +120,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         try {
 
-            $this->logger->warn('Validating API keys Started', []);
             $public_key = Tools::getValue('key', '');
             $private_key = Tools::getValue('private_key', '');
 
@@ -131,7 +130,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
             }
 
-            $this->logger->warn('API keys was not validated', ['response' => false]);
+            $this->logger->warn('API key was not validated', ['response' => false]);
             return false;
 
         } catch (Exception $e) {

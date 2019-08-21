@@ -107,7 +107,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     {
         try {
 
-            $this->logger->log('Fetching Products Started', []);
             /** @var ProductCore $product */
             $product = new Product();
             $products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
@@ -133,7 +132,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $response[] = $item;
             }
 
-            $this->logger->log('Fetched Products Done', ['response' => $response]);
+            $this->logger->log('Fetched Products', ['response' => $response]);
 
             return $response;
 

@@ -44,8 +44,6 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
-
-            $this->logger->log('Fetching Customers Started', []);
             $customers = Customer::getCustomers(true);
 
             foreach ($customers as $index => $customer) {
@@ -54,7 +52,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 unset($customers[$index]['id_customer']);
             }
 
-            $this->logger->log('Fetched Customers Done', ['response' => $customers]);
+            $this->logger->log('Fetched Customers', ['response' => $customers]);
 
             return $customers;
 
