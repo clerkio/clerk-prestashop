@@ -86,7 +86,7 @@ class ClerkLogger extends ModuleAdminController
 
                     if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
 
-                        $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
+                        $Endpoint = 'api.clerk.io/v2/log/debug?&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
 
                     } else {
 

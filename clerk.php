@@ -368,12 +368,83 @@ class Clerk extends Module
 
             $powerstep_initiated = Configuration::get('CLERK_LOGGING_POWERSTEPFIRST', $this->language_id, null, $this->shop_id);
 
+            $datasync_collect_emails_initiated = Configuration::get('CLERK_LOGGING_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id);
+
+            $datasync_disable_order_synchronization_initiated = Configuration::get('CLERK_LOGGING_DATASYNC_DISABLE_ORDER_SYNCHRONIZATION', $this->language_id, null, $this->shop_id);
+
+            $exit_intent_initiated = Configuration::get('CLERK_LOGGING_EXIT_INTENT', $this->language_id, null, $this->shop_id);
+
             $livesearch_enabled = Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id);
 
             $search_enabled = Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id);
 
+            $datasync_collect_emails_enabled = Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id);
+
+            $datasync_disable_order_synchronization_enabled = Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id);
+
+            $exit_intent_enabled = Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id);
+
             $powerstep_enabled = Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id);
 
+            if ($exit_intent_enabled == '1' && $exit_intent_initiated !== '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_EXIT_INTENT', array(
+                    $this->language_id => 1
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Exit Intent initiated', []);
+
+            }
+
+            if ($exit_intent_enabled !== '1' && $exit_intent_initiated == '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_EXIT_INTENT', array(
+                    $this->language_id => 0
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Exit Intent uninitiated', []);
+
+            }
+
+            if ($datasync_disable_order_synchronization_enabled == '1' && $datasync_disable_order_synchronization_initiated !== '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_DATASYNC_DISABLE_ORDER_SYNCHRONIZATION', array(
+                    $this->language_id => 1
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Data Sync Disable Order Synchronization initiated', []);
+
+            }
+
+            if ($datasync_disable_order_synchronization_enabled !== '1' && $datasync_disable_order_synchronization_initiated == '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_DATASYNC_DISABLE_ORDER_SYNCHRONIZATION', array(
+                    $this->language_id => 0
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Data Sync Disable Order Synchronization uninitiated', []);
+
+            }
+
+            if ($datasync_collect_emails_enabled == '1' && $datasync_collect_emails_initiated !== '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_DATASYNC_COLLECT_EMAILS', array(
+                    $this->language_id => 1
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Data Sync Collect Emails initiated', []);
+
+            }
+
+            if ($datasync_collect_emails_enabled !== '1' && $datasync_collect_emails_initiated == '1') {
+
+                Configuration::updateValue('CLERK_LOGGING_DATASYNC_COLLECT_EMAILS', array(
+                    $this->language_id => 0
+                ), false, null, $this->shop_id);
+
+                $this->logger->log('Data Sync Collect Emails uninitiated', []);
+
+            }
 
             if ($livesearch_enabled == '1' && $livesearch_initiated !== '1') {
 
