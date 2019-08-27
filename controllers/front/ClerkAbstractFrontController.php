@@ -105,7 +105,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR displayAjax', ['error' => $e]);
+            $this->logger->error('ERROR displayAjax', ['error' => $e->getMessage()]);
 
         }
     }
@@ -113,7 +113,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     /**
      * Validate request
      *
-     * @param $request
      * @return bool
      */
     protected function validateRequest()
@@ -125,7 +124,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
             if ($public_key === Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId()) && $private_key === Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId())) {
 
-                $this->logger->log('API key was validated', ['response' => true]);
                 return true;
 
             }
@@ -135,7 +133,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR validateRequest', ['error' => $e]);
+            $this->logger->error('ERROR validateRequest', ['error' => $e->getMessage()]);
 
         }
     }
@@ -164,7 +162,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR jsonUnauthorized', ['error' => $e]);
+            $this->logger->error('ERROR jsonUnauthorized', ['error' => $e->getMessage()]);
 
         }
     }
@@ -188,7 +186,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getFieldName', ['error' => $e]);
+            $this->logger->error('ERROR getFieldName', ['error' => $e->getMessage()]);
 
         }
     }
@@ -223,11 +221,9 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             }
             $this->fields = array_merge(array('id'), $this->fields);
 
-            $this->logger->log('Arguments are now set', ['response' => '']);
-
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getArguments', ['error' => $e]);
+            $this->logger->error('ERROR getArguments', ['error' => $e->getMessage()]);
 
         }
     }
@@ -247,7 +243,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR addFieldHandler', ['error' => $e]);
+            $this->logger->error('ERROR addFieldHandler', ['error' => $e->getMessage()]);
 
         }
     }
@@ -298,7 +294,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR ajaxDie', ['error' => $e]);
+            $this->logger->error('ERROR ajaxDie', ['error' => $e->getMessage()]);
 
         }
 
@@ -312,7 +308,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     protected function getLanguageId()
     {
 
-        $this->logger->log('Fetched language id', ['response' => '']);
         return $this->context->language->id;
 
     }
@@ -324,7 +319,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getShopId()
     {
-        $this->logger->log('Fetched shop id', ['response' => '']);
         return $this->context->shop->id;
     }
 }

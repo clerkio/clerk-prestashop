@@ -138,7 +138,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR Products getJsonResponse', ['error' => $e]);
+            $this->logger->error('ERROR Products getJsonResponse', ['error' => $e->getMessage()]);
 
         }
     }
@@ -173,13 +173,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             $fields = explode(',', $fieldsConfig);
 
-            $this->logger->log('Fetch default fields', ['response' => $fields]);
-
             return array_merge($default, $fields);
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getDefaultFields', ['error' => $e]);
+            $this->logger->error('ERROR getDefaultFields', ['error' => $e->getMessage()]);
 
         }
     }
@@ -198,13 +196,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             $this->stock[$product['id_product']][$id_product_attribute] = $availableQuantity;
 
-            $this->logger->log('Fetch Product Stock', ['response' => $this->stock[$product['id_product']][$id_product_attribute]]);
-
             return $this->stock[$product['id_product']][$id_product_attribute];
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getStockForProduct', ['error' => $e]);
+            $this->logger->error('ERROR getStockForProduct', ['error' => $e->getMessage()]);
 
         }
     }

@@ -95,7 +95,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR setMedia', ['error' => $e]);
+            $this->logger->error('ERROR setMedia', ['error' => $e->getMessage()]);
 
         }
 

@@ -68,8 +68,26 @@ class ClerkLogger extends ModuleAdminController
     public function log($Message, $Metadata)
     {
 
-        //Customize $Platform and the function for getting the public key.
-        $JSON_Metadata_Encode = json_encode($Metadata);
+        if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+
+            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        else {
+
+            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        }
+
+        if ($_GET) {
+
+            $Metadata['params'] = $_GET;
+
+        }elseif ($_POST) {
+
+            $Metadata['params'] = $_POST;
+
+        }
+
         $Type = 'log';
 
         if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
@@ -84,31 +102,36 @@ class ClerkLogger extends ModuleAdminController
 
                 if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                    if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
+                    $Endpoint = 'http://api.clerk.io/v2/log/debug';
 
-                        $Endpoint = 'api.clerk.io/v2/log/debug?&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-                    } else {
-
-                        $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-                    }
+                    $data_string = json_encode([
+                        'key' =>$this->Key,
+                        'source' => $this->Platform,
+                        'time' => $this->Time,
+                        'type' => $Type,
+                        'message' => $Message,
+                        'metadata' => $Metadata]);
 
                     $curl = curl_init();
 
                     curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                    curl_setopt($curl, CURLOPT_POST, true);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                    curl_exec($curl);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+
+                    $response = json_decode(curl_exec($curl));
+
+                    if ($response->status == 'error') {
+
+                        $this->LogToFile($Message,$Metadata);
+
+                    }
+
                     curl_close($curl);
 
                 } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
-                    $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
-                        '-------------------------' . PHP_EOL;
-                    $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
-
-                    fopen($path, "a+");
-                    file_put_contents($path, $log, FILE_APPEND);
+                    $this->LogToFile($Message, $Metadata);
 
                 }
             }
@@ -122,8 +145,26 @@ class ClerkLogger extends ModuleAdminController
     public function error($Message, $Metadata)
     {
 
-        //Customize $Platform and the function for getting the public key.
-        $JSON_Metadata_Encode = json_encode($Metadata);
+        if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+
+            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        else {
+
+            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        }
+
+        if ($_GET) {
+
+            $Metadata['params'] = $_GET;
+
+        }elseif ($_POST) {
+
+            $Metadata['params'] = $_POST;
+
+        }
+
         $Type = 'error';
 
         if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
@@ -133,31 +174,37 @@ class ClerkLogger extends ModuleAdminController
 
             if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
+                $Endpoint = 'http://api.clerk.io/v2/log/debug';
 
-                    $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-                } else {
-
-                    $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-                }
+                $data_string = json_encode([
+                    'debug' => '1',
+                    'key' =>$this->Key,
+                    'source' => $this->Platform,
+                    'time' => $this->Time,
+                    'type' => $Type,
+                    'message' => $Message,
+                    'metadata' => $Metadata]);
 
                 $curl = curl_init();
 
                 curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                curl_setopt($curl, CURLOPT_POST, true);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                curl_exec($curl);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+
+                $response = json_decode(curl_exec($curl));
+
+                if ($response->status == 'error') {
+
+                    $this->LogToFile($Message,$Metadata);
+
+                }
+
                 curl_close($curl);
 
             } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
-                $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
-                    '-------------------------' . PHP_EOL;
-                $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
-
-                fopen($path, "a+");
-                file_put_contents($path, $log, FILE_APPEND);
+                $this->LogToFile($Message, $Metadata);
 
             }
         }
@@ -170,8 +217,26 @@ class ClerkLogger extends ModuleAdminController
     public function warn($Message, $Metadata)
     {
 
-        //Customize $Platform and the function for getting the public key.
-        $JSON_Metadata_Encode = json_encode($Metadata);
+        if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+
+            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        else {
+
+            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        }
+
+        if ($_GET) {
+
+            $Metadata['params'] = $_GET;
+
+        }elseif ($_POST) {
+
+            $Metadata['params'] = $_POST;
+
+        }
+
         $Type = 'warn';
 
         if (Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) !== '1') {
@@ -186,34 +251,53 @@ class ClerkLogger extends ModuleAdminController
 
                 if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                    if (Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id) == 'all') {
+                    $Endpoint = 'http://api.clerk.io/v2/log/debug';
 
-                        $Endpoint = 'api.clerk.io/v2/log/debug?debug=1&key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-                    } else {
-
-                        $Endpoint = 'api.clerk.io/v2/log/debug?key=' . $this->Key . '&source=' . $this->Platform . '&time=' . $this->Time . '&type=' . $Type . '&message=' . $Message . '&metadata=' . urlencode($JSON_Metadata_Encode);
-
-                    }
+                    $data_string = json_encode([
+                        'debug' => '1',
+                        'key' =>$this->Key,
+                        'source' => $this->Platform,
+                        'time' => $this->Time,
+                        'type' => $Type,
+                        'message' => $Message,
+                        'metadata' => $Metadata]);
 
                     $curl = curl_init();
 
                     curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                    curl_setopt($curl, CURLOPT_POST, true);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                    curl_exec($curl);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+
+                    $response = json_decode(curl_exec($curl));
+
+                    if ($response->status == 'error') {
+
+                        $this->LogToFile($Message,$Metadata);
+
+                    }
+
                     curl_close($curl);
 
                 } elseif (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
-                    $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . $JSON_Metadata_Encode . PHP_EOL .
-                        '-------------------------' . PHP_EOL;
-                    $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
-
-                    fopen($path, "a+");
-                    file_put_contents($path, $log, FILE_APPEND);
+                    $this->LogToFile($Message, $Metadata);
 
                 }
             }
         }
     }
+
+    public function LogToFile($Message,$Metadata)
+    {
+
+        $log = $this->Date->format('Y-m-d H:i:s') . ' MESSAGE: ' . $Message . ' METADATA: ' . json_encode($Metadata) . PHP_EOL .
+            '-------------------------' . PHP_EOL;
+        $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
+
+        fopen($path, "a+");
+        file_put_contents($path, $log, FILE_APPEND);
+
+    }
+
 }

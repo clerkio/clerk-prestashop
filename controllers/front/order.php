@@ -133,7 +133,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR Order getJsonResponse', ['error' => $e]);
+            $this->logger->error('ERROR Order getJsonResponse', ['error' => $e->getMessage()]);
 
         }
     }
@@ -177,7 +177,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getOrdersWithInformations', ['error' => $e]);
+            $this->logger->error('ERROR getOrdersWithInformations', ['error' => $e->getMessage()]);
 
         }
     }

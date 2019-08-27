@@ -107,7 +107,7 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR Categories getJsonResponse', ['error' => $e]);
+            $this->logger->error('ERROR Categories getJsonResponse', ['error' => $e->getMessage()]);
 
         }
     }

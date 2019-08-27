@@ -111,7 +111,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         }catch (Exception $e) {
 
-            $this->logger->error('ERROR renderView',['error' => $e]);
+            $this->logger->error('ERROR renderView',['error' => $e->getMessage()]);
 
         }
     }
@@ -141,7 +141,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         }catch (Exception $e) {
 
-            $this->logger->error('ERROR getAllShops',['error' => $e]);
+            $this->logger->error('ERROR getAllShops',['error' => $e->getMessage()]);
 
         }
     }
@@ -176,7 +176,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getAllLanguages', ['error' => $e]);
+            $this->logger->error('ERROR getAllLanguages', ['error' => $e->getMessage()]);
 
         }
 
@@ -212,7 +212,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR renderDashboard', ['error' => $e]);
+            $this->logger->error('ERROR renderDashboard', ['error' => $e->getMessage()]);
 
         }
     }
@@ -241,7 +241,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getEmbedUrl', ['error' => $e]);
+            $this->logger->error('ERROR getEmbedUrl', ['error' => $e->getMessage()]);
 
         }
     }
@@ -260,7 +260,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getStorePart', ['error' => $e]);
+            $this->logger->error('ERROR getStorePart', ['error' => $e->getMessage()]);
 
         }
     }

@@ -65,7 +65,7 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR Version getJsonResponse', ['error' => $e]);
+            $this->logger->error('ERROR Version getJsonResponse', ['error' => $e->getMessage()]);
 
         }
     }

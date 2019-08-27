@@ -58,7 +58,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
         } catch (Exception $e) {
 
-            $this->logger->error('ERROR getJsonResponse', ['error' => $e]);
+            $this->logger->error('ERROR getJsonResponse', ['error' => $e->getMessage()]);
 
         }
     }

@@ -1,9 +1,9 @@
 <?php
 /**
- *  @author Clerk.io
- *  @copyright Copyright (c) 2017 Clerk.io
+ * @author Clerk.io
+ * @copyright Copyright (c) 2017 Clerk.io
  *
- *  @license MIT License
+ * @license MIT License
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -40,30 +40,26 @@ class Clerk extends Module
     const LEVEL_ALL = 'all';
     const LOGGING_TO_FILE = 'file';
     const LOGGING_TO_COLLECT = 'collect';
-
-    private $logger;
-
     /**
      * @var bool
      */
     protected $settings_updated = false;
-
     /**
      * @var int
      */
     protected $language_id;
-
     /**
      * @var int
      */
     protected $shop_id;
+    private $logger;
 
     /**
      * Clerk constructor.
      */
     public function __construct()
     {
-        require_once (_PS_MODULE_DIR_. '/clerk/controllers/admin/ClerkLogger.php');
+        require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/ClerkLogger.php');
         $this->logger = new ClerkLogger();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
@@ -75,7 +71,6 @@ class Clerk extends Module
         $this->controllers = array('added', 'search');
 
         parent::__construct();
-
         $this->displayName = $this->l('Clerk');
         $this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
 
@@ -119,7 +114,7 @@ class Clerk extends Module
             $liveSearchTemplateValues = array();
             $powerstepTemplateValues = array();
             $powerstepTypeValues = array();
-            $exitIntentTemplateValues  = array();
+            $exitIntentTemplateValues = array();
 
             foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
                 $emptyValues[$language['id_lang']] = '';
@@ -160,7 +155,11 @@ class Clerk extends Module
             $this->registerHook('footer') &&
             $this->registerHook('actionCartSave') &&
             $this->registerHook('displayOrderConfirmation') &&
+            $this->registerHook('header') &&
+            $this->registerHook('displayBackOfficeHeader') &&
+            $this->registerHook('displayHome') &&
             $this->registerHook('actionAdminControllerSetMedia');
+
     }
 
     /**
@@ -274,9 +273,9 @@ class Clerk extends Module
             if ((Tools::getValue('clerk_language_select') !== false && (int)Tools::getValue('clerk_language_select') === $this->language_id)
                 || (Tools::getValue('clerk_language_select') === false
                     && (int)Configuration::get('PS_LANG_DEFAULT') === $this->language_id)) {
-                        Configuration::updateValue('CLERK_PUBLIC_KEY', array(
-                            $this->language_id => trim(Tools::getValue('clerk_public_key', ''))
-                        ), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_PUBLIC_KEY', array(
+                    $this->language_id => trim(Tools::getValue('clerk_public_key', ''))
+                ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_PRIVATE_KEY', array(
                     $this->language_id => trim(Tools::getValue('clerk_private_key', ''))
@@ -825,24 +824,82 @@ class Clerk extends Module
                 'type' => 'html',
                 'label' => $this->l('Logging View'),
                 'name' => 'LoggingViewer',
-                'html_content' => '<script src="https://code.jquery.com/jquery-3.4.1.min.js"'.
-                    'integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>'.
-                    '<script type="text/javascript">'.
-                    '$(document).ready(function() {'.
-                    'document.getElementById(\'logger_view\').scrollTop = document.getElementById(\'logger_view\').scrollHeight;'.
-                    '});'.
-                    '(function () {'.
-                    '$.ajax({'.
-                    'url: "/modules/clerk/clerk_log.log", success: function (data) {'.
-                    'document.getElementById(\'clerk_logging_viewer\').innerHTML = data;'.
-                    '}, dataType: "html"'.
-                    '});'.
-                    'setTimeout(arguments.callee, 5000);'.
-                    '})();'.
+                'html_content' => '<script src="https://code.jquery.com/jquery-3.4.1.min.js"' .
+                    'integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>' .
+                    '<script type="text/javascript">' .
+                    '$(document).ready(function() {' .
+                    'document.getElementById(\'logger_view\').scrollTop = document.getElementById(\'logger_view\').scrollHeight;' .
+                    '});' .
+                    '(function () {' .
+                    '$.ajax({' .
+                    'url: "/modules/clerk/clerk_log.log", success: function (data) {' .
+                    'document.getElementById(\'clerk_logging_viewer\').innerHTML = data;' .
+                    '}, dataType: "html"' .
+                    '});' .
+                    'setTimeout(arguments.callee, 5000);' .
+                    '})();' .
                     '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
             );
 
         }
+
+        $ClerkConfirm = <<<CLERKJS
+
+        <script>
+        jQuery(document).ready(function () {
+
+        var before_logging_level;
+        $('#clerk_logging_level').focus(function () {
+
+        before_logging_level = $('#clerk_logging_level').val();
+
+        }).change(function () {
+
+        if ($('#clerk_logging_level').val() !== 'all') {
+
+        before_logging_level = $('#clerk_logging_level').val();
+
+        } else {
+
+        $.confirm({
+        boxWidth: '30%',
+        useBootstrap: false,
+        title: 'Changing Logging Level',
+        content: 'Debug Mode should not be used in production! Are you sure you want to change logging level to Debug Mode ?',
+        buttons: {
+        Cancel: {
+        text: 'Cancel',
+        btnClass: 'btn-red',
+        keys: ['enter', 'shift'],
+        action: function () {
+        document.querySelector('#clerk_logging_level [value="' + before_logging_level + '"]').selected = true;
+        }
+        },
+        Confirm: {
+        text: 'I\'m sure',
+        btnClass: 'btn-blue',
+        keys: ['enter', 'shift'],
+        action: function () {
+
+        }
+        }
+        }
+        });
+
+        }
+
+        });
+        });
+        </script>
+CLERKJS;
+
+        $Fancybox = array(
+            'type' => 'html',
+            'label' => $this->l(''),
+            'name' => 'Fancybox',
+            'html_content' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">' .
+                '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>'.$ClerkConfirm
+        );
 
         //Logging settings
         $this->fields_form[] = array(
@@ -880,15 +937,15 @@ class Clerk extends Module
                             'query' => array(
                                 array(
                                     'value' => self::LEVEL_ERROR,
-                                    'name' => $this->l('Error')
+                                    'name' => $this->l('Only Errors')
                                 ),
                                 array(
                                     'value' => self::LEVEL_WARN,
-                                    'name' => $this->l('Warn')
+                                    'name' => $this->l('Error + Warn')
                                 ),
                                 array(
                                     'value' => self::LEVEL_ALL,
-                                    'name' => $this->l('All')
+                                    'name' => $this->l('Error + Warn + Debug Mode')
                                 )
                             ),
                             'id' => 'value',
@@ -908,14 +965,15 @@ class Clerk extends Module
                                 ),
                                 array(
                                     'value' => self::LOGGING_TO_COLLECT,
-                                    'name' => $this->l('Collect')
+                                    'name' => $this->l('my.clerk.io')
                                 )
                             ),
                             'id' => 'value',
                             'name' => 'name',
                         )
                     ),
-                    $LoggingView
+                    $LoggingView,
+                    $Fancybox
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -988,11 +1046,11 @@ class Clerk extends Module
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
             $this->smarty->assign(array(
-                    'clerksearch_type' => 'top',
-                    'search_query' => (string)Tools::getValue('search_query', ''),
-                    'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
+                'clerksearch_type' => 'top',
+                'search_query' => (string)Tools::getValue('search_query', ''),
+                'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
             return $this->display(__FILE__, 'search-top.tpl', $key);
         }
