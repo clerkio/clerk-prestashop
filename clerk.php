@@ -53,6 +53,7 @@ class Clerk extends Module
      */
     protected $shop_id;
     private $logger;
+    protected $api;
 
     /**
      * Clerk constructor.
@@ -60,7 +61,9 @@ class Clerk extends Module
     public function __construct()
     {
         require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/ClerkLogger.php');
+        require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/Clerk-Api.php');
         $this->logger = new ClerkLogger();
+        $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
         $this->version = '4.2.0';
@@ -158,6 +161,9 @@ class Clerk extends Module
             $this->registerHook('header') &&
             $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('displayHome') &&
+            $this->registerHook('actionProductSave') &&
+            $this->registerHook('actionProductDelete') &&
+            $this->registerHook('actionUpdateQuantity') &&
             $this->registerHook('actionAdminControllerSetMedia');
 
     }
@@ -232,6 +238,8 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
+        Configuration::deleteByName('CLERK_DATASYNC_USE_REAL_TIME_UPDATES');
+        Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
@@ -315,6 +323,14 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', array(
                     $this->language_id => Tools::getValue('clerk_datasync_collect_emails', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_use_real_time_updates', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_include_out_of_stock_products', 0)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', array(
@@ -587,6 +603,44 @@ class Clerk extends Module
                     'icon' => 'icon-cloud-upload'
                 ),
                 'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Use Real-time Updates'),
+                        'name' => 'clerk_datasync_use_real_time_updates',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_use_real_time_updates_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_use_real_time_updates_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Out Of Stock Products'),
+                        'name' => 'clerk_datasync_include_out_of_stock_products',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_include_out_of_stock_products_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_include_out_of_stock_products_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
                     array(
                         'type' => $booleanType,
                         'label' => $this->l('Collect Emails'),
@@ -1031,6 +1085,8 @@ CLERKJS;
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
@@ -1123,6 +1179,8 @@ CLERKJS;
         //Assign template variables
         $this->context->smarty->assign(array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
@@ -1261,4 +1319,42 @@ CLERKJS;
             true
         );
     }
+
+    public function hookActionProductDelete($params) {
+
+        if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
+
+            $product_id = $params['id_product'];
+
+            $this->api->removeProduct($product_id);
+        }
+    }
+
+    public function hookActionProductSave($params) {
+
+        $product_id = $params['id_product'];
+        $product = $params['product'];
+
+        $this->api->addProduct($product, $product_id);
+
+    }
+
+    public function hookActionUpdateQuantity($params)
+    {
+        if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
+
+            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
+                if ($params['quantity'] <= 0) {
+
+                    $this->api->removeProduct($params['id_product']);
+
+                } else {
+
+                    $this->api->addProduct(0, $params['id_product'], $params['quantity']);
+
+                }
+            }
+        }
+    }
+
 }

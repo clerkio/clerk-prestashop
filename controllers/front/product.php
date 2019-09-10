@@ -29,6 +29,16 @@ require "ClerkAbstractFrontController.php";
 class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 {
     /**
+     * @var int
+     */
+    private $language_id;
+
+    /**
+     * @var int
+     */
+    private $shop_id;
+
+    /**
      * @var
      */
     protected $logger;
@@ -50,7 +60,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     public function __construct()
     {
         parent::__construct();
+
         require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+
+        $context = Context::getContext();
+
+        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
+        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+
         $this->logger = new ClerkLogger();
 
         $this->addFieldHandler('on_sale', function ($product) {
@@ -115,6 +132,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $fields = array_flip($this->fieldMap);
 
             foreach ($products as $product) {
+
                 $item = array();
                 foreach ($this->fields as $field) {
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
@@ -126,6 +144,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     //Check if there's a fieldHandler assigned for this field
                     if (isset($this->fieldHandlers[$field])) {
                         $item[$field] = $this->fieldHandlers[$field]($product);
+                    }
+                }
+
+                if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
+                    if ($item['qty'] <= 0) {
+                        continue;
                     }
                 }
 

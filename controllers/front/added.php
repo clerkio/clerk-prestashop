@@ -41,7 +41,9 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
     }
 
     /**
-     * @return $this
+     * @return $this|void
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function initContent()
     {

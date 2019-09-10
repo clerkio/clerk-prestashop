@@ -101,7 +101,10 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
                 $limit .= sprintf(' OFFSET %s', $this->offset);
             }
 
-            $orders = $this->getOrdersWithInformations($limit);
+            $end_date = date('Y-m-d',strtotime(Tools::getValue('end_date') ? Tools::getValue('end_date') : 'today + 1 day'));
+            $start_date = date('Y-m-d',strtotime(Tools::getValue('start_date') ? Tools::getValue('start_date') : 'today - 200 years'));
+
+            $orders = $this->getOrdersWithInformations($limit,$end_date,$start_date);
 
             $fields = array_flip($this->fieldMap);
 
@@ -149,8 +152,9 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
         );
     }
 
-    protected function getOrdersWithInformations($limit = null, Context $context = null)
+    protected function getOrdersWithInformations($limit = null, $end_date, $start_date, Context $context = null)
     {
+
         try {
 
             if (!$context) {
@@ -168,6 +172,8 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
 				LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON (c.`id_customer` = o.`id_customer`)
 				WHERE 1
 					' . Shop::addSqlRestriction(false, 'o') . '
+					AND
+					o.`date_add` BETWEEN CAST("'.$start_date.'" AS DATE) AND CAST("'.$end_date.'" AS DATE)
 				ORDER BY o.`date_add` DESC
 				' . ($limit != '' ? $limit : '');
 
