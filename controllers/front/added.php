@@ -36,7 +36,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
      */
     public function __construct()
     {
-        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        require_once (_PS_MODULE_DIR_. 'clerk/controllers/admin/ClerkLogger.php');
         $this->logger = new ClerkLogger();
     }
 

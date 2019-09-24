@@ -52,8 +52,8 @@ class Clerk extends Module
      * @var int
      */
     protected $shop_id;
-    private $logger;
     protected $api;
+    private $logger;
 
     /**
      * Clerk constructor.
@@ -66,7 +66,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '4.2.0';
+        $this->version = '4.4.1';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -150,6 +150,12 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_PRODUCT_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_PRODUCT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_CART_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_CART_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
         }
 
         return parent::install() &&
@@ -164,6 +170,8 @@ class Clerk extends Module
             $this->registerHook('actionProductSave') &&
             $this->registerHook('actionProductDelete') &&
             $this->registerHook('actionUpdateQuantity') &&
+            $this->registerHook('displayFooterProduct') &&
+            $this->registerHook('displayShoppingCartFooter') &&
             $this->registerHook('actionAdminControllerSetMedia');
 
     }
@@ -244,6 +252,10 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
         Configuration::deleteByName('CLERK_EXIT_INTENT_TEMPLATE');
+        Configuration::deleteByName('CLERK_PRODUCT_ENABLED');
+        Configuration::deleteByName('CLERK_PRODUCT_TEMPLATE');
+        Configuration::deleteByName('CLERK_CART_ENABLED');
+        Configuration::deleteByName('CLERK_CART_TEMPLATE');
         Configuration::deleteByName('CLERK_LOGGING_ENABLED');
         Configuration::deleteByName('CLERK_LOGGING_LEVEL');
         Configuration::deleteByName('CLERK_LOGGING_TO');
@@ -347,6 +359,22 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_exit_intent_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_PRODUCT_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_product_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_PRODUCT_TEMPLATE', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_product_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_CART_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_cart_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_CART_TEMPLATE', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_cart_template', ''))
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LOGGING_ENABLED', array(
@@ -872,6 +900,78 @@ class Clerk extends Module
             ),
         );
 
+        //Cart settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Cart Settings'),
+                    'icon' => 'icon-shopping-cart'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_cart_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_cart_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_cart_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Templates'),
+                        'name' => 'clerk_cart_template',
+                    ),
+                )
+            ),
+        );
+
+        //Product settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Product Settings'),
+                    'icon' => 'icon-shopping-cart'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_product_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_product_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_product_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Templates'),
+                        'name' => 'clerk_product_template',
+                    ),
+                )
+            ),
+        );
+
         if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
             $LoggingView = array(
@@ -952,7 +1052,7 @@ CLERKJS;
             'label' => $this->l(''),
             'name' => 'Fancybox',
             'html_content' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">' .
-                '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>'.$ClerkConfirm
+                '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>' . $ClerkConfirm
         );
 
         //Logging settings
@@ -1091,6 +1191,10 @@ CLERKJS;
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_product_enabled' => Configuration::get('CLERK_PRODUCT_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_product_template' => Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_cart_enabled' => Configuration::get('CLERK_CART_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_cart_template' => Configuration::get('CLERK_CART_TEMPLATE', $this->language_id, null, $this->shop_id),
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id),
@@ -1184,6 +1288,10 @@ CLERKJS;
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+            'product_enabled' => (bool)Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+            'product_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+            'cart_enabled' => (bool)Configuration::get('CLERK_CART_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+            'cart_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_CART_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
@@ -1196,6 +1304,69 @@ CLERKJS;
         $output .= $popup;
 
         return $output;
+    }
+
+    /**
+     * @param $params
+     * @return string
+     */
+    public function hookDisplayShoppingCartFooter($params)
+    {
+
+        if (Configuration::get('CLERK_CART_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+
+            $ProductsIds = [];
+
+            $Contents = explode(',', Configuration::get('CLERK_CART_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
+
+            $PreProductIds = $params['cart']->getProducts(true);
+
+            foreach ($PreProductIds as $PreProductId) {
+
+                $ProductsIds[] = $PreProductId['id_product'];
+
+            }
+            $ProductsIds = implode(",", $ProductsIds);
+
+            $this->context->smarty->assign(
+                array(
+
+                    'Contents' => $Contents,
+                    'ProductId' => $ProductsIds
+
+                )
+            );
+
+            return $this->display(__FILE__, 'related-products.tpl');
+
+        }
+
+    }
+
+    /**
+     * @param $params
+     * @return string
+     */
+    public function hookDisplayFooterProduct($params)
+    {
+
+        if (Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+
+            $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
+
+            $this->context->smarty->assign(
+                array(
+
+                    'Contents' => $Contents,
+                    'ProductId' => $params['product']['id']
+
+                )
+            );
+
+            return $this->display(__FILE__, 'related-products.tpl');
+
+        }
+
     }
 
     /**
@@ -1320,7 +1491,8 @@ CLERKJS;
         );
     }
 
-    public function hookActionProductDelete($params) {
+    public function hookActionProductDelete($params)
+    {
 
         if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
 
@@ -1330,7 +1502,8 @@ CLERKJS;
         }
     }
 
-    public function hookActionProductSave($params) {
+    public function hookActionProductSave($params)
+    {
 
         $product_id = $params['id_product'];
         $product = $params['product'];
