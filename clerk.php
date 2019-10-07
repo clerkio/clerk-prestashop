@@ -1203,6 +1203,12 @@ CLERKJS;
 
     public function hookTop($params)
     {
+        $this->context->smarty->assign(array(
+            'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id)
+        ));
+        $View =  $this->display(__FILE__, 'clerk_js.tpl');
+
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
             $this->smarty->assign(array(
@@ -1212,8 +1218,9 @@ CLERKJS;
                 'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
-            return $this->display(__FILE__, 'search-top.tpl', $key);
+            $View .= $this->display(__FILE__, 'clerk_js.tpl').$this->display(__FILE__, 'search-top.tpl', $key);
         }
+        return $View;
     }
 
     /**
