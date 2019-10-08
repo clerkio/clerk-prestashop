@@ -26,7 +26,32 @@
 {extends file='page.tpl'}
 
 {block name='page_content'}
-<div class="clerk-powerstep">
+    <style>
+        .clerk-popup {
+            position: fixed;
+
+            top: 10%;
+
+            z-index: 16777271;
+
+            display: none;
+
+            width: 90%;
+
+            padding: 20px;
+
+            margin: 0 5%;
+
+            background-color: white;
+
+            border: 1px solid #eee;
+
+            border-radius: 5px;
+
+            box-shadow: 0px 8px 40px 0px rgba(0, 0, 60, 0.15);
+        }
+    </style>
+<div class="clerk-powerstep clerk-popup">
     <div class="clerk-continue">
         <a href="{$continue|escape:'html'}" class="btn btn-secondary clerk-pull-left">{l s='Continue Shopping' mod='clerk'}</a>
     </div>

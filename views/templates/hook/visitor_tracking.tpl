@@ -24,10 +24,11 @@
 *}
 
 <script type="text/javascript">
-    window.clerkAsyncInit = function() {
+    document.addEventListener('DOMContentLoaded', function(){
         {if ($powerstep_enabled && !$isv17)}
+
         //Handle powerstep
-        prestashop.on("updateCart", function(e) {
+        prestashop.on("updateCart", function (e) {
             if (e.resp.success) {
                 var product_id = e.resp.id_product;
                 var product_id_attribute = e.resp.id_product_attribute;
@@ -44,24 +45,23 @@
                         id_product: product_id,
                         id_product_attribute: product_id_attribute
                     },
-                    success: function(res) {
+                    success: function (res) {
                         $('body').append(res.data);
-                        var popup = Clerk.ui.popup("#clerk_powerstep");
+                        var popup = $("#clerk_powerstep");
 
-                        $(".clerk_powerstep_close").on("click", function() {
+                        $(".clerk_powerstep_close").on("click", function () {
                             popup.close();
                         });
 
                         popup.show();
 
-                        Clerk.renderBlocks(".clerk_powerstep_templates .clerk");
                     }
                 });
                 {/if}
             }
         });
         {/if}
-    };
+    });
 </script>
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
 {if ($exit_intent_enabled)}
