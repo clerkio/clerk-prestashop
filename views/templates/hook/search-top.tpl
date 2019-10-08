@@ -38,9 +38,11 @@
     <span
             class="clerk"
             data-template="@{$livesearch_template|escape:'html':'UTF-8'}"
-            data-live-search-categories="{$livesearch_categories}"
-            data-live-search-categories-title="{l s='Categories' mod='clerk'}"
-            data-live-search-products-title="{l s='Products' mod='clerk'}"
-            data-bind-live-search="#search_query_top">
+            data-instant-search-suggestions="{$livesearch_number_suggestions}"
+            {if ($livesearch_enabled)}
+            data-instant-search-categories="{$livesearch_number_categories}"
+            {/if}
+            data-instant-search-pages="{$livesearch_number_pages}"
+            data-instant-search="#search_query_top">
     </span>
 {/if}

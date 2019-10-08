@@ -66,7 +66,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '5.0.1';
+        $this->version = '5.0.2';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -139,6 +139,9 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
@@ -242,6 +245,9 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
         Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
+        Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS');
+        Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_CATEGORIES');
+        Configuration::deleteByName('CLERK_LIVESEARCH_PAGES');
         Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
         Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
@@ -319,6 +325,18 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_suggestions', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_categories', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_pages', ''))
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_POWERSTEP_ENABLED', array(
@@ -799,6 +817,162 @@ class Clerk extends Module
                         )
                     ),
                     array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Suggestions'),
+                        'name' => 'clerk_livesearch_number_suggestions',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Categories'),
+                        'name' => 'clerk_livesearch_number_categories',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Pages'),
+                        'name' => 'clerk_livesearch_number_pages',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
                         'type' => 'text',
                         'label' => $this->l('Template'),
                         'name' => 'clerk_livesearch_template',
@@ -1181,6 +1355,9 @@ CLERKJS;
             'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_number_categories' => Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
@@ -1216,6 +1393,9 @@ CLERKJS;
                 'search_query' => (string)Tools::getValue('search_query', ''),
                 'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_number_categories' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_number_suggestions' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
             $View .= $this->display(__FILE__, 'clerk_js.tpl').$this->display(__FILE__, 'search-top.tpl', $key);
