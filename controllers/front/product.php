@@ -81,10 +81,23 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return $context->link->getProductLink($product['id_product']);
         });
 
-        $this->addFieldHandler('image', function ($product) use ($context) {
-            $image = Image::getCover($product['id_product']);
-            return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName('home'));
-        });
+        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+            $this->addFieldHandler('image', function ($product) use ($context) {
+                $image = Image::getCover($product['id_product']);
+                return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName('home'));
+            });
+
+        }
+        else {
+
+            $this->addFieldHandler('image', function ($product) use ($context) {
+                $image = Image::getCover($product['id_product']);
+                return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
+            });
+
+        }
+
 
         $this->addFieldHandler('price', function ($product) {
             return Product::getPriceStatic($product['id_product'], true);
