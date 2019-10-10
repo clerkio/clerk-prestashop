@@ -48,7 +48,7 @@
     }
 </style>
 
-<div id="clerk_powerstep" class="clerk-popup" style="display: none;"">
+<div id="clerk_powerstep" class="clerk-popup">
 <div class="clerk_powerstep_header">
     <h2>{$product->name|escape:'html':'UTF-8'} {l s=' added to cart' mod='clerk'}</h2>
 </div>
@@ -74,15 +74,12 @@
 </div>
 <script>
 
-    //Append powerstep poup logic to Clerk init
-    document.addEventListener('DOMContentLoaded', function () {
-
         var popup = $("#clerk_powerstep");
 
         $(".clerk_powerstep_close").on("click", function () {
-            popup.close();
+            popup.hide();
         });
 
         popup.show();
-    };
+
 </script>

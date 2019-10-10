@@ -95,7 +95,6 @@ class Clerk_Api
                     'description' => $product->description{$this->language_id},
                     'price' => (float)Product::getPriceStatic($product_id, true),
                     'list_price' => (float)Product::getPriceStatic($product_id, true, null, 6, null, false, false),
-                    'image' => $context->link->getImageLink($product->link_rewrite{$this->language_id}, $image['id_image'], ImageType::getFormattedName('home')),
                     'url' => $context->link->getProductLink($product_id),
                     'categories' => $categories,
                     'sku' => $product->reference,
@@ -105,6 +104,17 @@ class Clerk_Api
                     'qty' => $qty,
 
                 ];
+
+                if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite{$this->language_id}, $image['id_image'], ImageType::getFormattedName('home'));
+
+                }
+                else {
+
+                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite{$this->language_id}, $image['id_image'], 'home_default');
+
+                }
 
                 $params = [
                     'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),

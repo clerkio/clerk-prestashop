@@ -23,7 +23,7 @@
 * SOFTWARE.
 *}
 
-<div class="clerk-powerstep">
+<div class="clerk-powerstep clerk-popup">
     <div class="clerk-continue">
         <a href="{$continue|escape:'html'}" class="clerk-pull-left">{l s='Continue Shopping' mod='clerk'}</a>
     </div>

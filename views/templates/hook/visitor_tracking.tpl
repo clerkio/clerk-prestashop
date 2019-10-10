@@ -50,7 +50,7 @@
                         var popup = $("#clerk_powerstep");
 
                         $(".clerk_powerstep_close").on("click", function () {
-                            popup.close();
+                            popup.hide();
                         });
 
                         popup.show();
