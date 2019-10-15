@@ -36,8 +36,6 @@
 
             display: none;
 
-            width: 90%;
-
             padding: 20px;
 
             margin: 0 5%;

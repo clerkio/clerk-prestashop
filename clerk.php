@@ -66,7 +66,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '5.0.4';
+        $this->version = '5.1.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -96,7 +96,13 @@ class Clerk extends Module
         }
 
         //Install tab
-        $tab = new Tab();
+
+        $tabId = (int) Tab::getIdFromClassName('AdminClerkDashboard');
+        if (!$tabId) {
+            $tabId = null;
+        }
+
+        $tab = new Tab($tabId);
         $tab->active = 1;
         $tab->name = array();
         $tab->class_name = 'AdminClerkDashboard';
@@ -105,8 +111,9 @@ class Clerk extends Module
             $tab->name[$lang['id_lang']] = 'Clerk';
         }
 
-        $tab->id_parent = 0;
+        $tab->id_parent = (int) Tab::getIdFromClassName('DEFAULT');
         $tab->module = $this->name;
+        $tab->icon = 1;
 
         //Initialize empty settings for all shops and languages
         foreach ($this->getAllShops() as $shop) {
@@ -232,6 +239,12 @@ class Clerk extends Module
     public function uninstall()
     {
         $id_tab = (int)Tab::getIdFromClassName('AdminClerkDashboard');
+        $id_tab2 = (int)Tab::getIdFromClassName('AdminModules&configure=clerk');
+
+        if ($id_tab2) {
+            $tab = new Tab($id_tab2);
+            $tab->delete();
+        }
 
         if ($id_tab) {
             $tab = new Tab($id_tab);
@@ -607,6 +620,7 @@ class Clerk extends Module
                         'logoImg' => $this->_path . 'views/img/logo.png',
                         'moduleName' => $this->displayName,
                         'moduleVersion' => $this->version,
+                        'prestashopVersion' => _PS_VERSION_,
                     )
                 )
             )
@@ -1229,6 +1243,128 @@ CLERKJS;
                 '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>' . $ClerkConfirm
         );
 
+        if (!_PS_MODE_DEV_) {
+
+            $Debug_message = array(
+                'type' => 'html',
+                'label' => $this->l(''),
+                'name' => 'Debug message',
+                'html_content' => '<hr><strong>PrestaShop Debug Mode is disabled</strong>'.
+                    '<p>When debug mode is disabled, PrestaShop hides a lot of errors and making it impossible for Clerk logger to detect and catch these errors.</p>'.
+                    '<p>To make it possibel for Clerk logger to catch all errors you have to enable debug mode.</p>'.
+                    '<p>Debug is not recommended in production in a longer period of time.</p>'.
+                    '</br><p><strong>When you store is in debug mode</strong></p>'.
+                    '<ul>'.
+                    '<li>Caching is disabled.</li>'.
+                    '<li>Errors will be visible.</li>'.
+                    '<li>Clerk logger can catch all errors.</li>'.
+                    '</ul>'.
+                    '</br><p><strong>Step By Step Guide to enable debug mode</strong></p>'.
+                    '<ol>'.
+                    '<li>Please enable PrestaShop Debug Mode.</li>'.
+                    '<li>Enable Clerk Logging.</li>'.
+                    '<li>Set the logging level to "ERROR + WARN + DEBUG".</li>'.
+                    '<li>Set Logging to "my.clerk.io".</li>'.
+                    '</ol>'.
+                    '<p>Thanks, that will make it a lot easier for our customer support to help you.</p>'.
+                    '</br><p><strong>HOW TO ENABLE DEBUG MODE:</strong></p>'.
+                    '<p>Open config/defines.inc.php and usually at line 29 you will find</p>'.
+                    '<p>define(\'_PS_MODE_DEV_\', false);</p>'.
+                    '<p>change it to:</p>'.
+                    '<p>define(\'_PS_MODE_DEV_\', true);</p>'.
+                    '<hr>'
+            );
+
+            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+                $Debug_message = array(
+                    'type' => 'html',
+                    'label' => $this->l(''),
+                    'name' => 'Debug message',
+                    'html_content' => '<hr><strong>PrestaShop Debug Mode is disabled</strong>'.
+                        '<p>When debug mode is disabled, PrestaShop hides a lot of errors and making it impossible for Clerk logger to detect and catch these errors.</p>'.
+                        '<p>To make it possibel for Clerk logger to catch all errors you have to enable debug mode.</p>'.
+                        '<p>Debug is not recommended in production in a longer period of time.</p>'.
+                        '</br><p><strong>When you store is in debug mode</strong></p>'.
+                        '<ul>'.
+                        '<li>Caching is disabled.</li>'.
+                        '<li>Errors will be visible.</li>'.
+                        '<li>Clerk logger can catch all errors.</li>'.
+                        '</ul>'.
+                        '</br><p><strong>Step By Step Guide to enable debug mode</strong></p>'.
+                        '<ol>'.
+                        '<li>Please enable PrestaShop Debug Mode.</li>'.
+                        '<li>Enable Clerk Logging.</li>'.
+                        '<li>Set the logging level to "ERROR + WARN + DEBUG".</li>'.
+                        '<li>Set Logging to "my.clerk.io".</li>'.
+                        '</ol>'.
+                        '<p>Thanks, that will make it a lot easier for our customer support to help you.</p>'.
+                        '</br><p><strong>HOW TO ENABLE DEBUG MODE:</strong></p>'.
+                        '<p>Advanced Parameters > Performance > DEBUG MODE PANEL > Set it to YES</p><hr>'
+                );
+
+            }
+
+        } else {
+
+            $Debug_message = array(
+                'type' => 'html',
+                'label' => $this->l(''),
+                'name' => 'Debug message',
+                'html_content' => '<hr><p style="color: red;"><strong>PrestaShop Debug Mode is enabled</strong></p>'.
+                    '<ul>'.
+                    '<li style="color: red;">Caching is disabled.</li>'.
+                    '<li style="color: red;">Errors will be visible.</li>'.
+                    '<li style="color: red;">Clerk logger can catch all errors.</li>'.
+                    '<li style="color: red;">Remember to disable it again after use!</li>'.
+                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>>'.
+                    '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>'.
+                    '</ul>'.
+                    '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>'.
+                    '<ol>'.
+                    '<li>Please disable PrestaShop Debug Mode.</li>'.
+                    '<li>Keep Clerk Logging enabled.</li>'.
+                    '<li>Set the logging level to "ERROR + WARN".</li>'.
+                    '<li>Keep Logging to "my.clerk.io".</li>'.
+                    '</ol>'.
+                    '</br><p><strong>HOW TO DISABLE DEBUG MODE:</strong></p>'.
+                    '<p>Open config/defines.inc.php and usually at line 29 you will find</p>'.
+                    '<p>define(\'_PS_MODE_DEV_\', true);</p>'.
+                    '<p>change it to:</p>'.
+                    '<p>define(\'_PS_MODE_DEV_\', false);</p>'.
+                    '<hr>'
+            );
+
+            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+                $Debug_message = array(
+                    'type' => 'html',
+                    'label' => $this->l(''),
+                    'name' => 'Debug message',
+                    'html_content' => '<hr><p style="color: red;"><strong>PrestaShop Debug Mode is enabled</strong></p>'.
+                        '<ul>'.
+                        '<li style="color: red;">Caching is disabled.</li>'.
+                        '<li style="color: red;">Errors will be visible.</li>'.
+                        '<li style="color: red;">It will be possible for Clerk logger to catch errors.</li>'.
+                        '<li style="color: red;">Remember to disable it again after use!</li>'.
+                        '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>'.
+                        '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>'.
+                        '</ul>'.
+                        '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>'.
+                        '<ol>'.
+                        '<li>Please disable PrestaShop Debug Mode.</li>'.
+                        '<li>Keep Clerk Logging enabled.</li>'.
+                        '<li>Set the logging level to "ERROR + WARN".</li>'.
+                        '<li>Keep Logging to "my.clerk.io".</li>'.
+                        '</ol>'.
+                        '</br><p><strong>HOW TO DISABLE DEBUG MODE:</strong></p>'.
+                        '<p>Advanced Parameters > Performance > DEBUG MODE PANEL > Set it to NO</p><hr>'
+                );
+
+            }
+
+        }
+
         //Logging settings
         $this->fields_form[] = array(
             'form' => array(
@@ -1300,6 +1436,7 @@ CLERKJS;
                             'name' => 'name',
                         )
                     ),
+                    $Debug_message,
                     $LoggingView,
                     $Fancybox
                 ),
@@ -1398,7 +1535,7 @@ CLERKJS;
                 'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
-            $View .= $this->display(__FILE__, 'clerk_js.tpl').$this->display(__FILE__, 'search-top.tpl', $key);
+            $View .= $this->display(__FILE__, 'search-top.tpl', $key);
         }
         return $View;
     }

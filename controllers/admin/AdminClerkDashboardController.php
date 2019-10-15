@@ -45,6 +45,7 @@ class AdminClerkDashboardController extends ModuleAdminController
 
     public function __construct()
     {
+        require_once ('ClerkLogger.php');
         $this->logger = new ClerkLogger();
         $this->bootstrap = true;
         $this->display = 'view';
@@ -101,7 +102,6 @@ class AdminClerkDashboardController extends ModuleAdminController
 
     public function renderView()
     {
-//        $content = $this->renderForm();
 
         try {
 

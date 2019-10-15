@@ -35,7 +35,7 @@
             </div>
             <div class="col-md-8 top-module-description">
                 <h1 class="top-module-title" style="margin-top:0;">{$input.moduleName}</h1>
-                <div class="top-module-my-name">Version <strong>{$input.moduleVersion}</strong></div>
+                <div class="top-module-my-name"><p>Version <strong>{$input.moduleVersion}</strong></p><p>PrestaShop Version <strong>{$input.prestashopVersion}</strong></p></div>
             </div>
         </div>
     {else}

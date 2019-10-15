@@ -4,3 +4,13 @@
     background-repeat: no-repeat;
     background-size: 14px;
 }
+#subtab-AdminClerkDashboard > a > .material-icons {
+
+    height: 17px;
+    width: 17px;
+    background-image: url('../img/clerk.png');
+    background-repeat: no-repeat;
+    background-size: 17px;
+
+
+}
