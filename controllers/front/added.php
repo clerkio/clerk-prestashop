@@ -38,6 +38,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
     {
         require_once (_PS_MODULE_DIR_. 'clerk/controllers/admin/ClerkLogger.php');
         $this->logger = new ClerkLogger();
+        parent::__construct();
     }
 
     /**
@@ -47,6 +48,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
      */
     public function initContent()
     {
+
         parent::initContent();
 
         if ($id_product = (int)Tools::getValue('id_product')) {
