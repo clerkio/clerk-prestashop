@@ -65,7 +65,16 @@
 </script>
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
 {if ($exit_intent_enabled)}
-<span class="clerk"
+    <style>
+        .exit-intent {
+
+            top: 10% !important;
+            width: 80% !important;
+            left: 5%;
+
+        }
+    </style>
+<span class="clerk exit-intent"
       data-template="@{$exit_intent_template}"
       data-exit-intent="true">
 </span>
