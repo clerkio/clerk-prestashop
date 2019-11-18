@@ -35,6 +35,7 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
         $this->context->smarty->assign(array(
             'search_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_SEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'search_query' => $query,
+            'lang_iso' => $this->context->language->iso_code
         ));
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {

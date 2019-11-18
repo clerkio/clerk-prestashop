@@ -36,7 +36,9 @@
 
     Clerk('config', {
         key: '{$clerk_public_key}',
-        collect_email: {$clerk_datasync_collect_emails}
+        collect_email: {$clerk_datasync_collect_emails},
+        language: '{$language}',
+
     });
 </script>
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->

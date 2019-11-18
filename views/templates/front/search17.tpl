@@ -45,16 +45,5 @@
 </span>
     <ul id="clerk-search-results" style="overflow: hidden;"></ul>
     <div id="clerk-search-no-results" style="display: none;"></div>
-    <a id="clerk-search-load-more-button" href="javascript:_load_more();"
-       class="btn btn-default">{l s='Load More Results' mod='clerk'}</a>
-    <script type="text/javascript">
-        // this code assumes that you have jQuery v. 1.7
-        // if not replace jQuery with Clerk.ui.$
 
-        function _load_more() {
-            Clerk('content', '#clerk-search', 'more');
-            jQuery('#clerk-search-load-more-button').hide();
-        }
-
-    </script>
 {/block}

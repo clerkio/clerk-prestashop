@@ -22,30 +22,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *}
-<style>
-    .clerk-popup {
-        position: fixed;
 
-        top: 10%;
-
-        z-index: 16777271;
-
-        display: none;
-
-        padding: 20px;
-
-        margin: 0 5%;
-
-        background-color: white;
-
-        border: 1px solid #eee;
-
-        border-radius: 5px;
-
-        box-shadow: 0px 8px 40px 0px rgba(0, 0, 60, 0.15);
-    }
-</style>
-<div id="clerk_powerstep" class="clerk-popup" style="display: none;">
+<div id="clerk_powerstep" class="clerk-popup">
     <div class="clerk_powerstep_header">
         <h2>{l s='You added %s to your shopping cart.' sprintf=[$product.name] mod='clerk'}</h2>
     </div>

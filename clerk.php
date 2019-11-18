@@ -54,6 +54,7 @@ class Clerk extends Module
     protected $shop_id;
     protected $api;
     private $logger;
+    protected $language;
 
     /**
      * Clerk constructor.
@@ -66,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '5.1.3';
+        $this->version = '5.2.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -149,6 +150,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
@@ -228,6 +230,56 @@ class Clerk extends Module
             );
         }
 
+        switch ($this->context->language->iso_code) {
+
+            case 'da':
+                $this->language = 'Danish';
+                break;
+            case 'nl':
+                $this->language = 'Dutch';
+                break;
+            case 'en':
+                $this->language = 'English';
+                break;
+            case 'fi':
+                $this->language = 'Finnish';
+                break;
+            case 'fr':
+                $this->language = 'French';
+                break;
+            case 'de':
+                $this->language = 'German';
+                break;
+            case 'hu':
+                $this->language = 'Hungarian';
+                break;
+            case 'it':
+                $this->language = 'Italian';
+                break;
+            case 'no':
+                $this->language = 'Norwegian';
+                break;
+            case 'pt':
+                $this->language = 'Portuguese';
+                break;
+            case 'ro':
+                $this->language = 'Romanian';
+                break;
+            case 'ru':
+                $this->language = 'Russian';
+                break;
+            case 'es':
+                $this->language = 'Spanish';
+                break;
+            case 'sv':
+                $this->language = 'Swedish';
+                break;
+            case 'tr':
+                $this->language = 'Turkish';
+                break;
+
+        }
+
         return $languages;
     }
 
@@ -253,6 +305,7 @@ class Clerk extends Module
 
         Configuration::deleteByName('CLERK_PUBLIC_KEY');
         Configuration::deleteByName('CLERK_PRIVATE_KEY');
+        Configuration::deleteByName('CLERK_LANGUAGE');
         Configuration::deleteByName('CLERK_SEARCH_ENABLED');
         Configuration::deleteByName('CLERK_SEARCH_TEMPLATE');
         Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
@@ -266,6 +319,8 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
         Configuration::deleteByName('CLERK_DATASYNC_USE_REAL_TIME_UPDATES');
+        Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
+        Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
@@ -320,6 +375,10 @@ class Clerk extends Module
                     $this->language_id => trim(Tools::getValue('clerk_private_key', ''))
                 ), false, null, $this->shop_id);
 
+                Configuration::updateValue('CLERK_LANGUAGE', array(
+                    $this->language_id => Tools::getValue('clerk_language', 'auto')
+                ), false, null, $this->shop_id);
+
                 Configuration::updateValue('CLERK_SEARCH_ENABLED', array(
                     $this->language_id => Tools::getValue('clerk_search_enabled', 0)
                 ), false, null, $this->shop_id);
@@ -351,6 +410,9 @@ class Clerk extends Module
                 Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_pages', ''))
                 ), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', array(
+                    $this->language_id => Tools::getValue('clerk_livesearch_pages_type', 'CMS Page')
+                ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_POWERSTEP_ENABLED', array(
                     $this->language_id => Tools::getValue('clerk_powerstep_enabled', 0)
@@ -370,6 +432,14 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array(
                     $this->language_id => Tools::getValue('clerk_datasync_use_real_time_updates', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_page_fields', '')
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_include_pages', 1)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', array(
@@ -646,6 +716,34 @@ class Clerk extends Module
                         'name' => 'clerk_private_key',
                     ),
                     array(
+                        'type' => 'select',
+                        'label' => $this->l('Language'),
+                        'name' => 'clerk_language',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                    ['name' => 'Auto ('.$this->language.')','Value' => 'auto'],
+                                    ['name' => 'Danish','Value' => 'danish'],
+                                    ['name' => 'Dutch','Value' => 'dutch'],
+                                    ['name' => 'English','Value' => 'english'],
+                                    ['name' => 'Finnish','Value' => 'finnish'],
+                                    ['name' => 'French','Value' => 'french'],
+                                    ['name' => 'German','Value' => 'german'],
+                                    ['name' => 'Hungarian','Value' => 'hungarian'],
+                                    ['name' => 'Italian','Value' => 'italian'],
+                                    ['name' => 'Norwegian','Value' => 'norwegian'],
+                                    ['name' => 'Portuguese','Value' => 'portuguese'],
+                                    ['name' => 'Romanian','Value' => 'romanian'],
+                                    ['name' => 'Russian','Value' => 'russian'],
+                                    ['name' => 'Spanish','Value' => 'spanish'],
+                                    ['name' => 'Swedish','Value' => 'swedish'],
+                                    ['name' => 'Turkish','Value' => 'turkish']
+                            ),
+                            'id' => 'Value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
                         'type' => 'text',
                         'label' => $this->l('Import Url'),
                         'name' => 'clerk_import_url',
@@ -681,6 +779,30 @@ class Clerk extends Module
                                 'label' => $this->l('Disabled')
                             )
                         )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Pages'),
+                        'name' => 'clerk_datasync_include_pages',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_include_pages_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_include_pages_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Additional Fields For Pages'),
+                        'name' => 'clerk_datasync_page_fields',
                     ),
                     array(
                         'type' => $booleanType,
@@ -981,6 +1103,22 @@ class Clerk extends Module
                                     'value' => 10,
                                     'name' => $this->l('10')
                                 )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Pages Type'),
+                        'name' => 'clerk_livesearch_pages_type',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 'CMS Page',
+                                    'name' => $this->l('CMS Pages'),
+                                ),
                             ),
                             'id' => 'value',
                             'name' => 'name',
@@ -1486,6 +1624,7 @@ CLERKJS;
         return array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
             'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
+            'clerk_language' => Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id),
             'clerk_import_url' => _PS_BASE_URL_,
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
@@ -1495,11 +1634,14 @@ CLERKJS;
             'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_categories' => Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_pages_type' => Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
@@ -1517,9 +1659,67 @@ CLERKJS;
 
     public function hookTop($params)
     {
+
+        switch ($this->context->language->iso_code) {
+
+            case 'da':
+                $this->language = 'danish';
+                break;
+            case 'nl':
+                $this->language = 'dutch';
+                break;
+            case 'en':
+                $this->language = 'english';
+                break;
+            case 'fi':
+                $this->language = 'finnish';
+                break;
+            case 'fr':
+                $this->language = 'french';
+                break;
+            case 'de':
+                $this->language = 'german';
+                break;
+            case 'hu':
+                $this->language = 'hungarian';
+                break;
+            case 'it':
+                $this->language = 'italian';
+                break;
+            case 'no':
+                $this->language = 'norwegian';
+                break;
+            case 'pt':
+                $this->language = 'portuguese';
+                break;
+            case 'ro':
+                $this->language = 'romanian';
+                break;
+            case 'ru':
+                $this->language = 'russian';
+                break;
+            case 'es':
+                $this->language = 'spanish';
+                break;
+            case 'sv':
+                $this->language = 'swedish';
+                break;
+            case 'tr':
+                $this->language = 'turkish';
+                break;
+
+        }
+
+        if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
+
+            $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+                
+        }
+
         $this->context->smarty->assign(array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id)
+            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+            'language' => $this->language
         ));
         $View =  $this->display(__FILE__, 'clerk_js.tpl');
 
@@ -1533,6 +1733,7 @@ CLERKJS;
                 'livesearch_number_categories' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_number_suggestions' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_pages_type' => (string)Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
             $View .= $this->display(__FILE__, 'search-top.tpl', $key);

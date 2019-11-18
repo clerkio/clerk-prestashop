@@ -43,6 +43,7 @@
             data-instant-search-categories="{$livesearch_number_categories}"
             {/if}
             data-instant-search-pages="{$livesearch_number_pages}"
+            data-instant-search-pages-type="{$livesearch_pages_type}"
             data-instant-search="#search_query_top">
     </span>
 {/if}
