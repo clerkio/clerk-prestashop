@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '5.2.0';
+        $this->version = '5.3.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -151,6 +151,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', $liveSearchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
@@ -410,8 +411,13 @@ class Clerk extends Module
                 Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_pages', ''))
                 ), false, null, $this->shop_id);
+
                 Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', array(
                     $this->language_id => Tools::getValue('clerk_livesearch_pages_type', 'CMS Page')
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', array(
+                    $this->language_id => Tools::getValue('clerk_livesearch_dropdown_position', 'left')
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_POWERSTEP_ENABLED', array(
@@ -662,6 +668,83 @@ class Clerk extends Module
     {
         $booleanType = 'radio';
         $LoggingView = '';
+
+        $modules = scandir(_PS_MODULE_DIR_);
+
+        $modules_array = [];
+        $show_warnings = false;
+
+        foreach ($modules as $module) {
+
+            $exclude = ['.', '..', '.htaccess', 'index.php'];
+
+            $modules_for_warn = [
+                //'clerk' => ['message' => 'This module can interfear with how we inject our instant search.', 'link' => 'https://clerk.io'],
+                //'statssales' => ['message' => 'This module can interfear with how we inject our instant search.', 'link' => 'https://clerk.io'],
+                //'statssearch' => ['message' => 'This module can interfear with how we inject our instant search.', 'link' => 'https://clerk.io']
+            ];
+
+            if (!in_array($module, $exclude )) {
+
+                $modules_array[] = Module::getInstanceByName($module)->name;
+
+            }
+
+        }
+        $ClerkWarn_html = '';
+        $count = 0;
+        foreach ($modules_array as $module) {
+
+            if (array_key_exists($module, $modules_for_warn )) {
+
+                $count++;
+
+                if ($count == 1){
+                    echo '<script>function RemoveWarn(module) {'.
+                        'var element = document.getElementById("module_warn_"+module);'.
+                        'element.classList.add("remove");'.
+                        'setTimeout(() => {  element.classList.add("remove-next"); }, 500);'.
+                        'setTimeout(() => {  element.parentNode.removeChild(element); }, 1000);'.
+                        '}</script>';
+                    echo '<style>#fieldset_0 > div:nth-child(2) > div:nth-child(1) > div:nth-child(1){margin-left: 0px; width: 100%;}.remove-next{transform: translateX(-150%)!important;-webkit-transform: translateX(-150%)!important; transition: all 2s ease-in-out!important;}.remove{transform: scale(1.05); transition: all .3s ease-in-out!important;}#close:hover{cursor: pointer;}#close{position: absolute;background:#fbfbfb;color:#555;top: -5px;right: -5px;border-radius: 20px;display: inline-block;border: 2px solid #555;height: 20px;width: 20px;text-align: center;font-weight: 600;}.warning_header {font-size: 13px; margin: 0px!important; color:#555;}.clerk-alert-warning:hover{transform: scale(1.01);}.clerk-alert-warning{display: inline-block; margin-bottom: 15px; position: relative; transition: all .1s ease-in-out; padding: 10px; display: inline-block; width: 100%; background-color: #fff!important; border-radius: 6px; box-shadow: 0px .2em .8em 0 rgba(0,0,0,.09); border-left: 5px solid #e74c3c;}.clerk-btn{float:right; padding: 2px 3px!important;}</style>';
+                }
+
+                $show_warnings = true;
+                $modules_info = Module::getInstanceByName($module);
+
+                $ClerkWarn_html .= '<div id="module_warn_'.$module.'" class="clerk-alert-warning">'.
+                    '<div onclick="RemoveWarn(\''.$module.'\');" id="close">'.
+                    'X'.
+                    '</div>'.
+                    '<b>'.
+                    '<p class="warning_header">'.$modules_info->displayName. 'v '.$modules_info->version.' is installed</p>'.
+                        '</b>'.
+                    '<p style="display: inline-block;" class="">'.$modules_for_warn[$module]['message'].'</p>'.
+                    '<a target="_blank" class="btn btn-primary clerk-btn" href="'.$modules_for_warn[$module]['link'].'">Read more here</a>'.
+                    '</div>';
+
+            }
+
+        }
+        $ClerkWarn = array(
+            'type' => 'html',
+            'name' => 'Warnings',
+            'html_content' => $ClerkWarn_html
+        );
+        if ($show_warnings) {
+            //Warning box
+            $this->fields_form[] = array(
+                'form' => array(
+                    'legend' => array(
+                        'title' => $this->l('Warnings'),
+                        'icon' => 'icon-cogs'
+                    ),
+                    'input' => array(
+                        $ClerkWarn
+                    )
+                )
+            );
+        }
 
         //Use switch if available, looks better
         if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
@@ -1125,6 +1208,38 @@ class Clerk extends Module
                         )
                     ),
                     array(
+                        'type' => 'select',
+                        'label' => $this->l('Dropdown Positioning'),
+                        'name' => 'clerk_livesearch_dropdown_position',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 'left',
+                                    'name' => $this->l('Left'),
+                                ),
+                                array(
+                                    'value' => 'center',
+                                    'name' => $this->l('Center'),
+                                ),
+                                array(
+                                    'value' => 'right',
+                                    'name' => $this->l('Right'),
+                                ),
+                                array(
+                                    'value' => 'below',
+                                    'name' => $this->l('Below'),
+                                ),
+                                array(
+                                    'value' => 'off',
+                                    'name' => $this->l('Off'),
+                                ),
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
                         'type' => 'text',
                         'label' => $this->l('Template'),
                         'name' => 'clerk_livesearch_template',
@@ -1375,7 +1490,6 @@ CLERKJS;
 
         $Fancybox = array(
             'type' => 'html',
-            'label' => $this->l(''),
             'name' => 'Fancybox',
             'html_content' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">' .
                 '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>' . $ClerkConfirm
@@ -1577,6 +1691,7 @@ CLERKJS;
                     $Debug_message,
                     $LoggingView,
                     $Fancybox
+
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -1635,6 +1750,7 @@ CLERKJS;
             'clerk_livesearch_number_categories' => Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_pages_type' => Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_dropdown_position' => Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
@@ -1734,6 +1850,7 @@ CLERKJS;
                 'livesearch_number_suggestions' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_pages_type' => (string)Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_dropdown_position' => (string)Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
             $View .= $this->display(__FILE__, 'search-top.tpl', $key);

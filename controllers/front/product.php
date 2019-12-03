@@ -98,7 +98,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         }
 
-
         $this->addFieldHandler('price', function ($product) {
             return Product::getPriceStatic($product['id_product'], true);
         });
@@ -136,7 +135,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
-
+            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             /** @var ProductCore $product */
             $product = new Product();
             $products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);

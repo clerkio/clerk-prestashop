@@ -91,6 +91,22 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
     }
 
+    public function ValidatePage($Page) {
+
+        foreach ($Page as $key => $content) {
+
+            if (empty($content)) {
+
+                return false;
+
+            }
+
+        }
+
+        return true;
+
+    }
+
     /**
      * Get response
      *
@@ -99,7 +115,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
-
+            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->language_id, null, $this->shop_id) != '0') {
 
                 $pages = CMS::getCMSPages($this->getLanguageId(), 1, true, $this->shop_id);
@@ -112,11 +128,17 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
                     $item = [
                         'id' => $page['id_cms'],
-                        'type' => 'CMS Page',
+                        'type' => 'cms page',
                         'url' => $this->context->link->getCMSLink($page['id_cms']),
                         'title' => $page['meta_title'],
                         'text' => $page['content']
                     ];
+
+                    if (!$this->ValidatePage($item)) {
+
+                        continue;
+
+                    }
 
                     foreach ($page_fields as $page_field) {
 

@@ -30,20 +30,6 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
 {
 
     /**
-     * @var ClerkLogger
-     */
-    protected $logger;
-
-    /**
-     * ClerkCategoryModuleFrontController constructor.
-     */
-    public function __construct()
-    {
-        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
-        $this->logger = new ClerkLogger();
-    }
-
-    /**
      * Get response
      *
      * @return array
@@ -51,12 +37,14 @@ class ClerkVersionModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
-
+            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             $clerk = Module::getInstanceByName('clerk');
 
             $response = array(
-                'platform' => sprintf('PrestaShop %s', _PS_VERSION_),
-                'version' => $clerk->version,
+                'platform' => 'PrestaShop',
+                'platform_version' => _PS_VERSION_,
+                'clerk_version' => $clerk->version,
+                'php_version' => phpversion()
             );
 
             $this->logger->log('Fetch Platform Version', ['response' => $response]);

@@ -44,6 +44,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
+            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             $customers = Customer::getCustomers(true);
 
             foreach ($customers as $index => $customer) {

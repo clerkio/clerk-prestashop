@@ -73,7 +73,9 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
             'category' => $category,
             'image' => $image,
             'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
-            'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite)
+            'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
+            'unix' => time(),
+            'template_count' => count($templates)
         ));
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {

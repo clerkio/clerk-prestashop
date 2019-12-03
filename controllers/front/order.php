@@ -85,7 +85,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
-
+            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             $response = array();
             $limit = '';
 
