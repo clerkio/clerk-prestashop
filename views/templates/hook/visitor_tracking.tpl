@@ -24,7 +24,7 @@
 *}
 
 <script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', function(){
+    window.onload = function() {
         {if ($powerstep_enabled && !$isv17)}
 
         //Handle powerstep
@@ -36,24 +36,25 @@
                 {if ($powerstep_type === 'page')}
                 window.location.replace('{$link->getModuleLink('clerk', 'added')}' + "?id_product=" + encodeURIComponent(product_id));
                 {else}
-                $('#clerk_powerstep, #__clerk_overlay').remove();
 
                 $.ajax({
                     url: "{$link->getModuleLink('clerk', 'powerstep')}",
                     method: "POST",
                     data: {
                         id_product: product_id,
-                        id_product_attribute: product_id_attribute
+                        id_product_attribute: product_id_attribute,
+                        popup: 1
                     },
                     success: function (res) {
-                        $('body').append(res.data);
-                        var popup = $("#clerk_powerstep");
-
-                        $(".clerk_powerstep_close").on("click", function () {
-                            popup.hide();
+                        var count = 0;
+                        $(".modal-body").each(function () {
+                            count = count+1;
+                            if (count === 2) {
+                                var modal = $(this);
+                                modal.append(res)
+                            }
                         });
-
-                        popup.show();
+                        Clerk("content",".clerk-powerstep-templates > span");
 
                     }
                 });
@@ -61,7 +62,7 @@
             }
         });
         {/if}
-    });
+    }
 </script>
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
 {if ($exit_intent_enabled)}

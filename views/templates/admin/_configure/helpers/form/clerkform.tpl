@@ -80,10 +80,19 @@
             {/if}
             <div class="col-md-3">
                 <div >&nbsp;</div>
-                <input type="submit" id="clerk_language_switch" value="{l s='Switch' mod='clerk'}" class="btn btn-primary">
+                <input type="submit" id="clerk_language_switch" onclick="Setignore();" value="{l s='Switch' mod='clerk'}" class="btn btn-primary">
                 <input type="hidden" name="ignore_changes" id="ignore_changes" value="">
             </div>
         </div>
+        <script>
+
+            function Setignore() {
+
+                $('#ignore_changes').val('1');
+
+            }
+
+        </script>
     {else}
         {$smarty.block.parent}
     {/if}

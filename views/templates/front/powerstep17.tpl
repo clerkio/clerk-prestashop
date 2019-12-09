@@ -26,8 +26,9 @@
 {extends file='page.tpl'}
 
 {block name='page_content'}
+    {if $popup != 0}
+        <div class="clerk-powerstep clerk-popup">
 
-    <div class="clerk-powerstep clerk-popup">
         <div class="clerk-continue">
             <a href="{$continue|escape:'html'}"
                class="btn btn-secondary clerk-pull-left">{l s='Continue Shopping' mod='clerk'}</a>
@@ -45,6 +46,7 @@
                class="clerk-pull-right btn btn-primary">{l s='Go to cart' mod='clerk'}</a>
         </div>
     </div>
+    {else}
     {if ! empty($templates)}
         <div class="clerk-powerstep-templates">
             <div class="clerk-powerstep">
@@ -83,10 +85,11 @@
                 {if $count == 1}
                     {$dataexcludestring = "`$dataexcludestring`#`$id`:limit(4)"}
                 {else}
-                    {$dataexcludestring = ",`$dataexcludestring`#`$id`:limit(4)"}
+                    {$dataexcludestring = "`$dataexcludestring`,#`$id`:limit(4)"}
                 {/if}
                 {$Issetdataexclude = true}
             {/foreach}
         </div>
+    {/if}
     {/if}
 {/block}

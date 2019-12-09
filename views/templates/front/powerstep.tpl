@@ -22,29 +22,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *}
-<style>
-    .clerk-popup {
-        position: fixed;
 
-        top: 10%;
-
-        z-index: 16777271;
-
-        display: none;
-
-        padding: 20px;
-
-        margin: 0 5%;
-
-        background-color: white;
-
-        border: 1px solid #eee;
-
-        border-radius: 5px;
-
-        box-shadow: 0px 8px 40px 0px rgba(0, 0, 60, 0.15);
-    }
-</style>
+{if $popup != 0}
 <div class="clerk-powerstep clerk-popup">
     <div class="clerk-continue">
         <a href="{$continue|escape:'html'}" class="clerk-pull-left">{l s='Continue Shopping' mod='clerk'}</a>
@@ -57,6 +36,7 @@
         <a href="{$link->getPageLink("$order_process", true)|escape:'html'}" class="clerk-pull-right btn btn-default">{l s='Go to cart' mod='clerk'}</a>
     </div>
 </div>
+{else}
 {if ! empty($templates)}
 <div class="clerk-powerstep-templates">
     <div class="clerk-powerstep">
@@ -95,9 +75,10 @@
         {if $count == 1}
             {$dataexcludestring = "`$dataexcludestring`#`$id`:limit(4)"}
         {else}
-            {$dataexcludestring = ",`$dataexcludestring`#`$id`:limit(4)"}
+            {$dataexcludestring = "`$dataexcludestring`,#`$id`:limit(4)"}
         {/if}
         {$Issetdataexclude = true}
     {/foreach}
 </div>
+{/if}
 {/if}

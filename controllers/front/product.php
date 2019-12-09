@@ -111,6 +111,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return $this->getStockForProduct($product);
         });
 
+        $this->addFieldHandler('stock', function ($product) {
+            return $this->getStockForProduct($product);
+        });
+
         $this->addFieldHandler('in_stock', function ($product) {
             return $this->getStockForProduct($product) > 0;
         });
@@ -147,6 +151,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 $item = array();
                 foreach ($this->fields as $field) {
+                    $field = str_replace(' ','',$field);
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
                         $item[$field] = $product[$fields[$field]];
                     } elseif (isset($product[$field])) {
@@ -201,7 +206,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 'sku',
                 'on_sale',
                 'qty',
-                'in_stock'
+                'in_stock',
+                'stock'
             );
 
             //Get custom fields from configuration

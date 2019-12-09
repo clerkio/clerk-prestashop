@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '5.3.0';
+        $this->version = '5.3.1';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -78,8 +78,17 @@ class Clerk extends Module
         $this->displayName = $this->l('Clerk');
         $this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
 
+
         //Set shop id
-        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
+        if (!isset($_SESSION["shop_id"])) {
+
+            $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
+
+        } else {
+
+            $this->shop_id = $_SESSION["shop_id"];
+
+        }
 
         //Set language id
         $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $this->context->language->id;
@@ -1755,10 +1764,10 @@ CLERKJS;
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
-            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->shop_id),
+            'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->shop_id),
+            'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->shop_id),
+            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
@@ -1882,7 +1891,9 @@ CLERKJS;
                     unset($cookie->clerk_last_product);
 
                     Tools::redirect($url);
+
                 } else {
+
                     $id_product = $cookie->clerk_last_product;
 
                     $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
@@ -1911,7 +1922,7 @@ CLERKJS;
                     unset($cookie->clerk_show_powerstep);
                     unset($cookie->clerk_last_product);
 
-                    $popup .= $this->display(__FILE__, 'powerstep_popup.tpl');
+                    $popup .= $this->display(__FILE__, 'powerstep_modal.tpl');
                 }
             }
         }
@@ -1921,6 +1932,22 @@ CLERKJS;
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
             $is_v16 = false;
         }
+
+        $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
+        $templates = array_filter(explode(',', $templatesConfig));
+
+        $id_product = '0';
+
+        if (isset($cookie->clerk_last_product)) {
+
+            $id_product = $cookie->clerk_last_product;
+
+        }
+
+        $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
+
+        $categories = $product->getCategories();
+        $category = reset($categories);
 
         //Assign template variables
         $this->context->smarty->assign(array(
@@ -1939,6 +1966,10 @@ CLERKJS;
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
+            'templates' => $templates,
+            'product' => $product,
+            'category' => $category,
+            'unix' => time(),
             'isv17' => $is_v16
         ));
 
@@ -2099,6 +2130,12 @@ CLERKJS;
 
         $contentConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
         $contents = array_filter(explode(',', $contentConfig));
+
+        foreach ($contents as $key => $content) {
+
+            $contents[$key] = str_replace(' ', '', $content);
+
+        }
 
         $category = $product['id_category_default'];
 
