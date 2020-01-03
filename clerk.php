@@ -2027,14 +2027,27 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-            $this->context->smarty->assign(
-                array(
+            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+                $this->context->smarty->assign(
+                    array(
 
-                    'Contents' => $Contents,
-                    'ProductId' => $params['product']['id']
+                        'Contents' => $Contents,
+                        'ProductId' => $params['product']['id']
 
-                )
-            );
+                    )
+                );
+            }else {
+
+                $this->context->smarty->assign(
+                    array(
+
+                        'Contents' => $Contents,
+                        'ProductId' => $params['product']->id
+
+                    )
+                );
+
+            }
 
             return $this->display(__FILE__, 'related-products.tpl');
 
