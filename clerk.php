@@ -1578,7 +1578,7 @@ CLERKJS;
                     '<li style="color: red;">Errors will be visible.</li>'.
                     '<li style="color: red;">Clerk logger can catch all errors.</li>'.
                     '<li style="color: red;">Remember to disable it again after use!</li>'.
-                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>>'.
+                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>'.
                     '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>'.
                     '</ul>'.
                     '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>'.
@@ -1878,8 +1878,6 @@ CLERKJS;
         $controller = $this->context->controller;
         $cookie = $this->context->cookie;
 
-        $popup = '';
-
         //Determine if powerstep is enabled
         if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             if ($cookie->clerk_show_powerstep == true) {
@@ -1968,13 +1966,17 @@ CLERKJS;
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
             'templates' => $templates,
             'product' => $product,
-            'category' => $category,
             'unix' => time(),
             'isv17' => $is_v16
         ));
 
         $output = $this->display(__FILE__, 'visitor_tracking.tpl');
-        $output .= $popup;
+
+        if (isset($popup)) {
+
+            $output .= $popup;
+
+        }
 
         return $output;
     }
@@ -1999,6 +2001,7 @@ CLERKJS;
                 $ProductsIds[] = $PreProductId['id_product'];
 
             }
+
             $ProductsIds = implode(",", $ProductsIds);
 
             $this->context->smarty->assign(
