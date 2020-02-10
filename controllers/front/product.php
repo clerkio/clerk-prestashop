@@ -144,14 +144,50 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $product = new Product();
             $products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
 
+            $context = Context::getContext();
+
             $response = array();
             $fields = array_flip($this->fieldMap);
 
             foreach ($products as $product) {
 
+
+
+                $productRaw = new Product ($product['id_product'], $context->language->id);
+
+                $combinations = $productRaw->getAttributeCombinations((int)$context->language->id, true);
+
+                $attributes = [];
+
+                if (count($combinations) > 0) {
+
+                    foreach ($combinations as $combination) {
+
+                        if(!isset($attributes[$combination['group_name']])) {
+
+                            $attributes[$combination['group_name']][] = $combination['attribute_name'];
+
+                        } else {
+
+                            if (!in_array($combination['attribute_name'], $attributes[$combination['group_name']])) {
+
+                                $attributes[$combination['group_name']][] = $combination['attribute_name'];
+
+                            }
+                        }
+
+                    }
+
+                }
+
                 $item = array();
                 foreach ($this->fields as $field) {
                     $field = str_replace(' ','',$field);
+                    if ($attributes && array_key_exists($field, $attributes)){
+
+                        $item[$field] = $attributes[$field];
+
+                    }
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
                         $item[$field] = $product[$fields[$field]];
                     } elseif (isset($product[$field])) {

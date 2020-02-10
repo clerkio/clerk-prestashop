@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '5.3.1';
+        $this->version = '5.3.2';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -1578,7 +1578,7 @@ CLERKJS;
                     '<li style="color: red;">Errors will be visible.</li>'.
                     '<li style="color: red;">Clerk logger can catch all errors.</li>'.
                     '<li style="color: red;">Remember to disable it again after use!</li>'.
-                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>'.
+                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>>'.
                     '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>'.
                     '</ul>'.
                     '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>'.
@@ -1878,6 +1878,8 @@ CLERKJS;
         $controller = $this->context->controller;
         $cookie = $this->context->cookie;
 
+        $popup = '';
+
         //Determine if powerstep is enabled
         if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             if ($cookie->clerk_show_powerstep == true) {
@@ -1954,7 +1956,7 @@ CLERKJS;
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'exit_intent_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+            'exit_intent_template' => explode(',',Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id)))),
             'product_enabled' => (bool)Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'product_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'cart_enabled' => (bool)Configuration::get('CLERK_CART_ENABLED', $this->context->language->id, null, $this->context->shop->id),
@@ -2001,7 +2003,6 @@ CLERKJS;
                 $ProductsIds[] = $PreProductId['id_product'];
 
             }
-
             $ProductsIds = implode(",", $ProductsIds);
 
             $this->context->smarty->assign(
@@ -2026,7 +2027,9 @@ CLERKJS;
     public function hookDisplayFooterProduct($params)
     {
 
-        if (Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+        $context = Context::getContext();
+        
+        if (Configuration::get('CLERK_PRODUCT_ENABLED', $context->language->id, null, $this->context->shop->id)) {
 
             $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 

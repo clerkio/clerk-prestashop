@@ -75,8 +75,10 @@
 
         }
     </style>
-<span class="clerk exit-intent"
-      data-template="@{$exit_intent_template}"
-      data-exit-intent="true">
-</span>
+{foreach $exit_intent_template as  $template}
+    <span class="clerk exit-intent"
+          data-template="@{$template}"
+          data-exit-intent="true">
+    </span>
+{/foreach}
 {/if}
