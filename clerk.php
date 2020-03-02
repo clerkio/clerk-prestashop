@@ -142,6 +142,8 @@ class Clerk extends Module
                 $falseValues[$language['id_lang']] = 0;
                 $searchTemplateValues[$language['id_lang']] = 'search-page';
                 $liveSearchTemplateValues[$language['id_lang']] = 'live-search';
+                $liveSearchSelector[$language['id_lang']] = '.search_query';
+                $liveSearchFormSelector[$language['id_lang']] = '#search_widget > form';
                 $powerstepTemplateValues[$language['id_lang']] = 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular';
                 $powerstepTypeValues[$language['id_lang']] = self::TYPE_PAGE;
                 $exitIntentTemplateValues[$language['id_lang']] = 'exit-intent';
@@ -156,6 +158,8 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', $liveSearchSelector, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', $liveSearchFormSelector, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
@@ -407,6 +411,14 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', array(
+                    $this->language_id =>  Tools::getValue('clerk_livesearch_selector', '.ui-autocomplete-input')
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', array(
+                    $this->language_id =>  Tools::getValue('clerk_livesearch_form_selector', '#search_widget > form')
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', array(
@@ -727,7 +739,7 @@ class Clerk extends Module
                     '</div>'.
                     '<b>'.
                     '<p class="warning_header">'.$modules_info->displayName. 'v '.$modules_info->version.' is installed</p>'.
-                        '</b>'.
+                    '</b>'.
                     '<p style="display: inline-block;" class="">'.$modules_for_warn[$module]['message'].'</p>'.
                     '<a target="_blank" class="btn btn-primary clerk-btn" href="'.$modules_for_warn[$module]['link'].'">Read more here</a>'.
                     '</div>';
@@ -814,22 +826,22 @@ class Clerk extends Module
                         'class' => 't',
                         'options' => array(
                             'query' => array(
-                                    ['name' => 'Auto ('.$this->language.')','Value' => 'auto'],
-                                    ['name' => 'Danish','Value' => 'danish'],
-                                    ['name' => 'Dutch','Value' => 'dutch'],
-                                    ['name' => 'English','Value' => 'english'],
-                                    ['name' => 'Finnish','Value' => 'finnish'],
-                                    ['name' => 'French','Value' => 'french'],
-                                    ['name' => 'German','Value' => 'german'],
-                                    ['name' => 'Hungarian','Value' => 'hungarian'],
-                                    ['name' => 'Italian','Value' => 'italian'],
-                                    ['name' => 'Norwegian','Value' => 'norwegian'],
-                                    ['name' => 'Portuguese','Value' => 'portuguese'],
-                                    ['name' => 'Romanian','Value' => 'romanian'],
-                                    ['name' => 'Russian','Value' => 'russian'],
-                                    ['name' => 'Spanish','Value' => 'spanish'],
-                                    ['name' => 'Swedish','Value' => 'swedish'],
-                                    ['name' => 'Turkish','Value' => 'turkish']
+                                ['name' => 'Auto ('.$this->language.')','Value' => 'auto'],
+                                ['name' => 'Danish','Value' => 'danish'],
+                                ['name' => 'Dutch','Value' => 'dutch'],
+                                ['name' => 'English','Value' => 'english'],
+                                ['name' => 'Finnish','Value' => 'finnish'],
+                                ['name' => 'French','Value' => 'french'],
+                                ['name' => 'German','Value' => 'german'],
+                                ['name' => 'Hungarian','Value' => 'hungarian'],
+                                ['name' => 'Italian','Value' => 'italian'],
+                                ['name' => 'Norwegian','Value' => 'norwegian'],
+                                ['name' => 'Portuguese','Value' => 'portuguese'],
+                                ['name' => 'Romanian','Value' => 'romanian'],
+                                ['name' => 'Russian','Value' => 'russian'],
+                                ['name' => 'Spanish','Value' => 'spanish'],
+                                ['name' => 'Swedish','Value' => 'swedish'],
+                                ['name' => 'Turkish','Value' => 'turkish']
                             ),
                             'id' => 'Value',
                             'name' => 'name',
@@ -1252,6 +1264,16 @@ class Clerk extends Module
                         'type' => 'text',
                         'label' => $this->l('Template'),
                         'name' => 'clerk_livesearch_template',
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Search field input selector'),
+                        'name' => 'clerk_livesearch_selector',
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Search field form selector'),
+                        'name' => 'clerk_livesearch_form_selector',
                     ),
                 ),
             ),
@@ -1755,6 +1777,8 @@ CLERKJS;
             'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_form_selector' => Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_categories' => Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
@@ -1838,7 +1862,7 @@ CLERKJS;
         if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
 
             $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
-                
+
         }
 
         $this->context->smarty->assign(array(
@@ -1860,6 +1884,10 @@ CLERKJS;
                 'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_pages_type' => (string)Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
                 'livesearch_dropdown_position' => (string)Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                'search_enabled' => (bool)Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
+                'baseUrl' => Tools::getHttpHost(true).__PS_BASE_URI__,
                 'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),));
 
             $View .= $this->display(__FILE__, 'search-top.tpl', $key);
@@ -1973,12 +2001,7 @@ CLERKJS;
         ));
 
         $output = $this->display(__FILE__, 'visitor_tracking.tpl');
-
-        if (isset($popup)) {
-
-            $output .= $popup;
-
-        }
+        $output .= $popup;
 
         return $output;
     }
@@ -2028,7 +2051,7 @@ CLERKJS;
     {
 
         $context = Context::getContext();
-        
+
         if (Configuration::get('CLERK_PRODUCT_ENABLED', $context->language->id, null, $this->context->shop->id)) {
 
             $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
@@ -2054,6 +2077,7 @@ CLERKJS;
                 );
 
             }
+
 
             return $this->display(__FILE__, 'related-products.tpl');
 

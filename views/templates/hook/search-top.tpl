@@ -23,7 +23,7 @@
 * SOFTWARE.
 *}
 
-<div id="search_block_top" class="col-sm-4 clearfix">
+{*<div id="search_block_top" class="col-sm-4 clearfix">
     <form id="searchbox" method="get" action="{$link->getModuleLink('clerk', 'search')|escape:'html'}" >
         <input type="hidden" name="fc" value="module">
         <input type="hidden" name="module" value="clerk">
@@ -33,18 +33,108 @@
             <span>{l s='Search' mod='clerk'}</span>
         </button>
     </form>
-</div>
+</div>*}
+<script type="text/javascript">
+
+    function htmlDecode(input){
+        var e = document.createElement('div');
+        e.innerHTML = input;
+        return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+    }
+
+</script>
+
+{if ($search_enabled)}
+
+    <script type="text/javascript">
+
+        ClerkSearchPage = function(){
+
+            var form_selector = htmlDecode('{$livesearch_form_selector}');
+            var search_field_selector = htmlDecode('{$livesearch_selector}');
+
+            $(search_field_selector).each(function() {
+                $(this).attr('name', 'search_query');
+            });
+
+            $(form_selector).each(function (){
+                $(this).attr('action', '{$baseUrl}/module/clerk/search');
+                module_hidden = document.createElement("input");
+                module_hidden.setAttribute("type", "hidden");
+                module_hidden.setAttribute("name", "fc");
+                module_hidden.setAttribute("value", "module");
+                clerk_hidden = document.createElement("input");
+                clerk_hidden.setAttribute("type", "hidden");
+                clerk_hidden.setAttribute("name", "module");
+                clerk_hidden.setAttribute("value", "clerk");
+                $(this).append(module_hidden,clerk_hidden)
+            });
+
+        };
+
+        if(window.jQuery) $( document ).ready(function() { ClerkSearchPage()  });
+        else{
+            var script = document.createElement('script');
+            document.head.appendChild(script);
+            script.type = 'text/javascript';
+            script.src = "https://code.jquery.com/jquery-3.4.1.min.js";
+            script.integrity = "sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=";
+            script.crossorigin = "anonymous";
+
+            script.onload = ClerkSearchPage;
+        }
+
+    </script>
+
+{/if}
 {if ($livesearch_enabled)}
+
+    <script type="text/javascript">
+
+        var form_selector = htmlDecode('{$livesearch_form_selector}');
+        var search_field_selector = htmlDecode('{$livesearch_selector}');
+
+        ClerkLiveSearch = function(){
+
+            $(search_field_selector).each(function() {
+                $(this).removeAttr("autocomplete");
+            });
+
+            StockAutoComplete = $(".ui-autocomplete");
+
+            if (StockAutoComplete) {
+
+                StockAutoComplete.each(function() {
+                    $(this).remove();
+                });
+
+            }
+
+        };
+
+        if(window.jQuery) $( document ).ready(function() { ClerkSearchPage()  });
+        else{
+            var script = document.createElement('script');
+            document.head.appendChild(script);
+            script.type = 'text/javascript';
+            script.src = "https://code.jquery.com/jquery-3.4.1.min.js";
+            script.integrity = "sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=";
+            script.crossorigin = "anonymous";
+
+            script.onload = ClerkLiveSearch;
+        }
+
+    </script>
+
     <span
             class="clerk"
             data-template="@{$livesearch_template|escape:'html':'UTF-8'}"
             data-instant-search-suggestions="{$livesearch_number_suggestions}"
-            {if ($livesearch_enabled)}
             data-instant-search-categories="{$livesearch_number_categories}"
-            {/if}
             data-instant-search-pages="{$livesearch_number_pages}"
             data-instant-search-pages-type="{$livesearch_pages_type}"
             data-instant-search-positioning="{$livesearch_dropdown_position}"
-            data-instant-search="#search_query_top">
+            data-instant-search="{$livesearch_selector}">
     </span>
+
 {/if}
