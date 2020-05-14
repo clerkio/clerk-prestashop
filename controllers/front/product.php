@@ -151,17 +151,23 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             foreach ($products as $product) {
 
-
-
                 $productRaw = new Product ($product['id_product'], $context->language->id);
 
                 $combinations = $productRaw->getAttributeCombinations((int)$context->language->id, true);
 
                 $attributes = [];
+                $variants = [];
 
                 if (count($combinations) > 0) {
 
                     foreach ($combinations as $combination) {
+
+                        if(isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
+
+                            array_push($variants, $combination['reference']);
+                        } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants))  {
+                            array_push($variants, $combination['id_product_attribute']);
+                        }
 
                         if(!isset($attributes[$combination['group_name']])) {
 
@@ -197,6 +203,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     //Check if there's a fieldHandler assigned for this field
                     if (isset($this->fieldHandlers[$field])) {
                         $item[$field] = $this->fieldHandlers[$field]($product);
+                    }
+                }
+
+                if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
+                    if (!empty($variants)) {
+                        $item['variants'] = $variants;
                     }
                 }
 

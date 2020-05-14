@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.0.0';
+        $this->version = '6.1.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -475,6 +475,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', array(
                     $this->language_id => Tools::getValue('clerk_datasync_disable_order_synchronization', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_include_variant_references', 1)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array(
@@ -965,6 +969,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_disable_order_synchronization_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Variant References'),
+                        'name' => 'clerk_datasync_include_variant_references',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_include_variant_references_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_include_variant_references_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -1600,7 +1623,7 @@ CLERKJS;
                     '<li style="color: red;">Errors will be visible.</li>'.
                     '<li style="color: red;">Clerk logger can catch all errors.</li>'.
                     '<li style="color: red;">Remember to disable it again after use!</li>'.
-                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>>'.
+                    '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>'.
                     '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>'.
                     '</ul>'.
                     '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>'.
@@ -1793,6 +1816,7 @@ CLERKJS;
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
@@ -1975,7 +1999,6 @@ CLERKJS;
         $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
 
         $categories = $product->getCategories();
-        $category = reset($categories);
 
         //Assign template variables
         $this->context->smarty->assign(array(
@@ -1995,7 +2018,6 @@ CLERKJS;
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
             'templates' => $templates,
-            'product' => $product,
             'unix' => time(),
             'isv17' => $is_v16
         ));

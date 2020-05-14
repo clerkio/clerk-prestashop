@@ -99,7 +99,7 @@ class Clerk_Api
                     'categories' => $categories,
                     'sku' => $product->reference,
                     'on_sale' => $product->on_sale,
-                    'brand' => $manufacturer->name,
+                    'brand' => (Validate::isLoadedObject($manufacturer))? $manufacturer->name : '',
                     'in_stock' => $this->getStockForProduct($product) > 0,
                     'qty' => $qty,
 

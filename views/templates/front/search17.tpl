@@ -38,7 +38,7 @@
             id="clerk-search"
             class="clerk"
             data-template="@{$search_template|escape:'html':'UTF-8'}"
-            data-limit="5"
+            data-limit="40"
             data-offset="0"
             data-target="#clerk-search-results"
             data-query="{$search_query|escape:'html':'UTF-8'}">
