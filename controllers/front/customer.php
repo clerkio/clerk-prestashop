@@ -33,8 +33,17 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
     public function __construct()
     {
+        parent::__construct();
+
         require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+
+        $context = Context::getContext();
+
         $this->logger = new ClerkLogger();
+
+        //Needed for PHP 5.3 support
+        $context = $this->context;
+
     }
     /**
      * Get response
@@ -45,7 +54,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
     {
         try {
             header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
-            $customers = Customer::getCustomers(true);
+            $customers = Customer::getCustomers($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
 
             foreach ($customers as $index => $customer) {
                 //Rename id_customer to id and prepend to response
