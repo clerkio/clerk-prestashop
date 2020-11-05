@@ -102,6 +102,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return Product::getPriceStatic($product['id_product'], true);
         });
 
+        $this->addFieldHandler('date_add', function ($product) {
+            return strtotime($product['date_add']);
+        });
+
         $this->addFieldHandler('list_price', function ($product) {
             //Get price without reduction
             return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
@@ -202,7 +206,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                     //Check if there's a fieldHandler assigned for this field
                     if (isset($this->fieldHandlers[$field])) {
-                        $item[$field] = $this->fieldHandlers[$field]($product);
+                        if ($field == 'date_add') {
+                            $item['created_at'] = $this->fieldHandlers[$field]($product);
+                        }
+                        else {
+                            $item[$field] = $this->fieldHandlers[$field]($product);
+                        }
                     }
                 }
 
@@ -255,7 +264,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 'on_sale',
                 'qty',
                 'in_stock',
-                'stock'
+                'stock',
+                'date_add'
             );
 
             //Get custom fields from configuration
