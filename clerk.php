@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.2.1';
+        $this->version = '6.3.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -171,6 +171,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
 
@@ -332,6 +333,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
+        Configuration::deleteByName('CLERK_DATASYNC_COLLECT_BASKETS');
         Configuration::deleteByName('CLERK_DATASYNC_USE_REAL_TIME_UPDATES');
         Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
@@ -457,6 +459,10 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_datasync_collect_emails', 1)
                 ), false, null, $this->shop_id);
 
+                Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_collect_baskets', 1)
+                ), false, null, $this->shop_id);
+
                 Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array(
                     $this->language_id => Tools::getValue('clerk_datasync_use_real_time_updates', 1)
                 ), false, null, $this->shop_id);
@@ -554,6 +560,8 @@ class Clerk extends Module
             $search_enabled = Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id);
 
             $datasync_collect_emails_enabled = Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id);
+
+            $datasync_collect_baskets_enabled = Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->language_id, null, $this->shop_id);
 
             $datasync_disable_order_synchronization_enabled = Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id);
 
@@ -945,6 +953,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_collect_emails_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Collect Baskets'),
+                        'name' => 'clerk_datasync_collect_baskets',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_collect_baskets_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_collect_baskets_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -1811,6 +1838,7 @@ CLERKJS;
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->shop_id),
@@ -2006,6 +2034,7 @@ CLERKJS;
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_template' => explode(',',Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id)))),
             'product_enabled' => (bool)Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
@@ -2115,6 +2144,79 @@ CLERKJS;
         if (Tools::getValue('add')) {
             $this->context->cookie->clerk_show_powerstep = true;
             $this->context->cookie->clerk_last_product = Tools::getValue('id_product');
+        }
+
+        $collect_baskets = Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id);
+
+        if ($collect_baskets) {
+
+            if ($this->context->cart) {
+                $cart_products = $this->context->cart->getProducts();
+
+                $cart_product_ids = array();
+
+                foreach ($cart_products as $product) 
+                    $cart_product_ids[] = (int)$product['id_product'];
+
+                if ($this->context->customer->email) {
+                    $Endpoint = 'https://api.clerk.io/v2/log/basket/set';
+
+                    $data_string = json_encode([
+                        'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                        'products' => $cart_product_ids,
+                       'email' => $this->context->customer->email]);
+
+                    $curl = curl_init();
+
+                    curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                    curl_setopt($curl, CURLOPT_POST, true);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+                    curl_exec($curl);
+                }
+                $cart_products = $this->context->cart->getProducts();
+
+                $cart_product_ids = array();
+
+                foreach ($cart_products as $product) 
+                    $cart_product_ids[] = (int)$product['id_product'];
+
+                if ($this->context->customer->email) {
+                    $Endpoint = 'https://api.clerk.io/v2/log/basket/set';
+
+                    $data_string = json_encode([
+                        'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                        'products' => $cart_product_ids,
+                       'email' => $this->context->customer->email]);
+
+                    $curl = curl_init();
+
+                    curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                    curl_setopt($curl, CURLOPT_POST, true);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+                    curl_exec($curl);
+
+                } else {
+                    echo "<script type='text/javascript'>(function(){
+                            (function(w,d){
+                                var e=d.createElement('script');e.type='text/javascript';e.async=true;
+                                e.src=(d.location.protocol=='https:'?'https':'http')+'://cdn.clerk.io/clerk.js';
+                                var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(e,s);
+                                w.__clerk_q=w.__clerk_q||[];w.Clerk=w.Clerk|| function(){ w.__clerk_q.push(arguments) };
+                            })(window,document);
+                        })();
+
+                        Clerk('config', {
+                            key: '".Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id)."',
+
+                        });
+
+                        Clerk('cart', 'set', [".implode(',', $cart_product_ids)."]);
+
+                        </script>";
+                }
+            }
         }
     }
 
