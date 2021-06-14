@@ -65,8 +65,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $context = Context::getContext();
 
-        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
-        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+        $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
+        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
 
         $this->logger = new ClerkLogger();
 
@@ -216,7 +216,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
-                    if (!empty($variants)) {
+                    if ($variants) {
                         $item['variants'] = $variants;
                     }
                 }

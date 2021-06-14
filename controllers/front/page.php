@@ -60,8 +60,8 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
         $context = Context::getContext();
 
-        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
-        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+        $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
+        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
 
         $this->logger = new ClerkLogger();
 
@@ -144,7 +144,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
                         $page_field = str_replace(' ','',$page_field);
 
-                        if (!empty($page_field)) {
+                        if ($page_field) {
 
                             $item[$page_field] = $page[$page_field];
 

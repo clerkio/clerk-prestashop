@@ -55,7 +55,7 @@
                                 {/foreach}
                             </select>
                         </div>
-
+                        {if !$input.monolanguage }
                             <div class="col-md-4">
                                 {$id_language}
                                 <span><strong>{l s='Language:' mod='clerk'}</strong></span>
@@ -71,7 +71,7 @@
                                     {/foreach}
                                 </select>
                             </div>
-
+                        {/if}
                         <div class="col-md-3">
                             <div>&nbsp;</div>
                             <input type="submit" id="clerk_language_switch" value="{l s='Switch' mod='clerk'}" class="btn btn-primary">

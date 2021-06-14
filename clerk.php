@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.3.0';
+        $this->version = '6.3.1';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -82,7 +82,7 @@ class Clerk extends Module
         //Set shop id
         if (!isset($_SESSION["shop_id"])) {
 
-            $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
+            $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
 
         } else {
 
@@ -91,7 +91,7 @@ class Clerk extends Module
         }
 
         //Set language id
-        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $this->context->language->id;
+        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int)Tools::getValue('clerk_language_select') : $this->context->language->id;
     }
 
     /**
@@ -376,7 +376,7 @@ class Clerk extends Module
     {
         if (Tools::isSubmit('submitClerk')) {
             //Determine if we're changing shop or language
-            if (!empty(Tools::getValue('ignore_changes'))) {
+            if (Tools::getValue('ignore_changes')) {
                 return true;
             }
 
@@ -719,7 +719,7 @@ class Clerk extends Module
 
             if (!in_array($module, $exclude )) {
 
-                $modules_array[] = Module::getInstanceByName($module)->name;
+                $modules_array[] = Module::getInstanceByName($module->name);
 
             }
 

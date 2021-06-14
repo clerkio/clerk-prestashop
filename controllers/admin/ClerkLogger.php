@@ -50,10 +50,10 @@ class ClerkLogger extends ModuleAdminController
         $context = Context::getContext();
 
         //Set shop id
-        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
+        $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
 
         //Set language id
-        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
         $this->Platform = 'Prestashop';
         $this->Key = Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id);
         $this->Date = new DateTime();
