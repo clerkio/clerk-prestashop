@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.3.1';
+        $this->version = '6.4.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -155,6 +155,11 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop['id_shop']);
 
+            Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_FACETS_ENABLED', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_FACETS_POSITION', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_FACETS_TITLE', $emptyValues, false, null, $shop['id_shop']);
+
             Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
@@ -183,6 +188,9 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_CART_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_CART_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
+            
+
+          
         }
 
         return parent::install() &&
@@ -323,6 +331,10 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LANGUAGE');
         Configuration::deleteByName('CLERK_SEARCH_ENABLED');
         Configuration::deleteByName('CLERK_SEARCH_TEMPLATE');
+        Configuration::deleteByName('CLERK_FACETED_NAVIGATION_ENABLED');
+        Configuration::deleteByName('CLERK_FACETS_ENABLED');
+        Configuration::deleteByName('CLERK_FACETS_POSITION');
+        Configuration::deleteByName('CLERK_FACETS_TITLE');
         Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
         Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
@@ -401,6 +413,46 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_SEARCH_TEMPLATE', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_search_template', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_faceted_navigation_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                /**
+                 * kky facets sorting arrays for position
+                 */
+                
+                $facetPos = Tools::getValue('clerk_facets_position', 0);
+                uasort($facetPos, function($a, $b) {
+                    return $a[0] <=> $b[0];
+                });
+
+                $enabledfacets = Tools::getValue('clerk_facets_enabled', 0);
+
+                $sortingfacets = array();
+                foreach ($facetPos as $key => $value) {
+                        if(in_array($key, $enabledfacets, true)){
+                            $sortingfacets[] = $key;
+                        }
+                }
+
+                Configuration::updateValue('CLERK_FACETS_POSITION', array(
+                    $this->language_id => json_encode($facetPos)
+                ), false, null, $this->shop_id);
+               
+                Configuration::updateValue('CLERK_FACETS_ENABLED', array(
+                    $this->language_id => json_encode($sortingfacets)
+                ), false, null, $this->shop_id);
+
+                /**
+                 * kky facets cleaning clerk_facets_title array and removing empty for better smarty compatibility
+                 */
+                $titlecorection = str_replace('[', '', str_replace(']', '', json_encode(Tools::getValue('clerk_facets_title', 0))));
+                $titleCortedArr = array_filter(json_decode($titlecorection, true));
+
+                Configuration::updateValue('CLERK_FACETS_TITLE', array(
+                    $this->language_id => json_encode($titleCortedArr)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', array(
@@ -668,6 +720,7 @@ class Clerk extends Module
                 $this->logger->log('Search uninitiated', []);
 
             }
+
 
             if ($powerstep_enabled == '1' && $powerstep_initiated !== '1') {
 
@@ -1057,6 +1110,87 @@ class Clerk extends Module
                         'name' => 'clerk_search_template',
                     ),
                 ),
+            ),
+        );
+
+         //Faceted navigation settings
+         $facet_input = array(); 
+         $facet_enable = array(
+            'type' => $booleanType,
+            'label' => $this->l('Enabled'),
+            'name' => 'clerk_faceted_navigation_enabled',
+            'is_bool' => true,
+            'class' => 't',
+            'values' => array(
+                array(
+                    'id' => 'clerk_faceted_navigation_enabled_on',
+                    'value' => 1,
+                    'label' => $this->l('Enabled')
+                ),
+                array(
+                    'id' => 'clerk_faceted_navigation_enabled_off',
+                    'value' => 0,
+                    'label' => $this->l('Disabled')
+                )
+            )
+        );
+
+        array_push($facet_input, $facet_enable);
+
+        if(Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id) !==""){
+
+            $facetHTML = '<table style="margin-top:7px" id="facet_table">'.
+            '<tbody id="facets_content">'.
+            '<tr><th>Attribute</th>'.
+            '<th>Title</th>'.
+            '<th>Position</th>'.
+            '<th>Show</th>';
+            
+            $positions = json_decode(Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id), true);
+            $titles = json_decode(Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id), true);
+
+            $attributes = $this->getClerkAttributes();
+            $attributes = array_unique($attributes);
+            foreach($attributes as $attribute){
+                
+                $attributeHTML =   '</tr><tr class="facets_lines">';
+                $attributeHTML .=  '<td style="padding:8px 10px 8px 0px;"><input type="text" name="facets_facet" value="'.$attribute.'" readonly=""></td>';
+                $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_title['.$attribute.'][]" value="'. $titles[$attribute] .'"></td>';
+                $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_position['.$attribute.'][]" value="'.$positions[$attribute][0].'"></td>';
+                if(in_array($attribute, json_decode(Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id))) ){
+                    $attributeHTML .=  '<td style="padding-right:10px;"><input name="clerk_facets_enabled[]" value="'.$attribute.'" checked="checked" type="checkbox"></td>';
+                }else{
+                    $attributeHTML .=  '<td style="padding-right:10px;"><input name="clerk_facets_enabled[]" value="'.$attribute.'" type="checkbox"></td>';
+                }
+                
+
+                $attributeHTML .=  '</tr>';
+
+                $facetHTML .= $attributeHTML;
+            }
+
+            $facetHTML .= '</tbody></table>';
+
+            $facettable = array(
+                'type' => 'html',
+                'label' => $this->l('Facet Attributes'),
+                'name' => 'faceted navigation',
+                'html_content' =>  $facetHTML
+            );
+
+            array_push($facet_input, $facettable );
+
+        }
+        
+         $this->fields_form[] = array(
+            'form' => array( 
+                'legend' => array(
+                    'title' => $this->l('Faceted navigation'),
+                    'icon' => 'icon-search'
+                ),
+                'input' =>  $facet_input
+                   
+                ,
             ),
         );
 
@@ -1824,6 +1958,10 @@ CLERKJS;
             'clerk_import_url' => _PS_BASE_URL_,
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
+            'clerk_faceted_navigation_enabled' => Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_facets_position' => Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id),
+            'clerk_facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
@@ -2374,6 +2512,139 @@ CLERKJS;
                 }
             }
         }
+    }
+
+    function isJSON($string){
+        return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+    }
+
+    /**
+     * Get attributes for facets
+     * 
+     * @return array
+     * 
+     */
+    public function getClerkAttributes() {
+
+        $_continue = true;
+        $offset = 0;
+        $page = 0;
+
+        $exclude_attributes = ['sku','list_price','description','url','image','type','id','name'];
+        $DynamicAttributes = [];
+
+        $public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id);
+
+        if (!empty(str_replace(' ','', $public_key))) {
+
+            while ($_continue) {
+
+                $check = true;
+
+                $limit = 10;
+                $orderby = 'date';
+                $order = 'DESC';
+
+                $products = Product::getProducts(1, 0, 0, 'id_product', 'DESC' );
+              
+                if (is_array($products)) {
+                   
+                    foreach ($products as $product) {
+                       
+                        if ($check) {
+                           
+                            $id = $product["id_product"];
+
+                            $Endpoint = 'https://api.clerk.io/v2/product/attributes';
+
+                            $data_string = json_encode([
+                                'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                                'products' => [$id],
+                            ]);
+
+                            $curl = curl_init();
+
+                            curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                            curl_setopt($curl, CURLOPT_POST, true);
+                            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+                            curl_setopt($curl, CURLOPT_HEADER, true);
+                            $retuned = curl_exec($curl);
+                            if(curl_errno($curl)){
+                              //  print 'Curl error: '.curl_error($curl);
+                            }
+                                                            
+                            $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+                            $header = substr($retuned, 0, $header_size);
+                            $body = substr($retuned, $header_size);
+
+                            curl_close($curl);
+
+                            if ($this->isJSON($body)) {
+
+                                $response = json_decode($body);
+                                
+                            }else {
+
+                                $response = $body;
+                                
+                            }
+
+                            if (is_array($response)) {
+
+                                $check = false;
+
+                            }
+
+                            if (is_array($response) && isset($response[0])) {
+
+                                $response = $response[0];
+
+                            }
+                        }
+
+                    }
+                }
+
+                if (isset($response)) {
+                   
+                    foreach ($response as $attribute => $value) {
+
+                        if (!in_array($attribute, $exclude_attributes)) {
+
+                            if (!empty($attribute)) {
+
+                                $DynamicAttributes[] = $attribute;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                if (count($DynamicAttributes) != 0 && $offset >= 10) {
+
+                    $_continue = false;
+
+                } elseif ($offset == 30) {
+
+                    $_continue = false;
+
+                }
+
+                $offset += 10;
+            }
+            
+             foreach($DynamicAttributes as $key => $value){
+                $facetformArray[] = $value;
+                              
+             }
+            
+            return $facetformArray;
+        }  
+
     }
 
 }

@@ -31,7 +31,7 @@
     </span>
     {/if}
 </h1>
-
+<div id="clerk-search-filters"></div>
 <span
         id="clerk-search"
         class="clerk"
@@ -39,6 +39,13 @@
         data-limit="40"
         data-offset="0"
         data-target="#clerk-search-results"
+        {if $faceted_navigation}
+           
+            data-facets-target="#clerk-search-filters" 
+            data-facets-attributes='{$facets_enabled}'
+            data-facets-titles='{$facets_title}'
+
+        {/if}
         data-query="{$search_query|escape:'html':'UTF-8'}">
 </span>
 

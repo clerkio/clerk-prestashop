@@ -26,8 +26,11 @@
 
 class ClerkSearchModuleFrontController extends ModuleFrontController
 {
+    
     public function initContent()
     {
+        $this->display_column_left = false;
+
         parent::initContent();
 
         $query = Tools::getValue('search_query', '');
@@ -35,7 +38,10 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
         $this->context->smarty->assign(array(
             'search_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_SEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'search_query' => $query,
-            'lang_iso' => $this->context->language->iso_code
+            'lang_iso' => $this->context->language->iso_code,
+            'faceted_navigation' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->context->language->id, null, $this->context->shop->id))),
+            'facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+            'facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->context->language->id, null, $this->context->shop->id),
         ));
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
