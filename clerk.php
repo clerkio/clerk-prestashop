@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.4.0';
+        $this->version = '6.4.1';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -2098,6 +2098,7 @@ CLERKJS;
 
         $popup = '';
 
+
         //Determine if powerstep is enabled
         if (Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             if ($cookie->clerk_show_powerstep == true) {
@@ -2166,6 +2167,13 @@ CLERKJS;
 
         $categories = $product->getCategories();
 
+        $clerk_cart_update = false;
+        $clerk_cart_products = '[]';
+        if ($cookie->clerk_cart_update == true) {
+            $clerk_cart_update = true;
+            $clerk_cart_products = $cookie->clerk_cart_products;
+        }
+
         //Assign template variables
         $this->context->smarty->assign(array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -2184,10 +2192,15 @@ CLERKJS;
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_collect_cart' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_cart_update' => $clerk_cart_update,
+            'clerk_cart_products' => $clerk_cart_products,
             'templates' => $templates,
             'unix' => time(),
             'isv17' => $is_v16
         ));
+
+        $this->context->cookie->clerk_cart_update = false;
 
         $output = $this->display(__FILE__, 'visitor_tracking.tpl');
         $output .= $popup;
@@ -2279,6 +2292,9 @@ CLERKJS;
      */
     public function hookActionCartSave()
     {
+
+        $cookie = $this->context->cookie;
+
         if (Tools::getValue('add')) {
             $this->context->cookie->clerk_show_powerstep = true;
             $this->context->cookie->clerk_last_product = Tools::getValue('id_product');
@@ -2289,29 +2305,7 @@ CLERKJS;
         if ($collect_baskets) {
 
             if ($this->context->cart) {
-                $cart_products = $this->context->cart->getProducts();
-
-                $cart_product_ids = array();
-
-                foreach ($cart_products as $product) 
-                    $cart_product_ids[] = (int)$product['id_product'];
-
-                if ($this->context->customer->email) {
-                    $Endpoint = 'https://api.clerk.io/v2/log/basket/set';
-
-                    $data_string = json_encode([
-                        'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                        'products' => $cart_product_ids,
-                       'email' => $this->context->customer->email]);
-
-                    $curl = curl_init();
-
-                    curl_setopt($curl, CURLOPT_URL, $Endpoint);
-                    curl_setopt($curl, CURLOPT_POST, true);
-                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-                    curl_exec($curl);
-                }
+               
                 $cart_products = $this->context->cart->getProducts();
 
                 $cart_product_ids = array();
@@ -2336,23 +2330,21 @@ CLERKJS;
                     curl_exec($curl);
 
                 } else {
-                    echo "<script type='text/javascript'>(function(){
-                            (function(w,d){
-                                var e=d.createElement('script');e.type='text/javascript';e.async=true;
-                                e.src=(d.location.protocol=='https:'?'https':'http')+'://cdn.clerk.io/clerk.js';
-                                var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(e,s);
-                                w.__clerk_q=w.__clerk_q||[];w.Clerk=w.Clerk|| function(){ w.__clerk_q.push(arguments) };
-                            })(window,document);
-                        })();
+                    if ( isset($cookie->clerk_cart_products) ) {
 
-                        Clerk('config', {
-                            key: '".Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id)."',
+                        if( $cookie->clerk_cart_products != json_encode($cart_product_ids) ){
 
-                        });
+                            $this->context->cookie->clerk_cart_update = true;
+                            $this->context->cookie->clerk_cart_products = json_encode($cart_product_ids);
 
-                        Clerk('cart', 'set', [".implode(',', $cart_product_ids)."]);
+                        }
 
-                        </script>";
+                    }else{
+
+                        $this->context->cookie->clerk_cart_update = true;
+                        $this->context->cookie->clerk_cart_products = json_encode($cart_product_ids);
+
+                    } 
                 }
             }
         }

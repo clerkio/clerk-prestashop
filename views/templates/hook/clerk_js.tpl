@@ -40,5 +40,8 @@
         language: '{$language}',
 
     });
+   
+
 </script>
+
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->

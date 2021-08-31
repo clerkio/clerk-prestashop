@@ -31,3 +31,9 @@
       {/if}
       data-products='{$clerk_products}'>
 </span>
+ <script type="text/javascript">
+            (function () {
+                var clerk_no_productids = [];
+                Clerk('cart', 'set', clerk_no_productids);
+            })();
+</script>
