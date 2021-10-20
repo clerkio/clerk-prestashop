@@ -67,7 +67,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.4.1';
+        $this->version = '6.4.2';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -425,7 +425,13 @@ class Clerk extends Module
                 
                 $facetPos = Tools::getValue('clerk_facets_position', 0);
                 uasort($facetPos, function($a, $b) {
-                    return $a[0] <=> $b[0];
+                    if ($a[0] <= $b[0]) {
+                        return 1;
+                    } elseif ($a[0] == $b[0]) {
+                        return 0;
+                    }else {
+                        return -1;
+                    };
                 });
 
                 $enabledfacets = Tools::getValue('clerk_facets_enabled', 0);
@@ -772,7 +778,11 @@ class Clerk extends Module
 
             if (!in_array($module, $exclude )) {
 
-                $modules_array[] = Module::getInstanceByName($module->name);
+                try {
+                    $modules_array[] = Module::getInstanceByName($module->name);
+                }catch (Exception $e) {
+
+                }
 
             }
 
@@ -2544,7 +2554,7 @@ CLERKJS;
                     foreach ($products as $product) {
                        
                         if ($check) {
-                           
+
                             $id = $product["id_product"];
 
                             $Endpoint = 'https://api.clerk.io/v2/product/attributes';
@@ -2565,7 +2575,7 @@ CLERKJS;
                             if(curl_errno($curl)){
                               //  print 'Curl error: '.curl_error($curl);
                             }
-                                                            
+
                             $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
                             $header = substr($retuned, 0, $header_size);
                             $body = substr($retuned, $header_size);
@@ -2575,11 +2585,11 @@ CLERKJS;
                             if ($this->isJSON($body)) {
 
                                 $response = json_decode($body);
-                                
+
                             }else {
 
                                 $response = $body;
-                                
+
                             }
 
                             if (is_array($response)) {
@@ -2599,7 +2609,7 @@ CLERKJS;
                 }
 
                 if (isset($response)) {
-                   
+
                     foreach ($response as $attribute => $value) {
 
                         if (!in_array($attribute, $exclude_attributes)) {
@@ -2628,14 +2638,14 @@ CLERKJS;
 
                 $offset += 10;
             }
-            
+
              foreach($DynamicAttributes as $key => $value){
                 $facetformArray[] = $value;
-                              
+
              }
-            
+
             return $facetformArray;
-        }  
+        }
 
     }
 
