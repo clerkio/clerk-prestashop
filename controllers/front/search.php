@@ -42,6 +42,11 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
             'faceted_navigation' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->context->language->id, null, $this->context->shop->id))),
             'facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->context->language->id, null, $this->context->shop->id),
+            'facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $this->context->language->id, null, $this->context->shop->id),
+            'search_categories' => Configuration::get('CLERK_SEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+            'search_number_categories' => Configuration::get('CLERK_SEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+            'search_number_pages' => Configuration::get('CLERK_SEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+            'search_pages_type' => Configuration::get('CLERK_SEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
         ));
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {

@@ -72,12 +72,12 @@
 </div>
 <script>
 
-        var popup = $("#clerk_powerstep");
+        var popup = document.getElementById("clerk_powerstep");
 
-        $(".clerk_powerstep_close").on("click", function () {
-            popup.hide();
+        document.querySelector('.clerk_powerstep_close').addEventListener("click", () => {
+                  popup.style.display = 'none';
         });
 
-        popup.show();
+        popup.style.display = 'block';
 
 </script>

@@ -25,7 +25,66 @@
 
 <script type="text/javascript">
 
+function checkcart(){
+
+    data = "action=get_cart";
+    const request = new XMLHttpRequest();
+
+    request.addEventListener('load', function () {
+    if (this.readyState === 4 && this.status === 200) {
+        var response = this.responseText.replace('[', '').replace(']', '');
+        var clerk_productids = [];
+        clerk_productids = response.split(",")
+        clerk_productids = clerk_productids.map(Number);
+        var clerk_last_productids = [];
+        if( localStorage.getItem('clerk_productids') !== null ){
+            clerk_last_productids = localStorage.getItem('clerk_productids').split(",");
+            clerk_last_productids = clerk_last_productids.map(Number);  
+        }
+        //sort
+        clerk_productids = clerk_productids.sort((a, b) => a - b);
+        clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
+        // compare
+        if(JSON.stringify(clerk_productids) == JSON.stringify(clerk_last_productids)){
+            // if equal - do nothing
+            // console.log('testing equal: ', clerk_productids, clerk_last_productids)
+        }else{
+            // if not equal send cart to clerk
+            // console.log('testing not equal: ', clerk_productids, clerk_last_productids)
+            Clerk('cart', 'set', clerk_productids);
+        }
+        // save for next compare
+        localStorage.setItem("clerk_productids", clerk_productids);
+    }
+    });
+
+    request.open('POST', "{$link->getModuleLink('clerk', 'clerkbasket')}", true);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.send(data);
+
+}
+
     {if ($clerk_collect_cart ==true && $isv17) }
+
+        let open = XMLHttpRequest.prototype.open; 
+
+        XMLHttpRequest.prototype.open = function() {
+            
+            this.addEventListener("load", function(){
+
+            if( this.responseURL.includes("cart") ){
+                 if (this.readyState === 4 && this.status === 200) {
+                    checkcart();
+                 } 
+            }
+
+            }, false);
+            
+            open.apply(this, arguments);
+        };
+
+
+        /*
 
         $(document).ajaxComplete(function(event,request, settings){
         //console.log('event: ',event ,' request: ', request, ' settings: ', settings);
@@ -39,7 +98,7 @@
                         });
 
                         request.done(function (response, textStatus, jqXHR){
-                            console.log("Hooray, it worked!:",response);
+                            console.log("Hooray 001, it worked!:",response);
                             var clerk_productids = response;
                             var clerk_last_productids = [];
                             if( localStorage.getItem('clerk_productids') !== null ){
@@ -71,90 +130,23 @@
                 }   
         });
 
+    */
+
     {/if}
+
 
     window.onload = function() {
 
         {if ($clerk_collect_cart == true) }
 
-            {if ($clerk_cart_update == true && $isv17)} 
-
-                request = $.ajax({
-                            type : "POST",  
-                            url  : "{$link->getModuleLink('clerk', 'cart')}",  
-                        });
-
-                request.done(function (response, textStatus, jqXHR){
-                    var clerk_productids = response;
-                    var clerk_last_productids = [];
-                    if( localStorage.getItem('clerk_productids') !== null ){
-                        clerk_last_productids = localStorage.getItem('clerk_productids').split(",");
-                        clerk_last_productids = clerk_last_productids.map(Number);  
-                    }
-                    //sort
-                    clerk_productids = clerk_productids.sort((a, b) => a - b);
-                    clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
-                    // compare
-                    if(JSON.stringify(clerk_productids) == JSON.stringify(clerk_last_productids)){
-                        // if equal - maybe compare content??
-                        // console.log('equal: ', clerk_productids, clerk_last_productids)
-                    }else{
-                        // if not equal send cart to clerk
-                        //console.log('not equal: ', clerk_productids, clerk_last_productids)
-                            Clerk('cart', 'set', clerk_productids);
-                    }
-                    // save for next compare
-                    localStorage.setItem("clerk_productids", clerk_productids);
-                    });
-
-                    request.fail(function (jqXHR, textStatus, errorThrown){  
-                            console.error(
-                                "The following error occurred: "+
-                                textStatus, errorThrown
-                            );
-                    });
-
+            {if ($clerk_cart_update == true && $isv17)}              
+                checkcart();
             {/if}
 
-            {if (!$isv17) }
-                    prestashop.on("updateCart", function (e) {
-                        
-                        request = $.ajax({
-                            type : "POST",  
-                            url  : "{$link->getModuleLink('clerk', 'cart')}",  
-                        });
-
-                        request.done(function (response, textStatus, jqXHR){
-                            console.log("Hooray, it worked!:",response);
-                            var clerk_productids = response;
-                            var clerk_last_productids = [];
-                            if( localStorage.getItem('clerk_productids') !== null ){
-                                clerk_last_productids = localStorage.getItem('clerk_productids').split(",");
-                                clerk_last_productids = clerk_last_productids.map(Number);  
-                            }
-                            //sort
-                            clerk_productids = clerk_productids.sort((a, b) => a - b);
-                            clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
-                            // compare
-                            if(JSON.stringify(clerk_productids) == JSON.stringify(clerk_last_productids)){
-                                // if equal - maybe compare content??
-                                // console.log('equal: ', clerk_productids, clerk_last_productids)
-                            }else{
-                                // if not equal send cart to clerk
-                                //console.log('not equal: ', clerk_productids, clerk_last_productids)
-                                Clerk('cart', 'set', clerk_productids);
-                            }
-                            // save for next compare
-                            localStorage.setItem("clerk_productids", clerk_productids);
-                        });
-
-                        request.fail(function (jqXHR, textStatus, errorThrown){  
-                            console.error(
-                                "The following error occurred: "+
-                                textStatus, errorThrown
-                            );
-                        });             
-                    });
+            {if (!$isv17) }       
+                prestashop.on("updateCart", function (e) {
+                    checkcart();   
+                });
 
             {/if}
 
@@ -169,30 +161,55 @@
                 var product_id_attribute = e.resp.id_product_attribute;
 
                 {if ($powerstep_type === 'page')}
-                window.location.replace('{$link->getModuleLink('clerk', 'added')}' + "?id_product=" + encodeURIComponent(product_id));
+                    window.location.replace('{$link->getModuleLink('clerk', 'added')}' + "?id_product=" + encodeURIComponent(product_id));
                 {else}
 
-                $.ajax({
-                    url: "{$link->getModuleLink('clerk', 'powerstep')}",
-                    method: "POST",
-                    data: {
-                        id_product: product_id,
-                        id_product_attribute: product_id_attribute,
-                        popup: 1
-                    },
-                    success: function (res) {
-                        var count = 0;
-                        $(".modal-body").each(function () {
-                            count = count+1;
-                            if (count === 2) {
-                                var modal = $(this);
-                                modal.append(res)
-                            }
-                        });
-                        Clerk("content",".clerk-powerstep-templates > span");
+                var clerkgetpower = new XMLHttpRequest();
 
+                var data = new FormData();
+                data.append('id_product', product_id);
+                data.append('id_product_attribute', product_id_attribute);
+                data.append('popup', '1');
+                   
+                clerkgetpower.onreadystatechange = function() {
+                    if (clerkgetpower.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                        if (clerkgetpower.status == 200) {
+
+                            res = clerkgetpower.responseText;
+                            var count = 0;      
+
+                            setTimeout(function(){ //dont know why but its needed
+
+                                var modals = document.querySelectorAll(".modal-body");
+
+                                console.log('modals',modals);
+
+                                modals.forEach(function(el, index, array){
+                                    console.log(el);
+                                count = count+1;
+                                    if (count === 1) {
+                                        var modal = el;
+                                        modal.innerHTML = modal.innerHTML + res;
+                                    }
+                                });
+
+                                Clerk("content",".clerk-powerstep-templates > span");
+
+                            }, 500);
+
+                        }
+                        else if (clerkgetpower.status == 400) {
+                            console.log('There was an error 400');
+                        }
+                        else {
+                            console.log('something else other than 200 was returned');
+                        }
                     }
-                });
+                };
+
+                clerkgetpower.open("POST", "{$link->getModuleLink('clerk', 'powerstep')}", true);
+                clerkgetpower.send(data);
+
                 {/if}
             }
         });

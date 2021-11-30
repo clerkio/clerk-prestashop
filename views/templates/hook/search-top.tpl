@@ -52,13 +52,10 @@
 
             var form_selector = htmlDecode('{$livesearch_form_selector}');
             var search_field_selector = htmlDecode('{$livesearch_selector}');
-
-            $(search_field_selector).each(function() {
-                $(this).attr('name', 'search_query');
-            });
-
-            $(form_selector).each(function (){
-                $(this).attr('action', '{$baseUrl}/module/clerk/search');
+           
+            var forms = document.querySelectorAll(form_selector);
+            forms.forEach(function(el, index, array){
+                el.setAttribute('action', '{$baseUrl}/module/clerk/search');
                 module_hidden = document.createElement("input");
                 module_hidden.setAttribute("type", "hidden");
                 module_hidden.setAttribute("name", "fc");
@@ -67,22 +64,37 @@
                 clerk_hidden.setAttribute("type", "hidden");
                 clerk_hidden.setAttribute("name", "module");
                 clerk_hidden.setAttribute("value", "clerk");
-                $(this).append(module_hidden,clerk_hidden)
+                el.append(module_hidden,clerk_hidden)
+
             });
+
+            setTimeout(function(){ //dont know why but its needed
+
+                var fields = document.querySelectorAll(search_field_selector);
+                fields.forEach(function(el, index, array){
+                    el.setAttribute('name', 'search_query');
+                });
+
+            }, 100);
 
         };
 
-        if(window.jQuery) $( document ).ready(function() { ClerkSearchPage()  });
-        else{
-            var script = document.createElement('script');
-            document.head.appendChild(script);
-            script.type = 'text/javascript';
-            script.src = "https://code.jquery.com/jquery-3.4.1.min.js";
-            script.integrity = "sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=";
-            script.crossorigin = "anonymous";
-
-            script.onload = ClerkSearchPage;
+        function DOMready(fn) {
+            if (document.readyState != 'loading') {
+                fn();
+            } else if (document.addEventListener) {
+                document.addEventListener('DOMContentLoaded', fn);
+            } else {
+                document.attachEvent('onreadystatechange', function() {
+                if (document.readyState != 'loading')
+                    fn();
+                });
+            }
         }
+
+        window.DOMready(function() {
+                ClerkSearchPage(); 
+        });
 
     </script>
 
@@ -91,38 +103,46 @@
 
     <script type="text/javascript">
 
-        var form_selector = htmlDecode('{$livesearch_form_selector}');
-        var search_field_selector = htmlDecode('{$livesearch_selector}');
-
         ClerkLiveSearch = function(){
 
-            $(search_field_selector).each(function() {
-                $(this).removeAttr("autocomplete");
-            });
+        var live_form_selector = htmlDecode('{$livesearch_form_selector}');
+        var live_search_field_selector = htmlDecode('{$livesearch_selector}');
+        
+        setTimeout(function(){ //dont know why but its needed
 
-            StockAutoComplete = $(".ui-autocomplete");
-
-            if (StockAutoComplete) {
-
-                StockAutoComplete.each(function() {
-                    $(this).remove();
+            var live_fields = document.querySelectorAll(live_search_field_selector);
+                live_fields.forEach(function(el, index, array){
+                    el.removeAttribute('autocomplete');
                 });
 
-            }
+                var live_fields_StockAutoComplete = document.querySelectorAll(".ui-autocomplete");
+
+                if(live_fields_StockAutoComplete){
+                    live_fields_StockAutoComplete.forEach(function(el, index, array){
+                        el.remove();
+                    });
+                }
+
+            }, 100);
 
         };
 
-        if(window.jQuery) $( document ).ready(function() { ClerkSearchPage()  });
-        else{
-            var script = document.createElement('script');
-            document.head.appendChild(script);
-            script.type = 'text/javascript';
-            script.src = "https://code.jquery.com/jquery-3.4.1.min.js";
-            script.integrity = "sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=";
-            script.crossorigin = "anonymous";
-
-            script.onload = ClerkLiveSearch;
+        function liveDOMready(fn) {
+            if (document.readyState != 'loading') {
+                fn();
+            } else if (document.addEventListener) {
+                document.addEventListener('DOMContentLoaded', fn);
+            } else {
+                document.attachEvent('onreadystatechange', function() {
+                if (document.readyState != 'loading')
+                    fn();
+                });
+            }
         }
+
+        window.liveDOMready(function() {
+                ClerkLiveSearch(); 
+        });
 
     </script>
 

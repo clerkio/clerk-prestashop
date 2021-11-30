@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-	<name>clerk</name>
-	<displayName><![CDATA[Clerk]]></displayName>
-	<version><![CDATA[6.4.2]]></version>
-	<description><![CDATA[Clerk.io Turns More Browsers Into Buyers]]></description>
-	<author><![CDATA[Clerk]]></author>
-	<tab><![CDATA[advertising_marketing]]></tab>
-	<is_configurable>1</is_configurable>
-	<need_instance>0</need_instance>
+    <name>clerk</name>
+    <displayName><![CDATA[Clerk]]></displayName>
+    <version><![CDATA[6.5.0]]></version>
+    <description><![CDATA[Clerk.io Turns More Browsers Into Buyers]]></description>
+    <author><![CDATA[Clerk]]></author>
+    <tab><![CDATA[advertising_marketing]]></tab>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
 	<limited_countries></limited_countries>
 </module>

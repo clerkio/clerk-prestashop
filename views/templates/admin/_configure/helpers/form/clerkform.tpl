@@ -87,9 +87,7 @@
         <script>
 
             function Setignore() {
-
-                $('#ignore_changes').val('1');
-
+                document.getElementById("ignore_changes").value = "1";
             }
 
         </script>

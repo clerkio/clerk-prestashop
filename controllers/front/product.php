@@ -65,8 +65,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $context = Context::getContext();
 
-        $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
-        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
+        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
 
         $this->logger = new ClerkLogger();
 
@@ -152,6 +152,9 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             $response = array();
             $fields = array_flip($this->fieldMap);
+            $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->getLanguageId(), null, $this->getShopId());
+            $customFields = explode(',', $fieldsConfig);
+            $attriarr = [];
 
             foreach ($products as $product) {
 
@@ -169,19 +172,22 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                         if(isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
 
                             array_push($variants, $combination['reference']);
+
                         } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants))  {
                             array_push($variants, $combination['id_product_attribute']);
                         }
 
-                        if(!isset($attributes[$combination['group_name']])) {
+                        $setGroupfield = str_replace(' ','',$combination['group_name']);
 
-                            $attributes[$combination['group_name']][] = $combination['attribute_name'];
+                        if(!isset($attributes[$setGroupfield])) {
+
+                            $attributes[$setGroupfield][] = $combination['attribute_name'];
 
                         } else {
 
-                            if (!in_array($combination['attribute_name'], $attributes[$combination['group_name']])) {
+                            if (!in_array($combination['attribute_name'], $attributes[$setGroupfield])) {
 
-                                $attributes[$combination['group_name']][] = $combination['attribute_name'];
+                                $attributes[$setGroupfield][] = $combination['attribute_name'];
 
                             }
                         }
@@ -194,9 +200,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 foreach ($this->fields as $field) {
                     $field = str_replace(' ','',$field);
                     if ($attributes && array_key_exists($field, $attributes)){
-
                         $item[$field] = $attributes[$field];
-
                     }
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
                         $item[$field] = $product[$fields[$field]];
@@ -215,8 +219,53 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                if(Pack::isPack($product['id_product'])){
+                    foreach($customFields as $_field){
+
+                        if (empty($attriarr)) {
+                            $attriarr = Attribute::getAttributes($this->language_id, true);
+                        };
+
+                        $childatributes = [];
+                        $children = Pack::getItems($product['id_product'], $this->language_id);
+
+                        foreach ($children as $child) {
+                            if (isset($child->id_pack_product_attribute)) {
+                                $combination = new Combination($child->id_pack_product_attribute);
+                                $combarr = $combination->getAttributesName($this->language_id);
+
+                                foreach ($combarr as $comb) {
+                                    foreach ($attriarr as $attri) {
+                                        if ($attri['id_attribute'] === $comb['id_attribute'] ){
+                                            if(str_replace(' ','',$attri['public_name']) == str_replace(' ','',$_field)){
+                                                $childatributes[] = $attri['name'];
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($attributes && array_key_exists($_field, $attributes)){
+                                $childatributes[$_field] = $attributes[$_field];
+                            }
+
+                           if (isset($child->$_field)) {
+                                $childatributes[] = $child->$_field;
+                            }
+
+                        }
+
+                        if(!empty($childatributes)){
+                            $item['child_'.$_field.'s'] = $childatributes;
+                        }
+
+                    }
+
+                }
+
                 if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
-                    if ($variants) {
+                    if (!empty($variants)) {
                         $item['variants'] = $variants;
                     }
                 }

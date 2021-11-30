@@ -24,8 +24,6 @@
  * SOFTWARE.
  */
 
-use PrestaShop\PrestaShop\Adapter\Cart\CartPresenter;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -67,7 +65,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.4.2';
+        $this->version = '6.5.0';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -153,12 +151,18 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_PRIVATE_KEY', $emptyValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_NUMBER_CATEGORIES', $searchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_NUMBER_PAGES', $searchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_PAGES_TYPE', $searchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_ENABLED', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_POSITION', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_TITLE', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_FACETS_DESIGN', $emptyValues, false, null, $shop['id_shop']);
+
 
             Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
@@ -330,11 +334,16 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_PRIVATE_KEY');
         Configuration::deleteByName('CLERK_LANGUAGE');
         Configuration::deleteByName('CLERK_SEARCH_ENABLED');
+        Configuration::deleteByName('CLERK_SEARCH_CATEGORIES');
+        Configuration::deleteByName('CLERK_SEARCH_NUMBER_CATEGORIES');
+        Configuration::deleteByName('CLERK_SEARCH_NUMBER_PAGES');
+        Configuration::deleteByName('CLERK_SEARCH_PAGES_TYPE');
         Configuration::deleteByName('CLERK_SEARCH_TEMPLATE');
         Configuration::deleteByName('CLERK_FACETED_NAVIGATION_ENABLED');
         Configuration::deleteByName('CLERK_FACETS_ENABLED');
         Configuration::deleteByName('CLERK_FACETS_POSITION');
         Configuration::deleteByName('CLERK_FACETS_TITLE');
+        Configuration::deleteByName('CLERK_FACETS_DESIGN');
         Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
         Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
@@ -411,12 +420,32 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_search_enabled', 0)
                 ), false, null, $this->shop_id);
 
+                Configuration::updateValue('CLERK_SEARCH_CATEGORIES', array(
+                    $this->language_id => Tools::getValue('clerk_search_categories', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_SEARCH_NUMBER_CATEGORIES', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_search_number_categories', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_SEARCH_NUMBER_PAGES', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_search_number_pages', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_SEARCH_PAGES_TYPE', array(
+                    $this->language_id => Tools::getValue('clerk_search_pages_type', 'CMS Page')
+                ), false, null, $this->shop_id);
+
                 Configuration::updateValue('CLERK_SEARCH_TEMPLATE', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_search_template', ''))
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', array(
                     $this->language_id => Tools::getValue('clerk_faceted_navigation_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_FACETS_DESIGN', array(
+                    $this->language_id => str_replace(' ', '', Tools::getValue('clerk_facets_design', ''))
                 ), false, null, $this->shop_id);
 
                 /**
@@ -761,87 +790,6 @@ class Clerk extends Module
         $booleanType = 'radio';
         $LoggingView = '';
 
-        $modules = scandir(_PS_MODULE_DIR_);
-
-        $modules_array = [];
-        $show_warnings = false;
-
-        foreach ($modules as $module) {
-
-            $exclude = ['.', '..', '.htaccess', 'index.php'];
-
-            $modules_for_warn = [
-                //'clerk' => ['message' => 'This module can interfear with how we inject our instant search.', 'link' => 'https://clerk.io'],
-                //'statssales' => ['message' => 'This module can interfear with how we inject our instant search.', 'link' => 'https://clerk.io'],
-                //'statssearch' => ['message' => 'This module can interfear with how we inject our instant search.', 'link' => 'https://clerk.io']
-            ];
-
-            if (!in_array($module, $exclude )) {
-
-                try {
-                    $modules_array[] = Module::getInstanceByName($module->name);
-                }catch (Exception $e) {
-
-                }
-
-            }
-
-        }
-        $ClerkWarn_html = '';
-        $count = 0;
-        foreach ($modules_array as $module) {
-
-            if (array_key_exists($module, $modules_for_warn )) {
-
-                $count++;
-
-                if ($count == 1){
-                    echo '<script>function RemoveWarn(module) {'.
-                        'var element = document.getElementById("module_warn_"+module);'.
-                        'element.classList.add("remove");'.
-                        'setTimeout(() => {  element.classList.add("remove-next"); }, 500);'.
-                        'setTimeout(() => {  element.parentNode.removeChild(element); }, 1000);'.
-                        '}</script>';
-                    echo '<style>#fieldset_0 > div:nth-child(2) > div:nth-child(1) > div:nth-child(1){margin-left: 0px; width: 100%;}.remove-next{transform: translateX(-150%)!important;-webkit-transform: translateX(-150%)!important; transition: all 2s ease-in-out!important;}.remove{transform: scale(1.05); transition: all .3s ease-in-out!important;}#close:hover{cursor: pointer;}#close{position: absolute;background:#fbfbfb;color:#555;top: -5px;right: -5px;border-radius: 20px;display: inline-block;border: 2px solid #555;height: 20px;width: 20px;text-align: center;font-weight: 600;}.warning_header {font-size: 13px; margin: 0px!important; color:#555;}.clerk-alert-warning:hover{transform: scale(1.01);}.clerk-alert-warning{display: inline-block; margin-bottom: 15px; position: relative; transition: all .1s ease-in-out; padding: 10px; display: inline-block; width: 100%; background-color: #fff!important; border-radius: 6px; box-shadow: 0px .2em .8em 0 rgba(0,0,0,.09); border-left: 5px solid #e74c3c;}.clerk-btn{float:right; padding: 2px 3px!important;}</style>';
-                }
-
-                $show_warnings = true;
-                $modules_info = Module::getInstanceByName($module);
-
-                $ClerkWarn_html .= '<div id="module_warn_'.$module.'" class="clerk-alert-warning">'.
-                    '<div onclick="RemoveWarn(\''.$module.'\');" id="close">'.
-                    'X'.
-                    '</div>'.
-                    '<b>'.
-                    '<p class="warning_header">'.$modules_info->displayName. 'v '.$modules_info->version.' is installed</p>'.
-                    '</b>'.
-                    '<p style="display: inline-block;" class="">'.$modules_for_warn[$module]['message'].'</p>'.
-                    '<a target="_blank" class="btn btn-primary clerk-btn" href="'.$modules_for_warn[$module]['link'].'">Read more here</a>'.
-                    '</div>';
-
-            }
-
-        }
-        $ClerkWarn = array(
-            'type' => 'html',
-            'name' => 'Warnings',
-            'html_content' => $ClerkWarn_html
-        );
-        if ($show_warnings) {
-            //Warning box
-            $this->fields_form[] = array(
-                'form' => array(
-                    'legend' => array(
-                        'title' => $this->l('Warnings'),
-                        'icon' => 'icon-cogs'
-                    ),
-                    'input' => array(
-                        $ClerkWarn
-                    )
-                )
-            );
-        }
-
         //Use switch if available, looks better
         if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
             $booleanType = 'switch';
@@ -1115,6 +1063,145 @@ class Clerk extends Module
                         )
                     ),
                     array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Categories'),
+                        'name' => 'clerk_search_categories',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_include_search_categories_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_include_search_categories_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Categories'),
+                        'name' => 'clerk_search_number_categories',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Pages'),
+                        'name' => 'clerk_search_number_pages',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Pages Type'),
+                        'name' => 'clerk_search_pages_type',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 'CMS Page',
+                                    'name' => $this->l('CMS Pages'),
+                                ),
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
                         'type' => 'text',
                         'label' => $this->l('Template'),
                         'name' => 'clerk_search_template',
@@ -1145,9 +1232,15 @@ class Clerk extends Module
             )
         );
 
-        array_push($facet_input, $facet_enable);
+        $facets_design =  array(
+            'type' => 'text',
+            'label' => $this->l('design'),
+            'name' => 'clerk_facets_design',
+        );
 
-        if(Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id) !==""){
+        array_push($facet_input, $facet_enable, $facets_design);
+
+        if( Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id) !==""){
 
             $facetHTML = '<table style="margin-top:7px" id="facet_table">'.
             '<tbody id="facets_content">'.
@@ -1638,25 +1731,51 @@ class Clerk extends Module
             ),
         );
 
-        if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
+        if ( Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
             $LoggingView = array(
                 'type' => 'html',
                 'label' => $this->l('Logging View'),
                 'name' => 'LoggingViewer',
-                'html_content' => '<script src="https://code.jquery.com/jquery-3.4.1.min.js"' .
-                    'integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>' .
-                    '<script type="text/javascript">' .
-                    '$(document).ready(function() {' .
-                    'document.getElementById(\'logger_view\').scrollTop = document.getElementById(\'logger_view\').scrollHeight;' .
-                    '});' .
+                'html_content' =>
+                    '<script>'.
+                    'function DOMready(fn) {'.
+                        'if (document.readyState != "loading") {'.
+                        '   fn();'.
+                        '} else if (document.addEventListener) {'.
+                        '    document.addEventListener("DOMContentLoaded", fn);'.
+                        '} else {'.
+                        '    document.attachEvent("onreadystatechange", function() {'.
+                        '    if (document.readyState != "loading")'.
+                        '        fn();'.
+                        '    });'.
+                        '}'.
+                    '}'.
+            
+                    'window.DOMready(function() {'.
+                        'document.getElementById(\'clerk_logging_viewer\').scrollTop = document.getElementById(\'clerk_logging_viewer\').scrollHeight;' .
+                    '});'.
                     '(function () {' .
-                    '$.ajax({' .
-                    'url: "/modules/clerk/clerk_log.log", success: function (data) {' .
-                    'document.getElementById(\'clerk_logging_viewer\').innerHTML = data;' .
-                    '}, dataType: "html"' .
-                    '});' .
-                    'setTimeout(arguments.callee, 5000);' .
+                        'var clerklog = new XMLHttpRequest();' .
+                        'clerklog.onreadystatechange = function() {' .
+                            'if (clerklog.readyState == XMLHttpRequest.DONE) {' .   // XMLHttpRequest.DONE == 4
+                                'if (clerklog.status == 200) {' .
+                                    'res = clerklog.responseText;' .
+                                    'document.getElementById(\'clerk_logging_viewer\').innerHTML = res;' . 
+                                '}' .
+                                'else if (clerklog.status == 400) {' .
+                                    'console.log("There was an error 400");' .
+                                '}' .
+                                'else {' .
+                                    'console.log("something else other than 200 was returned");' .
+                                '}' .
+                            '}' .
+                        '};' .
+            
+                        'clerklog.open("GET", "/modules/clerk/clerk_log.log", true);' .
+                        'clerklog.send();' .
+
+                        'setTimeout(arguments.callee, 5000);' .
                     '})();' .
                     '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
             );
@@ -1666,49 +1785,180 @@ class Clerk extends Module
         $ClerkConfirm = <<<CLERKJS
 
         <script>
-        jQuery(document).ready(function () {
-
-        var before_logging_level;
-        $('#clerk_logging_level').focus(function () {
-
-        before_logging_level = $('#clerk_logging_level').val();
-
-        }).change(function () {
-
-        if ($('#clerk_logging_level').val() !== 'all') {
-
-        before_logging_level = $('#clerk_logging_level').val();
-
-        } else {
-
-        $.confirm({
-        boxWidth: '30%',
-        useBootstrap: false,
-        title: 'Changing Logging Level',
-        content: 'Debug Mode should not be used in production! Are you sure you want to change logging level to Debug Mode ?',
-        buttons: {
-        Cancel: {
-        text: 'Cancel',
-        btnClass: 'btn-red',
-        keys: ['enter', 'shift'],
-        action: function () {
-        document.querySelector('#clerk_logging_level [value="' + before_logging_level + '"]').selected = true;
-        }
-        },
-        Confirm: {
-        text: 'I\'m sure',
-        btnClass: 'btn-blue',
-        keys: ['enter', 'shift'],
-        action: function () {
-
-        }
-        }
-        }
-        });
-
+        function DOMready(fn) {
+            if (document.readyState != "loading") {
+               fn();
+            } else if (document.addEventListener) {
+                document.addEventListener("DOMContentLoaded", fn);
+            } else {
+                document.attachEvent("onreadystatechange", function() {
+                if (document.readyState != "loading")
+                   fn();
+                });
+            }
         }
 
-        });
+        
+        class ConfirmDialog {
+            constructor({titleText, questionText, trueButtonText, falseButtonText, parent }) {
+              this.titleText = titleText || "Title";
+              this.questionText = questionText || "Are you sure?";
+              this.trueButtonText = trueButtonText || "Yes";
+              this.falseButtonText = falseButtonText || "No";
+              this.parent = parent || document.body;
+          
+              this.dialog = undefined;
+              this.trueButton = undefined;
+              this.falseButton = undefined;
+          
+              this._createDialog();
+              this._appendDialog();
+            }
+          
+            confirm() {
+              return new Promise((resolve, reject) => {
+                const somethingWentWrongUponCreation =
+                  !this.dialog || !this.trueButton || !this.falseButton;
+                if (somethingWentWrongUponCreation) {
+                  reject('Someting went wrong when creating the modal');
+                  return;
+                }
+                
+                this.dialog.showModal();
+                this.trueButton.focus();
+          
+                this.trueButton.addEventListener("click", () => {
+                  resolve(true);
+                  this._destroy();
+                });
+          
+                this.falseButton.addEventListener("click", () => {
+                  resolve(false);
+                  this._destroy();
+                });
+              });
+            }
+          
+            _createDialog() {
+              this.dialog = document.createElement("dialog");
+              this.dialog.style.fontFamily = "inherit";
+              this.dialog.style.borderRadius = "5px";
+              this.dialog.style.border = "0";
+              this.dialog.classList.add("confirm-dialog");
+
+              const title = document.createElement("div");
+              title.textContent = this.titleText;
+              title.classList.add("confirm-dialog-title");
+              title.style.fontSize = "22px";
+              title.style.lineHeight = "20px";
+              title.style.paddingBottom = "15px";
+              
+              this.dialog.appendChild(title);
+          
+              const question = document.createElement("div");
+              question.textContent = this.questionText;
+              question.classList.add("confirm-dialog-question");
+              question.style.paddingBottom = "15px";
+              this.dialog.appendChild(question);
+          
+              const buttonGroup = document.createElement("div");
+              buttonGroup.classList.add("confirm-dialog-button-group");
+              buttonGroup.style.float = "right";
+              this.dialog.appendChild(buttonGroup);
+          
+              this.falseButton = document.createElement("button");
+              this.falseButton.classList.add(
+                "confirm-dialog-button",
+                "confirm-dialog-button--false"
+              );
+              this.falseButton.type = "button";
+              this.falseButton.textContent = this.falseButtonText;
+              this.falseButton.style.backgroundColor = "#e74c3c";
+              this.falseButton.style.color = "#fff";
+              this.falseButton.style.textTransform = "uppercase";
+              this.falseButton.style.fontSize = "14px";
+              this.falseButton.style.fontWeight = "bold";
+              this.falseButton.style.margin = "4px 4px 4px 4px";
+              this.falseButton.style.padding = "6px 12px";
+              this.falseButton.style.textAlign = "center";
+              this.falseButton.style.verticalAlign = "middle";
+              this.falseButton.style.borderRadius = "4px";
+              this.falseButton.style.minHeight = "1em";
+              this.falseButton.style.border = "0";
+        
+              buttonGroup.appendChild(this.falseButton);
+          
+              this.trueButton = document.createElement("button");
+              this.trueButton.classList.add(
+                "confirm-dialog-button",
+                "confirm-dialog-button--true"
+              );
+              this.trueButton.type = "button";
+              this.trueButton.textContent = this.trueButtonText;
+              this.trueButton.style.backgroundColor = "#3498db";
+              this.trueButton.style.color = "#fff";
+              this.trueButton.style.textTransform = "uppercase";
+              this.trueButton.style.fontSize = "14px";
+              this.trueButton.style.fontWeight = "bold";
+              this.trueButton.style.margin = "4px 4px 4px 4px";
+              this.trueButton.style.padding = "6px 12px";
+              this.trueButton.style.textAlign = "center";
+              this.trueButton.style.verticalAlign = "middle";
+              this.trueButton.style.borderRadius = "4px";
+              this.trueButton.style.minHeight = "1em";
+              this.trueButton.style.border = "0";
+    
+              buttonGroup.appendChild(this.trueButton);
+            }
+          
+            _appendDialog() {
+              this.parent.appendChild(this.dialog);
+            }
+          
+            _destroy() {
+              this.parent.removeChild(this.dialog);
+              delete this;
+            }
+          }
+          
+          var before_logging_level;
+
+        window.DOMready(function() {
+
+           
+            document.getElementById("clerk_logging_level").addEventListener('focus', function () {
+
+                before_logging_level =  document.getElementById("clerk_logging_level").value;
+
+            });
+
+            document.getElementById('clerk_logging_level').addEventListener('change', async () =>{
+               
+                if (document.getElementById("clerk_logging_level").value !== 'all') {
+
+                    before_logging_level =  document.getElementById("clerk_logging_level").value;
+                    
+                    } else {
+
+                        const dialog = new ConfirmDialog({
+                                trueButtonText: "I\'m sure",
+                                falseButtonText: "Cancel",
+                                questionText: "Debug Mode should not be used in production! Are you sure you want to change logging level to Debug Mode ?",
+                                titleText: "Changing Logging Level"
+                            });
+
+
+                        const shouldChangeLvl = await dialog.confirm();
+                            if (shouldChangeLvl) {
+                            // confirm change
+                            }else{
+                                document.getElementById('clerk_logging_level').value = before_logging_level;
+                            }
+
+                    }
+                         
+            });
+
         });
         </script>
 CLERKJS;
@@ -1716,8 +1966,7 @@ CLERKJS;
         $Fancybox = array(
             'type' => 'html',
             'name' => 'Fancybox',
-            'html_content' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">' .
-                '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>' . $ClerkConfirm
+            'html_content' => $ClerkConfirm
         );
 
         if (!_PS_MODE_DEV_) {
@@ -1967,9 +2216,14 @@ CLERKJS;
             'clerk_language' => Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id),
             'clerk_import_url' => _PS_BASE_URL_,
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_search_categories' => Configuration::get('CLERK_SEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
+            'clerk_search_number_categories' => Configuration::get('CLERK_SEARCH_NUMBER_CATEGORIES', $this->language_id, null, $this->shop_id),
+            'clerk_search_number_pages' => Configuration::get('CLERK_SEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
+            'clerk_search_pages_type' => Configuration::get('CLERK_SEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
             'clerk_faceted_navigation_enabled' => Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $this->language_id, null, $this->shop_id),
             'clerk_facets_position' => Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id),
             'clerk_facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
@@ -2425,7 +2679,8 @@ CLERKJS;
      */
     public function renderModal(Cart $cart, $id_product, $id_product_attribute)
     {
-        $data = (new CartPresenter)->present($cart);
+        $CartPresenter = PrestaShop\PrestaShop\Adapter\Cart\CartPresenter;
+        $data = (new $CartPresenter)->present($cart);
         $product = null;
 
         foreach ($data['products'] as $p) {
@@ -2494,6 +2749,15 @@ CLERKJS;
         $product_id = $params['id_product'];
         $product = $params['product'];
 
+        // group product get and update parent
+        if(Pack::isPacked($product_id)){
+            $PackParents = Pack::getPacksContainingItem($product_id, $product->id_pack_product_attribute, $this->language_id);
+                foreach($PackParents as $PackParent){
+                    $productRaw = new Product ($PackParent->id, $this->language_id);
+                    $this->api->addProduct($productRaw, $productRaw->id);
+              }
+        }
+
         $this->api->addProduct($product, $product_id);
 
     }
@@ -2554,7 +2818,7 @@ CLERKJS;
                     foreach ($products as $product) {
                        
                         if ($check) {
-
+                           
                             $id = $product["id_product"];
 
                             $Endpoint = 'https://api.clerk.io/v2/product/attributes';
@@ -2573,9 +2837,9 @@ CLERKJS;
                             curl_setopt($curl, CURLOPT_HEADER, true);
                             $retuned = curl_exec($curl);
                             if(curl_errno($curl)){
-                              //  print 'Curl error: '.curl_error($curl);
+                               // print 'Curl error: '.curl_error($curl);
                             }
-
+                                                            
                             $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
                             $header = substr($retuned, 0, $header_size);
                             $body = substr($retuned, $header_size);
@@ -2585,11 +2849,11 @@ CLERKJS;
                             if ($this->isJSON($body)) {
 
                                 $response = json_decode($body);
-
+                                
                             }else {
 
                                 $response = $body;
-
+                                
                             }
 
                             if (is_array($response)) {
@@ -2609,7 +2873,7 @@ CLERKJS;
                 }
 
                 if (isset($response)) {
-
+                   
                     foreach ($response as $attribute => $value) {
 
                         if (!in_array($attribute, $exclude_attributes)) {
@@ -2638,14 +2902,14 @@ CLERKJS;
 
                 $offset += 10;
             }
-
+            
              foreach($DynamicAttributes as $key => $value){
                 $facetformArray[] = $value;
-
+                              
              }
-
+            
             return $facetformArray;
-        }
+        }  
 
     }
 

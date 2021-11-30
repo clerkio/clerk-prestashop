@@ -21,14 +21,34 @@
  * SOFTWARE.
  */
 
-jQuery(document).ready(function() {
-    $("#clerk_shop_select, #clerk_language_select").on("change", function () {
-        $("#ignore_changes").val(1);
-        $("#clerk_language_switch").prop('disabled', true);
-        $(this).closest("form").submit();
+ function DOMready(fn) {
+    if (document.readyState != 'loading') {
+        fn();
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', fn);
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState != 'loading')
+            fn();
+        });
+    }
+}
+
+window.DOMready(function() {
+
+    document.getElementById('clerk_shop_select').addEventListener('change', function(elm) {
+
+        document.getElementById("ignore_changes").value = "1";
+        document.getElementById("clerk_language_switch").setAttribute("disabled", true);
+        elm.closest("form").submit();
+
     });
 
-    $("#clerk_language_switch").on("click", function() {
-        $("#ignore_changes").val(1);
+    document.getElementById('clerk_language_select').addEventListener('change', function() {
+
+        document.getElementById("ignore_changes").value = "1";
+        document.getElementById("clerk_language_switch").setAttribute("disabled", true);
+        elm.closest("form").submit();
+
     });
 });
