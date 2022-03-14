@@ -175,7 +175,7 @@ class Clerk_Api
                     }
                 }
 
-                if(Pack::isPack($product['id_product'])){
+                if(Pack::isPack($product_id)){
                     foreach($customFields as $_field){
 
                         if (empty($attriarr)) {
@@ -183,7 +183,7 @@ class Clerk_Api
                         };
 
                         $childatributes = [];
-                        $children = Pack::getItems($product['id_product'], $this->language_id);
+                        $children = Pack::getItems($product_id, $this->language_id);
 
                         foreach ($children as $child) {
                             if (isset($child->id_pack_product_attribute)) {
