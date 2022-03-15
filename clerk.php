@@ -349,7 +349,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
         Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS');
         Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_CATEGORIES');
-        Configuration::deleteByName('CLERK_LIVESEARCH_PAGES');
+        Configuration::deleteByName('CLERK_LIVESEARCH_PAGES_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
         Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
