@@ -276,6 +276,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                // Adding Product Features
+                if (Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id) != '1') {
+
+                    $frontfeatures = Product::getFrontFeaturesStatic($this->language_id, $product['id_product']);
+                    
+                    foreach($frontfeatures as $ftr){
+
+                        $item[$ftr['name']] = $ftr['value'];
+                        
+                    }
+                }
+
                 $response[] = $item;
             }
 

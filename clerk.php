@@ -196,6 +196,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
@@ -379,6 +380,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
         Configuration::deleteByName('CLERK_INCLUDE_VARIANT_REFERENCES');
+        Configuration::deleteByName('CLERK_DATASYNC_PRODUCT_FEATURES');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
@@ -592,6 +594,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', array(
                     $this->language_id => Tools::getValue('clerk_datasync_include_variant_references', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_product_features', 1)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array(
@@ -1046,6 +1052,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_include_variant_references_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Product Features'),
+                        'name' => 'clerk_datasync_product_features',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_product_features_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_product_features_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -2267,6 +2292,7 @@ CLERKJS;
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_product_features' => Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
