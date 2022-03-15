@@ -33,11 +33,13 @@ class Clerk extends Module
 {
     const TYPE_PAGE = 'page';
     const TYPE_POPUP = 'popup';
+    const TYPE_CMS = 'CMS Page';
     const LEVEL_ERROR = 'error';
     const LEVEL_WARN = 'warn';
     const LEVEL_ALL = 'all';
     const LOGGING_TO_FILE = 'file';
     const LOGGING_TO_COLLECT = 'collect';
+    const DROPDOWN_POSITIONING = 'left';
     /**
      * @var bool
      */
@@ -133,17 +135,23 @@ class Clerk extends Module
             $powerstepTemplateValues = array();
             $powerstepTypeValues = array();
             $exitIntentTemplateValues = array();
+            $dropdownNumberValues = array();
 
             foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
                 $emptyValues[$language['id_lang']] = '';
                 $trueValues[$language['id_lang']] = 1;
                 $falseValues[$language['id_lang']] = 0;
+                $dropdownNumberValues[$language['id_lang']] = 1;
                 $searchTemplateValues[$language['id_lang']] = 'search-page';
                 $liveSearchTemplateValues[$language['id_lang']] = 'live-search';
                 $liveSearchSelector[$language['id_lang']] = '.search_query';
                 $liveSearchFormSelector[$language['id_lang']] = '#search_widget > form';
                 $powerstepTemplateValues[$language['id_lang']] = 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular';
                 $powerstepTypeValues[$language['id_lang']] = self::TYPE_PAGE;
+                $pagesTypeValues[$language['id_lang']] = self::TYPE_CMS;
+                $dropdownPositioningValues[$language['id_lang']] = self::DROPDOWN_POSITIONING;
+                $loggingLevelValues[$language['id_lang']] = self::LEVEL_ERROR;
+                $loggingToValues[$language['id_lang']] = self::LOGGING_TO_FILE;
                 $exitIntentTemplateValues[$language['id_lang']] = 'exit-intent';
             }
 
@@ -152,9 +160,9 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_SEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_NUMBER_CATEGORIES', $searchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_NUMBER_PAGES', $searchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_PAGES_TYPE', $searchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop['id_shop']);
@@ -169,20 +177,25 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', $liveSearchSelector, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', $liveSearchFormSelector, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $liveSearchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $liveSearchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', $liveSearchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', $dropdownPositioningValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop['id_shop']);
 
+            Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
@@ -192,9 +205,11 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_CART_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_CART_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
-            
 
-          
+            Configuration::updateValue('CLERK_LOGGING_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LOGGING_LEVEL', $loggingLevelValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LOGGING_TO', $loggingToValues, false, null, $shop['id_shop']);
+
         }
 
         return parent::install() &&
@@ -347,9 +362,13 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LIVESEARCH_ENABLED');
         Configuration::deleteByName('CLERK_LIVESEARCH_CATEGORIES');
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
+        Configuration::deleteByName('CLERK_LIVESEARCH_SELECTOR');
+        Configuration::deleteByName('CLERK_LIVESEARCH_FORM_SELECTOR');
         Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS');
         Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_CATEGORIES');
+        Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_PAGES');
         Configuration::deleteByName('CLERK_LIVESEARCH_PAGES_TYPE');
+        Configuration::deleteByName('CLERK_LIVESEARCH_DROPDOWN_POSITION');
         Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
         Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
@@ -359,6 +378,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
+        Configuration::deleteByName('CLERK_INCLUDE_VARIANT_REFERENCES');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
