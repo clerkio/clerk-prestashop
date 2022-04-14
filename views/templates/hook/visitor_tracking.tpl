@@ -23,7 +23,7 @@
 * SOFTWARE.
 *}
 
-<script type="text/javascript">
+<script>
 
 function checkcart(){
 

@@ -34,7 +34,7 @@
         </button>
     </form>
 </div>*}
-<script type="text/javascript">
+<script>
 
     function htmlDecode(input){
         var e = document.createElement('div');
@@ -46,7 +46,7 @@
 
 {if ($search_enabled)}
 
-    <script type="text/javascript">
+    <script>
 
         ClerkSearchPage = function(){
 
@@ -101,7 +101,7 @@
 {/if}
 {if ($livesearch_enabled)}
 
-    <script type="text/javascript">
+    <script>
 
         ClerkLiveSearch = function(){
 

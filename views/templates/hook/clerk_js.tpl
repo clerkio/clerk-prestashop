@@ -24,7 +24,7 @@
 *}
 
 <!-- Start of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
-<script type="text/javascript">
+<script>
     (function(){
         (function(w,d){
             var e=d.createElement('script');e.type='text/javascript';e.async=true;
