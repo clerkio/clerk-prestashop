@@ -55,7 +55,7 @@
            
             var forms = document.querySelectorAll(form_selector);
             forms.forEach(function(el, index, array){
-                el.setAttribute('action', '{$baseUrl}/module/clerk/search');
+                el.setAttribute('action', '{$baseUrl}module/clerk/search');
                 module_hidden = document.createElement("input");
                 module_hidden.setAttribute("type", "hidden");
                 module_hidden.setAttribute("name", "fc");
