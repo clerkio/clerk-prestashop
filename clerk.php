@@ -227,7 +227,8 @@ class Clerk extends Module
             $this->registerHook('actionUpdateQuantity') &&
             $this->registerHook('displayFooterProduct') &&
             $this->registerHook('displayShoppingCartFooter') &&
-            $this->registerHook('actionAdminControllerSetMedia');
+            $this->registerHook('actionAdminControllerSetMedia') &&
+            $this->registerHook('displayCartModalFooter');
 
     }
 
@@ -2550,6 +2551,48 @@ CLERKJS;
             );
 
             return $this->display(__FILE__, 'related-products.tpl');
+
+        }
+
+    }
+
+    /**
+     * @param $params
+     * @return string
+     */
+    public function hookDisplayCartModalFooter($params)
+    {
+
+        $context = Context::getContext();
+
+        if (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) && Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == 'Popup') {
+
+            $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
+
+            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+                $this->context->smarty->assign(
+                    array(
+
+                        'Contents' => $Contents,
+                        'ProductId' => $params['product']['id']
+
+                    )
+                );
+            }else {
+
+                $this->context->smarty->assign(
+                    array(
+
+                        'Contents' => $Contents,
+                        'ProductId' => $params['product']->id
+
+                    )
+                );
+
+            }
+
+
+            return $this->display(__FILE__, 'powerstep-popup.tpl');
 
         }
 
