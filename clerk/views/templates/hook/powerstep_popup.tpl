@@ -24,10 +24,16 @@
 *}
 
 <div class="clerk_powerstep_templates">
-    {foreach from=$templates item=template}
-        <span class="clerk"
-              data-template="@{$template}"
-              data-products="[{$product->id}]"
-        ></span>
-    {/foreach}
+{foreach $Contents as $Content}
+
+    {if $Content !== ''}
+
+    <span class="clerk_powerstep" data-template="@{$Content}" data-products="[{$ProductId}]"></span>
+
+    {/if}
+
+{/foreach}
 </div>
+<script>
+Clerk('content', '.clerk_powerstep');
+</script>
