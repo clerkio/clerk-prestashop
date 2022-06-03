@@ -168,10 +168,11 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_ENABLED', $emptyValues, false, null, $shop['id_shop']);
-            
             Configuration::updateValue('CLERK_FACETS_POSITION', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_TITLE', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_DESIGN', $emptyValues, false, null, $shop['id_shop']);
+
+
             Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
@@ -471,12 +472,23 @@ class Clerk extends Module
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_facets_design', ''))
                 ), false, null, $this->shop_id);
 
-
                 /**
                  * kky facets sorting arrays for position
                  */
-                
+                $default_clerk_facets_position = [
+                    'price' => [1],
+                    'brand' => [2],
+                    'categories' => [3],
+                    'on_sale' => [4],
+                ];
+                $default_clerk_facets_title = [
+                    'price' => 'Price',
+                    'brand' => 'Brand',
+                    'categories' => 'Categories',
+                    'on_sale' => 'On Sale',
+                ];
                 $facetPos = Tools::getValue('clerk_facets_position', 0);
+                $facetPos = (is_array($facetPos)) ? $facetPos : $default_clerk_facets_position;
                 uasort($facetPos, function($a, $b) {
                     if ($a[0] <= $b[0]) {
                         return 1;
@@ -488,6 +500,7 @@ class Clerk extends Module
                 });
 
                 $enabledfacets = Tools::getValue('clerk_facets_enabled', 0);
+                $enabledfacets = (is_array($enabledfacets)) ? $enabledfacets : $default_clerk_facets_title;
 
                 $sortingfacets = array();
                 foreach ($facetPos as $key => $value) {
@@ -507,8 +520,7 @@ class Clerk extends Module
                 /**
                  * kky facets cleaning clerk_facets_title array and removing empty for better smarty compatibility
                  */
-                $titlecorection = str_replace('[', '', str_replace(']', '', json_encode(Tools::getValue('clerk_facets_title', 0))));
-                $titleCortedArr = array_filter(json_decode($titlecorection, true));
+                $titleCortedArr = array_filter(array_values($enabledfacets));
 
                 Configuration::updateValue('CLERK_FACETS_TITLE', array(
                     $this->language_id => json_encode($titleCortedArr)
@@ -1258,9 +1270,7 @@ class Clerk extends Module
         );
 
          //Faceted navigation settings
-         $facet_input = array(
-
-         ); 
+         $facet_input = array(); 
          $facet_enable = array(
             'type' => $booleanType,
             'label' => $this->l('Enabled'),
@@ -1287,7 +1297,6 @@ class Clerk extends Module
             'label' => $this->l('Design'),
             'name' => 'clerk_facets_design',
         );
-
         $facet_attribute_input = array(
             'type' => 'text',
             'placeholder' => 'Attribute name',
@@ -1327,6 +1336,8 @@ class Clerk extends Module
         );
         array_push($facet_input, $facet_enable, $facets_design);
 
+
+
         if( Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id) !==""){
 
             $facetHTML = '<table style="margin-top:7px" id="facet_table">'.
@@ -1338,8 +1349,22 @@ class Clerk extends Module
             
             $positions = json_decode(Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id), true);
             $titles = json_decode(Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id), true);
-            $attributes = $this->getClerkAttributes();
             
+            $default_clerk_facets_title = [
+                'price' => 'Price',
+                'brand' => 'Brand',
+                'categories' => 'Categories',
+                'on_sale' => 'On Sale',
+            ];
+            $default_clerk_facets_position = [
+                'price' => [1],
+                'brand' => [2],
+                'categories' => [3],
+                'on_sale' => [4],
+            ];
+            $titles = $default_clerk_facets_title;
+            $positions = $default_clerk_facets_position;
+            $attributes = $this->getClerkAttributes();
             $attributes = array_unique($attributes);
             foreach($attributes as $attribute){
                 
@@ -1347,7 +1372,6 @@ class Clerk extends Module
                 $attributeHTML .=  '<td style="padding:8px 10px 8px 0px;"><input type="text" name="facets_facet" value="'.$attribute.'" readonly=""></td>';
                 $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_title['.$attribute.'][]" value="'. $titles[$attribute] .'"></td>';
                 $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_position['.$attribute.'][]" value="'.$positions[$attribute][0].'"></td>';
-                //$attributeHTML .=  '<td style="display:none;"><input name="clerk_facets_attributes" value="'.$attribute.'"></td>';
                 if(in_array($attribute, json_decode(Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id))) ){
                     $attributeHTML .=  '<td style="padding-right:10px;"><input name="clerk_facets_enabled[]" value="'.$attribute.'" checked="checked" type="checkbox"></td>';
                 }else{
@@ -2611,49 +2635,6 @@ CLERKJS;
      * @param $params
      * @return string
      */
-    public function hookDisplayCartModalFooter($params)
-    {
-        $context = Context::getContext();
-        $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
-        if ($enabled) {
-            $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
-            if($correctType){
-                
-                $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
-
-                if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                    $this->context->smarty->assign(
-                        array(
-    
-                            'Contents' => $Contents,
-                            'ProductId' => $params['product']['id']
-    
-                        )
-                    );
-                }else {
-    
-                    $this->context->smarty->assign(
-                        array(
-    
-                            'Contents' => $Contents,
-                            'ProductId' => $params['product']->id
-    
-                        )
-                    );
-    
-                }
-    
-
-            return $this->display(__FILE__, 'powerstep_popup.tpl');
-
-        }
-    }
-    }
-
-    /**
-     * @param $params
-     * @return string
-     */
     public function hookDisplayFooterProduct($params)
     {
 
@@ -2691,7 +2672,48 @@ CLERKJS;
         }
 
     }
+    /**
+     * @param $params
+     * @return string
+     */
+    public function hookDisplayCartModalFooter($params)
+    {
+        $context = Context::getContext();
+        $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
+        if ($enabled) {
+            $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
+            if($correctType){
+                
+                $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
+                if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+                    $this->context->smarty->assign(
+                        array(
+    
+                            'Contents' => $Contents,
+                            'ProductId' => $params['product']['id']
+    
+                        )
+                    );
+                }else {
+    
+                    $this->context->smarty->assign(
+                        array(
+    
+                            'Contents' => $Contents,
+                            'ProductId' => $params['product']->id
+    
+                        )
+                    );
+    
+                }
+    
+
+            return $this->display(__FILE__, 'powerstep_embedded.tpl');
+
+        }
+    }
+    }
     /**
      * Hook cart save action
      */
@@ -2924,96 +2946,139 @@ CLERKJS;
     function isJSON($string){
         return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
     }
-   /**
+
+    /**
      * Get attributes for facets
-     *
+     * 
      * @return array
-     *
+     * 
      */
+    /*
     public function getClerkAttributes() {
-     
-            $_continue = true;
-            $offset = 0;
-            $page = 0;
-            $exclude_attributes = ['sku','list_price','description','url','image','type','id','name'];
-            $DynamicAttributes = [];
-            $public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id);
-            if (!empty(str_replace(' ','', $public_key))) {
-                while ($_continue) {
-                    $check = true;
-                    $limit = 10;
-                    $orderby = 'date';
-                    $order = 'DESC';
-                    $products = Product::getProducts(1, 0, 0, 'id_product', 'DESC' );
-                  
-                    if (is_array($products)) {
-                      
-                        foreach ($products as $product) {
-                          
-                            if ($check) {
-                              
-                                $id = $product["id_product"];
-                                $Endpoint = 'https://api.clerk.io/v2/product/attributes';
-                                $data_string = json_encode([
-                                    'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                                    'products' => [$id],
-                                ]);
-                                $curl = curl_init();
-                                curl_setopt($curl, CURLOPT_URL, $Endpoint);
-                                curl_setopt($curl, CURLOPT_POST, true);
-                                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                                curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-                                curl_setopt($curl, CURLOPT_HEADER, true);
-                                $retuned = curl_exec($curl);
-                                if(curl_errno($curl)){
-                                   // print 'Curl error: '.curl_error($curl);
-                                }
-                                                                
-                                $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-                                $header = substr($retuned, 0, $header_size);
-                                $body = substr($retuned, $header_size);
-                                curl_close($curl);
-                                if ($this->isJSON($body)) {
-                                    $response = json_decode($body);
-                                    
-                                }else {
-                                    $response = $body;
-                                    
-                                }
-                                if (is_array($response)) {
-                                    $check = false;
-                                }
-                                if (is_array($response) && isset($response[0])) {
-                                    $response = $response[0];
-                                }
+
+        $_continue = true;
+        $offset = 0;
+        $page = 0;
+
+        $exclude_attributes = ['sku','list_price','description','url','image','type','id','name'];
+        $DynamicAttributes = [];
+
+        $public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id);
+
+        if (!empty(str_replace(' ','', $public_key))) {
+
+            while ($_continue) {
+
+                $check = true;
+
+                $limit = 10;
+                $orderby = 'date';
+                $order = 'DESC';
+
+                $products = Product::getProducts(1, 0, 0, 'id_product', 'DESC' );
+              
+                if (is_array($products)) {
+                   
+                    foreach ($products as $product) {
+                       
+                        if ($check) {
+                           
+                            $id = $product["id_product"];
+
+                            $Endpoint = 'https://api.clerk.io/v2/product/attributes';
+
+                            $data_string = json_encode([
+                                'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                                'products' => [$id],
+                            ]);
+
+                            $curl = curl_init();
+
+                            curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                            curl_setopt($curl, CURLOPT_POST, true);
+                            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+                            curl_setopt($curl, CURLOPT_HEADER, true);
+                            $retuned = curl_exec($curl);
+                            if(curl_errno($curl)){
+                               // print 'Curl error: '.curl_error($curl);
+                            }
+                                                            
+                            $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+                            $header = substr($retuned, 0, $header_size);
+                            $body = substr($retuned, $header_size);
+
+                            curl_close($curl);
+
+                            if ($this->isJSON($body)) {
+
+                                $response = json_decode($body);
+                                
+                            }else {
+
+                                $response = $body;
+                                
+                            }
+
+                            if (is_array($response)) {
+
+                                $check = false;
+
+                            }
+
+                            if (is_array($response) && isset($response[0])) {
+
+                                $response = $response[0];
+
                             }
                         }
+
                     }
-                    if (isset($response)) {
-                      
-                        foreach ($response as $attribute => $value) {
-                            if (!in_array($attribute, $exclude_attributes)) {
-                                if (!empty($attribute)) {
-                                    $DynamicAttributes[] = $attribute;
-                                }
-                            }
-                        }
-                    }
-                    if (count($DynamicAttributes) != 0 && $offset >= 10) {
-                        $_continue = false;
-                    } elseif ($offset == 30) {
-                        $_continue = false;
-                    }
-                    $offset += 10;
                 }
-                
-                 foreach($DynamicAttributes as $key => $value){
-                    $facetformArray[] = $value;
-                                  
-                 }
-                
-                return $facetformArray;
-            }  
-        }
-    
+
+                if (isset($response)) {
+                   
+                    foreach ($response as $attribute => $value) {
+
+                        if (!in_array($attribute, $exclude_attributes)) {
+
+                            if (!empty($attribute)) {
+
+                                $DynamicAttributes[] = $attribute;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                if (count($DynamicAttributes) != 0 && $offset >= 10) {
+
+                    $_continue = false;
+
+                } elseif ($offset == 30) {
+
+                    $_continue = false;
+
+                }
+
+                $offset += 10;
+            }
+            
+             foreach($DynamicAttributes as $key => $value){
+                $facetformArray[] = $value;
+                              
+             }
+            $facet_attribute_list = (empty($facetformArray)) ? ["price","categories","on_sale","brand"] : $facetformArray;
+            return $facet_attribute_list;
+        }  
+
+    }
+    */
+    public function getClerkAttributes() {
+        $standard_attributes = ["price","categories","on_sale","brand"];
+        return $standard_attributes;
+    }
 }

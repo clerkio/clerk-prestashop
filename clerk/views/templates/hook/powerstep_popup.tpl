@@ -22,18 +22,62 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 *}
+<style>
+    .clerk-popup {
+        position: fixed;
 
+        top: 10%;
+
+        z-index: 16777271;
+
+        display: none;
+
+        padding: 20px;
+
+        margin: 0 5%;
+
+        background-color: white;
+
+        border: 1px solid #eee;
+
+        border-radius: 5px;
+
+        box-shadow: 0px 8px 40px 0px rgba(0, 0, 60, 0.15);
+    }
+</style>
+
+<div id="clerk_powerstep" class="clerk-popup">
+<div class="clerk_powerstep_header">
+    <h2>{$product->name|escape:'html':'UTF-8'} {l s=' added to cart' mod='clerk'}</h2>
+</div>
+<div class="clerk_powerstep_image">
+    <img src="{$link->getImageLink($product->link_rewrite, $image.id_image, 'small_default')|escape:'html':'UTF-8'}"
+         alt="{$product->name|escape:'html':'UTF-8'}"/>
+</div>
+<div class="clerk_powerstep_clear actions">
+    <button class="action primary clerk_powerstep_button clerk_powerstep_continue"
+            onClick="location.href='{$link->getPageLink("$order_process", true)|escape:'html'}';">Continue to Checkout
+    </button>
+    <button class="action clerk_powerstep_button clerk_powerstep_close">{l s='Continue Shopping' mod='clerk'}</button>
+</div>
 <div class="clerk_powerstep_templates">
-{foreach $Contents as $Content}
-
-    {if $Content !== ''}
-
-    <span class="clerk_powerstep" data-template="@{$Content}" data-products="[{$ProductId}]"></span>
-
-    {/if}
-
-{/foreach}
+    {foreach from=$templates item=template}
+        <span class="clerk"
+              data-template="@{$template}"
+              data-products="[{$product->id}]"
+              data-category="{$category}"
+        ></span>
+    {/foreach}
+</div>
 </div>
 <script>
-Clerk('content', '.clerk_powerstep');
+
+        var popup = document.getElementById("clerk_powerstep");
+
+        document.querySelector('.clerk_powerstep_close').addEventListener("click", () => {
+                  popup.style.display = 'none';
+        });
+
+        popup.style.display = 'block';
+
 </script>
