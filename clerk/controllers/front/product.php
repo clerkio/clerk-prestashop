@@ -169,7 +169,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $active = '';
             }
 
-            $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add, pl.description, pl.description_short
+            $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add, pl.description, pl.description_short, pl.name
             FROM "._DB_PREFIX_."product p
             LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
             LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)

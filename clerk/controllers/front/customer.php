@@ -54,12 +54,26 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
     {
         try {
             header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
-            $customers = Customer::getCustomers($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
-
+            //$customers = Customer::getCustomers($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
+            /*
             foreach ($customers as $index => $customer) {
                 //Rename id_customer to id and prepend to response
                 $customers[$index] = array_merge(['id' => $customer['id_customer']], $customers[$index]);
                 unset($customers[$index]['id_customer']);
+            }
+            */
+
+			$dbquery = new DbQuery();
+			$dbquery->select('c.`id_customer` AS `id`, s.`name` AS `shop_name`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`');
+			$dbquery->from('customer', 'c');
+			$dbquery->leftJoin('shop', 's', 's.id_shop = c.id_shop');
+			$dbquery->leftJoin('gender', 'g', 'g.id_gender = c.id_gender');
+			$dbquery->leftJoin('gender_lang', 'gl', 'g.id_gender = gl.id_gender AND gl.id_lang = '.$this->getLanguageId());
+			$customers = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($dbquery->build());
+            foreach ($customers as $index => $customer) {
+                unset($customers[$index]['shop_name']);
+                $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
+                $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
             }
 
             $this->logger->log('Fetched Customers', ['response' => $customers]);
