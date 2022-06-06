@@ -50,7 +50,7 @@ const clerkPowerstepInjection = () => {
         const span = document.createElement('span');
         span.classList.add('clerk_powerstep');
         span.setAttribute('data-template', '@'+template);
-        span.setAttribute('data-products', `[${powerstep_products}]`);
+        span.setAttribute('data-products', '['+powerstep_products+']');
         modalContainer.append(span);
 
     });

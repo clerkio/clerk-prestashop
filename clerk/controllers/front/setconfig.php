@@ -201,6 +201,14 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
                 Configuration::updateValue('CLERK_PRODUCT_TEMPLATE', array($this->language_id => $value, 0), false, null, $this->shop_id);
             }
 
+            // PRODUCT SETTINGS (2)
+            if ($key == "clerk_category_enabled") {
+                Configuration::updateValue('CLERK_CATEGORY_ENABLED', array($this->language_id => $value, 0), false, null, $this->shop_id);
+            }
+            if ($key == "clerk_category_template") {
+                Configuration::updateValue('CLERK_CATEGORY_TEMPLATE', array($this->language_id => $value, 0), false, null, $this->shop_id);
+            }
+
             // LOGGING SETTINGS (3)
             if ($key == "clerk_logging_enabled") {
                 Configuration::updateValue('CLERK_LOGGING_ENABLED', array($this->language_id => $value, 0), false, null, $this->shop_id);
