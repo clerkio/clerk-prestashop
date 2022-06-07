@@ -34,13 +34,15 @@
     </span>
         {/if}
     </h1>
-    <div id="clerk-search-filters"></div>
+<div class="clerk-page-wrap">
+    <div class="clerk-filter-wrap">
+        <div id="clerk-facet-mobile-toggle" onclick="facetMobileToggle();">Filters</div>
+        <div id="clerk-search-filters"></div>
+    </div>
     <span
             id="clerk-search"
             class="clerk"
             data-template="@{$search_template|escape:'html':'UTF-8'}"
-            data-limit="40"
-            data-offset="0"
             data-target="#clerk-search-results"
 
             {if $faceted_navigation}
@@ -61,8 +63,18 @@
             {/if}
 
             data-query="{$search_query|escape:'html':'UTF-8'}">
-</span>
+    </span>
     <ul id="clerk-search-results" style="overflow: hidden;"></ul>
     <div id="clerk-search-no-results" style="display: none;"></div>
-
+</div>
+<script type="text/javascript">
+    function facetMobileToggle(){
+        filters = document.querySelector('#clerk-search-filters');
+        if(filters.style.display == 'none'){
+            filters.style.display = 'block';
+        }else{
+            filters.style.display = 'none';
+        }
+    }
+</script>
 {/block}

@@ -1,3 +1,4 @@
+{if isset($Contents) && isset($CategoryId)}
 {foreach $Contents as $Content}
 
     {if $Content !== ''}
@@ -7,3 +8,4 @@
     {/if}
 
 {/foreach}
+{/if}

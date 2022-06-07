@@ -83,7 +83,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             
             // FACETED NAVIGATION (5)
             'clerk_faceted_navigation_enabled' => Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id),
-            'clerk_facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_facets_attributes' => Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->language_id, null, $this->shop_id),
             'clerk_facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $this->language_id, null, $this->shop_id),
             'clerk_facets_position' => Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id),
             'clerk_facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id),

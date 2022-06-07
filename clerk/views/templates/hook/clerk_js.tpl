@@ -35,10 +35,15 @@
     })();
 
     Clerk('config', {
+        {if isset($clerk_public_key)}
         key: '{$clerk_public_key}',
+        {/if}
+        {if isset($clerk_datasync_collect_emails)}
         collect_email: {$clerk_datasync_collect_emails},
+        {/if}
+        {if isset($language)}
         language: '{$language}'
-
+        {/if}
     });
    
 

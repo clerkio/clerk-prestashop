@@ -31,33 +31,45 @@
     </span>
     {/if}
 </h1>
-<div id="clerk-search-filters"></div>
-<span
-        id="clerk-search"
-        class="clerk"
-        data-template="@{$search_template|escape:'html':'UTF-8'}"
-        data-limit="40"
-        data-offset="0"
-        data-target="#clerk-search-results"
-        {if $faceted_navigation}
-           
-            data-facets-target="#clerk-search-filters" 
-            data-facets-attributes='{$facets_enabled}'
-            data-facets-titles='{$facets_title}'
-            data-facets-design='{$facets_design}'
+<div class="clerk-page-wrap">
+    <div class="clerk-filter-wrap">
+        <div id="clerk-facet-mobile-toggle" onclick="facetMobileToggle();">Filters</div>
+        <div id="clerk-search-filters"></div>
+    </div>
+    <span
+            id="clerk-search"
+            class="clerk"
+            data-template="@{$search_template|escape:'html':'UTF-8'}"
+            data-target="#clerk-search-results"
+            {if $faceted_navigation}
+            
+                data-facets-target="#clerk-search-filters" 
+                data-facets-attributes='{$facets_enabled}'
+                data-facets-titles='{$facets_title}'
+                data-facets-design='{$facets_design}'
 
-        {/if}
+            {/if}
 
-        {if $search_categories}
-           
-            data-search-categories = '{$search_number_categories}'
-            data-search-pages = '{$search_number_pages}'
-            data-search-pages-type = '{$search_pages_type}'
+            {if $search_categories}
+            
+                data-search-categories = '{$search_number_categories}'
+                data-search-pages = '{$search_number_pages}'
+                data-search-pages-type = '{$search_pages_type}'
 
-        {/if}
+            {/if}
 
-        data-query="{$search_query|escape:'html':'UTF-8'}">
-</span>
-
-<ul id="clerk-search-results"></ul>
-<div id="clerk-search-no-results" style="display: none;"></div>
+            data-query="{$search_query|escape:'html':'UTF-8'}">
+    </span>
+    <ul id="clerk-search-results"></ul>
+    <div id="clerk-search-no-results" style="display: none;"></div>
+</div>
+<script type="text/javascript">
+    function facetMobileToggle(){
+        filters = document.querySelector('#clerk-search-filters');
+        if(filters.style.display == 'none'){
+            filters.style.display = 'block';
+        }else{
+            filters.style.display = 'none';
+        }
+    }
+</script>

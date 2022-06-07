@@ -226,10 +226,6 @@ class Clerk_Api
                     }
                 }
 
-                //////
-
-
-
                 $params = [
                     'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
                     'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),

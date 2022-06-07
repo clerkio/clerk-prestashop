@@ -145,7 +145,12 @@ class Clerk extends Module
             $facetTitleValues = array();
 
 
-            $defaultFacetString = json_encode(["price","categories","on_sale","brand"]);
+            $defaultFacetString = [
+                0 => "price",
+                1 => "categories",
+                2 => "on_sale",
+                3 => "brand"
+            ];
             $defaultClerkFacetsTitle = [
                 'price' => 'Price',
                 'brand' => 'Brand',
@@ -165,7 +170,7 @@ class Clerk extends Module
                 $falseValues[$language['id_lang']] = 0;
                 $dropdownNumberValues[$language['id_lang']] = 1;
                 $searchTemplateValues[$language['id_lang']] = 'search-page';
-                $standardFacetAttributes[$language['id_lang']] = $defaultFacetString;
+                $standardFacetAttributes[$language['id_lang']] = json_encode($defaultFacetString);
                 $liveSearchTemplateValues[$language['id_lang']] = 'live-search';
                 $liveSearchSelector[$language['id_lang']] = '.search_query';
                 $liveSearchFormSelector[$language['id_lang']] = '#search_widget > form';
@@ -194,7 +199,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_FACETS_ENABLED', $standardFacetAttributes, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_FACETS_ATTRIBUTES', $standardFacetAttributes, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_POSITION', $facetPositionValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_TITLE', $facetTitleValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_FACETS_DESIGN', $emptyValues, false, null, $shop['id_shop']);
@@ -275,10 +280,12 @@ class Clerk extends Module
         $allShops = Shop::getShops();
 
         foreach ($allShops as $shop) {
-            $shops[] = array(
-                'id_shop' => $shop['id_shop'],
-                'name' => $shop['name']
-            );
+            if(isset($shop['id_shop']) && isset($shop['name'])) {
+                $shops[] = array(
+                    'id_shop' => $shop['id_shop'],
+                    'name' => $shop['name']
+                );
+            }
         }
 
         return $shops;
@@ -389,7 +396,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_SEARCH_PAGES_TYPE');
         Configuration::deleteByName('CLERK_SEARCH_TEMPLATE');
         Configuration::deleteByName('CLERK_FACETED_NAVIGATION_ENABLED');
-        Configuration::deleteByName('CLERK_FACETS_ENABLED');
+        Configuration::deleteByName('CLERK_FACETS_ATTRIBUTES');
         Configuration::deleteByName('CLERK_FACETS_POSITION');
         Configuration::deleteByName('CLERK_FACETS_TITLE');
         Configuration::deleteByName('CLERK_FACETS_DESIGN');
@@ -509,16 +516,15 @@ class Clerk extends Module
                  * kky facets sorting arrays for position
                  */
 
-                $facetPos = Tools::getValue('clerk_facets_position', 0);
-                $facetTitle = Tools::getValue('clerk_facets_title', 0);
-                $enabledfacets = Tools::getValue('clerk_facets_enabled', 0);
-
+                $facetPos = Tools::getValue('clerk_facets_position', []);
+                $facetTitle = Tools::getValue('clerk_facets_title', []);
+                $enabledfacets = Tools::getValue('clerk_facets_attributes', []);
 
                 Configuration::updateValue('CLERK_FACETS_POSITION', array(
                     $this->language_id => json_encode($facetPos)
                 ), false, null, $this->shop_id);
                
-                Configuration::updateValue('CLERK_FACETS_ENABLED', array(
+                Configuration::updateValue('CLERK_FACETS_ATTRIBUTES', array(
                     $this->language_id => json_encode($enabledfacets)
                 ), false, null, $this->shop_id);
 
@@ -1103,307 +1109,6 @@ class Clerk extends Module
                 ),
             ),
         );
-
-        //Search settings
-        $this->fields_form[] = array(
-            'form' => array(
-                'legend' => array(
-                    'title' => $this->l('Search Settings'),
-                    'icon' => 'icon-search'
-                ),
-                'input' => array(
-                    array(
-                        'type' => $booleanType,
-                        'label' => $this->l('Enabled'),
-                        'name' => 'clerk_search_enabled',
-                        'is_bool' => true,
-                        'class' => 't',
-                        'values' => array(
-                            array(
-                                'id' => 'clerk_search_enabled_on',
-                                'value' => 1,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'clerk_search_enabled_off',
-                                'value' => 0,
-                                'label' => $this->l('Disabled')
-                            )
-                        )
-                    ),
-                    array(
-                        'type' => $booleanType,
-                        'label' => $this->l('Include Categories'),
-                        'name' => 'clerk_search_categories',
-                        'is_bool' => true,
-                        'class' => 't',
-                        'values' => array(
-                            array(
-                                'id' => 'clerk_include_search_categories_on',
-                                'value' => 1,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'clerk_include_search_categories_off',
-                                'value' => 0,
-                                'label' => $this->l('Disabled')
-                            )
-                        )
-                    ),
-                    array(
-                        'type' => 'select',
-                        'label' => $this->l('Number of Categories'),
-                        'name' => 'clerk_search_number_categories',
-                        'class' => 't',
-                        'options' => array(
-                            'query' => array(
-                                array(
-                                    'value' => 1,
-                                    'name' => $this->l('1')
-                                ),
-                                array(
-                                    'value' => 2,
-                                    'name' => $this->l('2')
-                                ),
-                                array(
-                                    'value' => 3,
-                                    'name' => $this->l('3')
-                                ),
-                                array(
-                                    'value' => 4,
-                                    'name' => $this->l('4')
-                                ),
-                                array(
-                                    'value' => 5,
-                                    'name' => $this->l('5')
-                                ),
-                                array(
-                                    'value' => 6,
-                                    'name' => $this->l('6')
-                                ),
-                                array(
-                                    'value' => 7,
-                                    'name' => $this->l('7')
-                                ),
-                                array(
-                                    'value' => 8,
-                                    'name' => $this->l('8')
-                                ),
-                                array(
-                                    'value' => 9,
-                                    'name' => $this->l('9')
-                                ),
-                                array(
-                                    'value' => 10,
-                                    'name' => $this->l('10')
-                                )
-                            ),
-                            'id' => 'value',
-                            'name' => 'name',
-                        )
-                    ),
-                    array(
-                        'type' => 'select',
-                        'label' => $this->l('Number of Pages'),
-                        'name' => 'clerk_search_number_pages',
-                        'class' => 't',
-                        'options' => array(
-                            'query' => array(
-                                array(
-                                    'value' => 1,
-                                    'name' => $this->l('1')
-                                ),
-                                array(
-                                    'value' => 2,
-                                    'name' => $this->l('2')
-                                ),
-                                array(
-                                    'value' => 3,
-                                    'name' => $this->l('3')
-                                ),
-                                array(
-                                    'value' => 4,
-                                    'name' => $this->l('4')
-                                ),
-                                array(
-                                    'value' => 5,
-                                    'name' => $this->l('5')
-                                ),
-                                array(
-                                    'value' => 6,
-                                    'name' => $this->l('6')
-                                ),
-                                array(
-                                    'value' => 7,
-                                    'name' => $this->l('7')
-                                ),
-                                array(
-                                    'value' => 8,
-                                    'name' => $this->l('8')
-                                ),
-                                array(
-                                    'value' => 9,
-                                    'name' => $this->l('9')
-                                ),
-                                array(
-                                    'value' => 10,
-                                    'name' => $this->l('10')
-                                )
-                            ),
-                            'id' => 'value',
-                            'name' => 'name',
-                        )
-                    ),
-                    array(
-                        'type' => 'select',
-                        'label' => $this->l('Pages Type'),
-                        'name' => 'clerk_search_pages_type',
-                        'class' => 't',
-                        'options' => array(
-                            'query' => array(
-                                array(
-                                    'value' => 'CMS Page',
-                                    'name' => $this->l('CMS Pages'),
-                                ),
-                            ),
-                            'id' => 'value',
-                            'name' => 'name',
-                        )
-                    ),
-                    array(
-                        'type' => 'text',
-                        'label' => $this->l('Template'),
-                        'name' => 'clerk_search_template',
-                    ),
-                ),
-            ),
-        );
-
-         //Faceted navigation settings
-         $facet_input = array(); 
-         $facet_enable = array(
-            'type' => $booleanType,
-            'label' => $this->l('Enabled'),
-            'name' => 'clerk_faceted_navigation_enabled',
-            'is_bool' => true,
-            'class' => 't',
-            'values' => array(
-                array(
-                    'id' => 'clerk_faceted_navigation_enabled_on',
-                    'value' => 1,
-                    'label' => $this->l('Enabled')
-                ),
-                array(
-                    'id' => 'clerk_faceted_navigation_enabled_off',
-                    'value' => 0,
-                    'label' => $this->l('Disabled')
-                )
-            )
-        );
-
-        $facets_design =  array(
-            'type' => 'text',
-            'placeholder' => 'Template ID (optional)',
-            'label' => $this->l('Design'),
-            'name' => 'clerk_facets_design',
-        );
-        $facet_attribute_input = array(
-            'type' => 'text',
-            'placeholder' => 'Attribute name',
-            'label' => $this->l('Add facet attributes'),
-            'id' => 'clerk_custom_facet_attribute'
-        );
-        $clerk_custom_facet_script = array(
-            'type' => 'html',
-            'name' => 'custom_facet_script',
-            'html_content' => '
-            <script>
-                window.addEventListener("load", function(){
-                    let custom_facet_input = document.getElementById("clerk_custom_facet_attribute");
-                    let facet_table = document.getElementById("facet_table");
-                    custom_facet_input.addEventListener("keydown", function(event){
-                        if(event.keyCode == 13){
-                            event.preventDefault();
-                        }
-                    });
-                    custom_facet_input.addEventListener("keyup", function(event){
-                        if(event.keyCode == 13){
-                            event.preventDefault();
-                            attribute = custom_facet_input.value.trim();
-                            custom_facet_input.value = "";
-                            template = `<tr class="facets_lines">
-                                            <td style="padding: 8px 10px 8px 0px;"><input type="text" name="facets_facet" value="${attribute}" readonly="" /></td>
-                                            <td style="padding-right: 10px;"><input type="text" name="clerk_facets_title[${attribute}][]" value="" /></td>
-                                            <td style="padding-right: 10px;"><input type="text" name="clerk_facets_position[${attribute}][]" value="" /></td>
-                                            <td style="padding-right: 10px;"><input name="clerk_facets_enabled[]" value="${attribute}" type="checkbox" /></td>
-                                        </tr>`;
-                            facet_table.innerHTML += template;
-                        }
-                    });
-                });
-            </script>
-            ',
-        );
-        array_push($facet_input, $facet_enable, $facets_design);
-
-
-
-        if( Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id) !==""){
-
-            $facetHTML = '<table style="margin-top:7px" id="facet_table">'.
-            '<tbody id="facets_content">'.
-            '<tr><th>Attribute</th>'.
-            '<th>Title</th>'.
-            '<th>Position</th>'.
-            '<th>Show</th>';
-            
-            $positions = json_decode(Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id), true);
-            $titles = json_decode(Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id), true);
-            $attributes = json_decode(Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id), true);
-
-            if(is_array($attributes)){
-            foreach($attributes as $k => $attribute){
-                $attributeHTML =   '</tr><tr class="facets_lines">';
-                $attributeHTML .=  '<td style="padding:8px 10px 8px 0px;"><input type="text" name="facets_facet" value="'.$attribute.'" readonly=""></td>';
-                $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_title['.$attribute.'][]" value="'. $titles[$attribute][0] .'"></td>';
-                $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_position['.$attribute.'][]" value="'.$positions[$attribute][0].'"></td>';
-                if(in_array($attribute, json_decode(Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id))) ){
-                    $attributeHTML .=  '<td style="padding-right:10px;"><input name="clerk_facets_enabled[]" value="'.$attribute.'" checked="checked" type="checkbox"></td>';
-                }else{
-                    $attributeHTML .=  '<td style="padding-right:10px;"><input name="clerk_facets_enabled[]" value="'.$attribute.'" type="checkbox"></td>';
-                }
-                
-
-                $attributeHTML .=  '</tr>';
-
-                $facetHTML .= $attributeHTML;
-            }
-            }
-            $facetHTML .= '</tbody></table>';
-
-            $facettable = array(
-                'type' => 'html',
-                'label' => $this->l('Facet Attributes'),
-                'name' => 'faceted navigation',
-                'html_content' =>  $facetHTML
-            );
-
-            array_push($facet_input, $facet_attribute_input, $facettable, $clerk_custom_facet_script);
-
-        }
-        
-         $this->fields_form[] = array(
-            'form' => array( 
-                'legend' => array(
-                    'title' => $this->l('Faceted navigation'),
-                    'icon' => 'icon-search'
-                ),
-                'input' =>  $facet_input
-                   
-                ,
-            ),
-        );
-
         //Livesearch settings
         $this->fields_form[] = array(
             'form' => array(
@@ -1674,6 +1379,389 @@ class Clerk extends Module
             ),
         );
 
+        //Search settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Search Settings'),
+                    'icon' => 'icon-search'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_search_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_search_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_search_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Categories'),
+                        'name' => 'clerk_search_categories',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_include_search_categories_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_include_search_categories_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Categories'),
+                        'name' => 'clerk_search_number_categories',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Number of Pages'),
+                        'name' => 'clerk_search_number_pages',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 1,
+                                    'name' => $this->l('1')
+                                ),
+                                array(
+                                    'value' => 2,
+                                    'name' => $this->l('2')
+                                ),
+                                array(
+                                    'value' => 3,
+                                    'name' => $this->l('3')
+                                ),
+                                array(
+                                    'value' => 4,
+                                    'name' => $this->l('4')
+                                ),
+                                array(
+                                    'value' => 5,
+                                    'name' => $this->l('5')
+                                ),
+                                array(
+                                    'value' => 6,
+                                    'name' => $this->l('6')
+                                ),
+                                array(
+                                    'value' => 7,
+                                    'name' => $this->l('7')
+                                ),
+                                array(
+                                    'value' => 8,
+                                    'name' => $this->l('8')
+                                ),
+                                array(
+                                    'value' => 9,
+                                    'name' => $this->l('9')
+                                ),
+                                array(
+                                    'value' => 10,
+                                    'name' => $this->l('10')
+                                )
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Pages Type'),
+                        'name' => 'clerk_search_pages_type',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                array(
+                                    'value' => 'CMS Page',
+                                    'name' => $this->l('CMS Pages'),
+                                ),
+                            ),
+                            'id' => 'value',
+                            'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Template'),
+                        'name' => 'clerk_search_template',
+                    ),
+                ),
+            ),
+        );
+
+         //Faceted navigation settings
+         $facet_input = array(); 
+         $facet_enable = array(
+            'type' => $booleanType,
+            'label' => $this->l('Enabled'),
+            'name' => 'clerk_faceted_navigation_enabled',
+            'is_bool' => true,
+            'class' => 't',
+            'values' => array(
+                array(
+                    'id' => 'clerk_faceted_navigation_enabled_on',
+                    'value' => 1,
+                    'label' => $this->l('Enabled')
+                ),
+                array(
+                    'id' => 'clerk_faceted_navigation_enabled_off',
+                    'value' => 0,
+                    'label' => $this->l('Disabled')
+                )
+            )
+        );
+
+        $facets_design =  array(
+            'type' => 'text',
+            'placeholder' => 'Template ID (optional)',
+            'label' => $this->l('Design'),
+            'name' => 'clerk_facets_design',
+        );
+        $facet_attribute_input = array(
+            'type' => 'text',
+            'placeholder' => 'Attribute name',
+            'label' => $this->l('Add facet attributes'),
+            'id' => 'clerk_custom_facet_attribute'
+        );
+        $clerk_custom_facet_script = array(
+            'type' => 'html',
+            'name' => 'custom_facet_script',
+            'html_content' => '
+            <script>
+                window.addEventListener("load", function(){
+                    let custom_facet_input = document.getElementById("clerk_custom_facet_attribute");
+                    let facet_table = document.getElementById("facet_table");
+                    custom_facet_input.addEventListener("keydown", function(event){
+                        if(event.keyCode == 13){
+                            event.preventDefault();
+                        }
+                    });
+                    custom_facet_input.addEventListener("keyup", function(event){
+                        if(event.keyCode == 13){
+                            event.preventDefault();
+                            attribute = custom_facet_input.value.trim();
+                            custom_facet_input.value = "";
+                            template = `<tr class="facets_lines">
+                                            <td style="padding: 8px 10px 8px 0px;"><input type="text" name="clerk_facets_attributes[]" value="${attribute}" readonly="" /></td>
+                                            <td style="padding-right: 10px;"><input type="text" name="clerk_facets_title[${attribute}][]" value="" /></td>
+                                            <td style="padding-right: 10px;"><input type="text" name="clerk_facets_position[${attribute}][]" value="" /></td>
+                                            <td style="padding-right: 10px;" onclick="removeFacet();"><i class="icon-remove"></i></td>
+                                        </tr>`;
+                            facet_table.innerHTML += template;
+                            if(document.querySelectorAll("#facets_content td").length == 1){
+                                document.querySelector("#facets_content").innerHTML = "<tr><th>Attribute</th><th>Title</th><th>Position</th><th>Delete</th></tr>";
+                            }
+                        }
+                    });
+                });
+                const removeFacet = () => {
+                    let element = event.target;
+                    let parent = element.closest("tr");
+                    parent.remove();
+                }
+            </script>
+            ',
+        );
+        array_push($facet_input, $facet_enable);
+
+
+
+        if( Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id) !==""){
+
+            $facetHTML = '<table style="margin-top:7px" id="facet_table"><tbody id="facets_content">';
+            $positions = json_decode(Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id), true);
+            $titles = json_decode(Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id), true);
+            $attributes = json_decode(Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->language_id, null, $this->shop_id), true);
+
+            if(is_array($attributes) && count($attributes) > 0){
+                $facetHTML .= '<tr><th>Attribute</th>'.
+                              '<th>Title</th>'.
+                              '<th>Position</th>'.
+                              '<th>Delete</th></tr>';
+                foreach($attributes as $attribute){
+                    $attributeHTML =   '<tr class="facets_lines">';
+                    $attributeHTML .=  '<td style="padding:8px 10px 8px 0px;"><input type="text" name="clerk_facets_attributes[]" value="'.$attribute.'" readonly=""></td>';
+                    $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_title['.$attribute.'][]" value="'. $titles[$attribute][0] .'"></td>';
+                    $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_position['.$attribute.'][]" value="'.$positions[$attribute][0].'"></td>';
+                    $attributeHTML .=  '<td style="padding-right:10px;" onclick="removeFacet();" ><i class="icon-remove"></i></td></tr>';
+                    $facetHTML .= $attributeHTML;
+                }
+                
+            } else {
+                $facetHTML .= '<tr><td>Please enter attributes in the input field above, in order to use them as facets</td></tr>';
+            }
+            
+            $facetHTML .= '</tbody></table>';
+            $facettable = array(
+                'type' => 'html',
+                'label' => $this->l('Facet Attributes'),
+                'name' => 'faceted navigation',
+                'html_content' =>  $facetHTML
+            );
+            array_push($facet_input, $facets_design, $facet_attribute_input, $facettable, $clerk_custom_facet_script);
+            
+        }
+
+
+
+        
+        $this->fields_form[] = array(
+            'form' => array( 
+                'legend' => array(
+                    'title' => $this->l('Faceted navigation'),
+                    'icon' => 'icon-search'
+                ),
+                'input' =>  $facet_input
+                   
+                ,
+            ),
+        );
+
+
+
+
+
+
+
+
+        //Category settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Category Settings'),
+                    'icon' => 'icon-shopping-cart'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_category_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_category_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_category_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Templates'),
+                        'placeholder' => 'Content ID',
+                        'name' => 'clerk_category_template',
+                    ),
+                )
+            ),
+        );
+        //Product settings
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Product Settings'),
+                    'icon' => 'icon-shopping-cart'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_product_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_product_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_product_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Templates'),
+                        'placeholder' => 'Content ID',
+                        'name' => 'clerk_product_template',
+                    ),
+                )
+            ),
+        );
+
         //Powerstep settings
         $this->fields_form[] = array(
             'form' => array(
@@ -1736,43 +1824,6 @@ class Clerk extends Module
             ),
         );
 
-        //Exit intent settings
-        $this->fields_form[] = array(
-            'form' => array(
-                'legend' => array(
-                    'title' => $this->l('Exit Intent Settings'),
-                    'icon' => 'icon-shopping-cart'
-                ),
-                'input' => array(
-                    array(
-                        'type' => $booleanType,
-                        'label' => $this->l('Enabled'),
-                        'name' => 'clerk_exit_intent_enabled',
-                        'is_bool' => true,
-                        'class' => 't',
-                        'values' => array(
-                            array(
-                                'id' => 'clerk_exit_intent_enabled_on',
-                                'value' => 1,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'clerk_exit_intent_enabled_off',
-                                'value' => 0,
-                                'label' => $this->l('Disabled')
-                            )
-                        )
-                    ),
-                    array(
-                        'type' => 'text',
-                        'label' => $this->l('Template'),
-                        'placeholder' => 'Content ID',
-                        'name' => 'clerk_exit_intent_template',
-                    ),
-                )
-            ),
-        );
-
         //Cart settings
         $this->fields_form[] = array(
             'form' => array(
@@ -1810,28 +1861,28 @@ class Clerk extends Module
             ),
         );
 
-        //Product settings
+        //Exit intent settings
         $this->fields_form[] = array(
             'form' => array(
                 'legend' => array(
-                    'title' => $this->l('Product Settings'),
+                    'title' => $this->l('Exit Intent Settings'),
                     'icon' => 'icon-shopping-cart'
                 ),
                 'input' => array(
                     array(
                         'type' => $booleanType,
                         'label' => $this->l('Enabled'),
-                        'name' => 'clerk_product_enabled',
+                        'name' => 'clerk_exit_intent_enabled',
                         'is_bool' => true,
                         'class' => 't',
                         'values' => array(
                             array(
-                                'id' => 'clerk_product_enabled_on',
+                                'id' => 'clerk_exit_intent_enabled_on',
                                 'value' => 1,
                                 'label' => $this->l('Enabled')
                             ),
                             array(
-                                'id' => 'clerk_product_enabled_off',
+                                'id' => 'clerk_exit_intent_enabled_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -1839,51 +1890,13 @@ class Clerk extends Module
                     ),
                     array(
                         'type' => 'text',
-                        'label' => $this->l('Templates'),
+                        'label' => $this->l('Template'),
                         'placeholder' => 'Content ID',
-                        'name' => 'clerk_product_template',
+                        'name' => 'clerk_exit_intent_template',
                     ),
                 )
             ),
         );
-
-                //Category settings
-                $this->fields_form[] = array(
-                    'form' => array(
-                        'legend' => array(
-                            'title' => $this->l('Category Settings'),
-                            'icon' => 'icon-shopping-cart'
-                        ),
-                        'input' => array(
-                            array(
-                                'type' => $booleanType,
-                                'label' => $this->l('Enabled'),
-                                'name' => 'clerk_category_enabled',
-                                'is_bool' => true,
-                                'class' => 't',
-                                'values' => array(
-                                    array(
-                                        'id' => 'clerk_category_enabled_on',
-                                        'value' => 1,
-                                        'label' => $this->l('Enabled')
-                                    ),
-                                    array(
-                                        'id' => 'clerk_category_enabled_off',
-                                        'value' => 0,
-                                        'label' => $this->l('Disabled')
-                                    )
-                                )
-                            ),
-                            array(
-                                'type' => 'text',
-                                'label' => $this->l('Templates'),
-                                'placeholder' => 'Content ID',
-                                'name' => 'clerk_category_template',
-                            ),
-                        )
-                    ),
-                );
-
         if ( Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'file') {
 
             $LoggingView = array(
@@ -2375,7 +2388,7 @@ CLERKJS;
             'clerk_search_pages_type' => Configuration::get('CLERK_SEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
             'clerk_faceted_navigation_enabled' => Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id),
-            'clerk_facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_facets_attributes' => Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->language_id, null, $this->shop_id),
             'clerk_facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $this->language_id, null, $this->shop_id),
             'clerk_facets_position' => Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id),
             'clerk_facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id),
@@ -2505,10 +2518,9 @@ CLERKJS;
         if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
         $context = Context::getContext();
         $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
-        $moduleCheck = (Module::isInstalled('blockcart') && Module::isEnabled('blockcart')) ? true : false;
         if ($enabled) {
             $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
-            if($correctType && $moduleCheck){
+            if($correctType){
                 
                 $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
@@ -2525,6 +2537,23 @@ CLERKJS;
                 
     
             }
+        }
+        if (Configuration::get('CLERK_CATEGORY_ENABLED', $context->language->id, null, $this->context->shop->id)) {
+            $category_id = Tools::getValue("id_category");
+
+            if($category_id){
+                $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
+
+                $this->context->smarty->assign(
+                    array(
+                        'Contents' => $Contents,
+                        'CategoryId' => $category_id
+                    )
+                );
+
+                $View .= $this->display(__FILE__, 'category_products_embedded.tpl');
+            }
+
         }
     }
         return $View;
@@ -3032,11 +3061,5 @@ CLERKJS;
     function isJSON($string)
     {
         return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
-    }
-
-    public function getClerkAttributes() 
-    {
-        $standard_attributes = ["price","categories","on_sale","brand"];
-        return $standard_attributes;
     }
 }

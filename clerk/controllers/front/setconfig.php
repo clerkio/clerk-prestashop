@@ -121,8 +121,8 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             if ($key == "clerk_faceted_navigation_enabled") {
                 Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', array($this->language_id => $value, 0), false, null, $this->shop_id);
             }
-            if ($key == "clerk_facets_enabled") {
-                Configuration::updateValue('CLERK_FACETS_ENABLED', array($this->language_id => $value, 0), false, null, $this->shop_id);
+            if ($key == "clerk_facets_attributes") {
+                Configuration::updateValue('CLERK_FACETS_ATTRIBUTES', array($this->language_id => $value, 0), false, null, $this->shop_id);
             }
             if ($key == "clerk_facets_design") {
                 Configuration::updateValue('CLERK_FACETS_DESIGN', array($this->language_id => $value, 0), false, null, $this->shop_id);

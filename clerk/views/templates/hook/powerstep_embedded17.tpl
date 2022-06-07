@@ -23,7 +23,7 @@
 * SOFTWARE.
 *}
 
-<div class="clerk_powerstep_templates" enabled="{$Enabled}" type="{$Type}">
+<div class="clerk_powerstep_templates">
 {foreach $Contents as $Content}
 
     {if $Content !== ''}

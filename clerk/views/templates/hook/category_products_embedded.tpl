@@ -23,14 +23,22 @@
 * SOFTWARE.
 *}
 
-<div class="clerk_powerstep_templates">
-{foreach $Contents as $Content}
 
-    {if $Content !== ''}
-
-    <span class="clerk_powerstep" data-template="@{$Content}" data-products="[{$ProductId}]"></span>
-
-    {/if}
-
-{/foreach}
-</div>
+<script>
+const clerkCategoryInjection = () => {
+    const category_contents = {$Contents|json_encode};
+    const category_id = {$CategoryId|json_encode};
+    const category_heading = document.querySelector('#center_column');
+    if(category_heading){
+        category_contents.forEach(template=>{
+            const span = document.createElement('span');
+            span.classList.add('clerk-manual');
+            span.setAttribute('data-template', '@'+template);
+            span.setAttribute('data-category', category_id);
+            category_heading.prepend(span);
+        });
+        Clerk('content', '.clerk-manual');
+    }
+}
+document.addEventListener('DOMContentLoaded', clerkCategoryInjection);
+</script>

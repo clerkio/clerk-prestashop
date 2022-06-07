@@ -31,9 +31,10 @@ const clerkAjaxIntercept = () => {
         this.addEventListener('load', function() {
             if(this.status == 200){
                 rsp = JSON.parse(this.responseText);
-                add_event = rsp.hasOwnProperty('productTotal')
+                add_event = rsp.hasOwnProperty('productTotal');
                 if(add_event){
-                    clerkPowerstepInjection();
+                    lastProductId = rsp.products[rsp.products.length - 1].id;
+                    clerkPowerstepInjection(lastProductId);
                 }
             }
         })
@@ -41,20 +42,22 @@ const clerkAjaxIntercept = () => {
     }
 })();
 }
-const clerkPowerstepInjection = () => {
+const clerkPowerstepInjection = (id) => {
     const powerstep_templates = {$Contents|json_encode};
     const powerstep_products = {$ProductId|json_encode};
     const modalContainer = document.querySelector('#layer_cart .crossseling');
-    modalContainer.innerHTML = '';
-    powerstep_templates.forEach(template=>{
-        const span = document.createElement('span');
-        span.classList.add('clerk_powerstep');
-        span.setAttribute('data-template', '@'+template);
-        span.setAttribute('data-products', '['+powerstep_products+']');
-        modalContainer.append(span);
+    if(modalContainer){
+        modalContainer.innerHTML = '';
+        powerstep_templates.forEach(template=>{
+            const span = document.createElement('span');
+            span.classList.add('clerk_powerstep');
+            span.setAttribute('data-template', '@'+template);
+            span.setAttribute('data-products', '['+powerstep_products+']');
+            modalContainer.append(span);
 
-    });
-    Clerk('content', '.clerk_powerstep');
+        });
+        Clerk('content', '.clerk_powerstep');
+    }
 }
 clerkAjaxIntercept();
 </script>
