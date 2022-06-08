@@ -30,12 +30,16 @@ const clerkAjaxIntercept = () => {
     XMLHttpRequest.prototype.send = function() { 
         this.addEventListener('load', function() {
             if(this.status == 200){
-                rsp = JSON.parse(this.responseText);
-                add_event = rsp.hasOwnProperty('productTotal');
-                if(add_event){
-                    lastProductId = rsp.products[rsp.products.length - 1].id;
-                    clerkPowerstepInjection(lastProductId);
+                try {
+                    rsp = JSON.parse(this.responseText);
+                    add_event = rsp.hasOwnProperty('productTotal');
+                    if(add_event){
+                        lastProductId = rsp.products[rsp.products.length - 1].id;
+                        clerkPowerstepInjection(lastProductId);
+                    }
+                } catch (e) {
                 }
+
             }
         })
         return send.apply(this, arguments);
