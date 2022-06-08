@@ -45,11 +45,11 @@
             data-template="@{$search_template|escape:'html':'UTF-8'}"
             data-target="#clerk-search-results"
 
-            {if $faceted_navigation}
+            {if $faceted_navigation && $facets_enabled != '[]' }
            
             data-facets-target="#clerk-search-filters" 
             data-facets-attributes='{$facets_enabled}'
-            data-facets-titles='{$facets_title}'
+            data-facets-titles='{$facets_title|replace:'[':''|replace:']':''}'
             data-facets-design='{$facets_design}'
 
             {/if}
