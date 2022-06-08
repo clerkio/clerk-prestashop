@@ -163,10 +163,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
 
-            $active = ' AND active = 1 AND available_for_order = 1';
+            $active = ' AND p.active = 1 AND p.available_for_order = 1';
 
-            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
-                $active = '';
+            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) == '1') {
+                $active = ' AND p.active = 1';
             }
 
             $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add, pl.description, pl.description_short, pl.name

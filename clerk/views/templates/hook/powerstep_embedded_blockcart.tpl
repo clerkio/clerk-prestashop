@@ -44,7 +44,7 @@ const clerkAjaxIntercept = () => {
 }
 const clerkPowerstepInjection = (id) => {
     const powerstep_templates = {$Contents|json_encode};
-    const powerstep_products = {$ProductId|json_encode};
+    const powerstep_products = id;
     const modalContainer = document.querySelector('#layer_cart .crossseling');
     if(modalContainer){
         modalContainer.innerHTML = '';
