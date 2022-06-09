@@ -23,30 +23,22 @@
 * SOFTWARE.
 *}
 
-<!-- Start of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
+
 <script>
-    (function(){
-        (function(w,d){
-            var e=d.createElement('script');e.type='text/javascript';e.async=true;
-            e.src=(d.location.protocol=='https:'?'https':'http')+'://cdn.clerk.io/clerk.js';
-            var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(e,s);
-            w.__clerk_q=w.__clerk_q||[];w.Clerk=w.Clerk|| function(){ w.__clerk_q.push(arguments) };
-        })(window,document);
-    })();
-
-    Clerk('config', {
-        {if isset($clerk_public_key)}
-        key: '{$clerk_public_key}',
-        {/if}
-        {if isset($clerk_datasync_collect_emails)}
-        collect_email: {$clerk_datasync_collect_emails},
-        {/if}
-        {if isset($language)}
-        language: '{$language}'
-        {/if}
-    });
-   
-
+const clerkCategoryInjection = () => {
+    const category_contents = {$Contents|json_encode};
+    const category_id = {$CategoryId|json_encode};
+    const category_heading = document.querySelector('#center_column');
+    if(category_heading){
+        category_contents.forEach(template=>{
+            const span = document.createElement('span');
+            span.classList.add('clerk-manual');
+            span.setAttribute('data-template', '@'+template);
+            span.setAttribute('data-category', category_id);
+            category_heading.prepend(span);
+        });
+        Clerk('content', '.clerk-manual');
+    }
+}
+document.addEventListener('DOMContentLoaded', clerkCategoryInjection);
 </script>
-
-<!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->

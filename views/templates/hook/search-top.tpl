@@ -23,17 +23,6 @@
 * SOFTWARE.
 *}
 
-{*<div id="search_block_top" class="col-sm-4 clearfix">
-    <form id="searchbox" method="get" action="{$link->getModuleLink('clerk', 'search')|escape:'html'}" >
-        <input type="hidden" name="fc" value="module">
-        <input type="hidden" name="module" value="clerk">
-        <input type="hidden" name="controller" value="search">
-        <input class="search_query form-control" type="text" id="search_query_top" name="search_query" placeholder="{l s='Search' mod='clerk'}" value="{$search_query|escape:'htmlall':'UTF-8'|stripslashes}" />
-        <button type="submit" class="btn btn-default button-search">
-            <span>{l s='Search' mod='clerk'}</span>
-        </button>
-    </form>
-</div>*}
 <script>
 
     function htmlDecode(input){
@@ -49,7 +38,7 @@
     <script>
 
         ClerkSearchPage = function(){
-
+            
             var form_selector = htmlDecode('{$livesearch_form_selector}');
             var search_field_selector = htmlDecode('{$livesearch_selector}');
            
@@ -73,6 +62,7 @@
                 var fields = document.querySelectorAll(search_field_selector);
                 fields.forEach(function(el, index, array){
                     el.setAttribute('name', 'search_query');
+                    el.classList.add('clerk-ios-mobile-zoom-fix');
                 });
 
             }, 100);
@@ -113,6 +103,7 @@
             var live_fields = document.querySelectorAll(live_search_field_selector);
                 live_fields.forEach(function(el, index, array){
                     el.removeAttribute('autocomplete');
+                    el.classList.add('clerk-ios-mobile-zoom-fix');
                 });
 
                 var live_fields_StockAutoComplete = document.querySelectorAll(".ui-autocomplete");
@@ -156,5 +147,11 @@
             data-instant-search-positioning="{$livesearch_dropdown_position}"
             data-instant-search="{$livesearch_selector}">
     </span>
-
+    <style>
+    @media screen and (max-width: 600px){
+        .clerk-ios-mobile-zoom-fix{
+            font-size: 18px !important;
+        }
+    }
+    </style>
 {/if}

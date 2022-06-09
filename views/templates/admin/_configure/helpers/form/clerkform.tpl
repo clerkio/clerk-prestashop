@@ -28,14 +28,20 @@
 {extends file="helpers/form/form.tpl"}
 
 {block name="label"}
-    {if $input.type == 'languageselector'}
+    {if isset($input.type) && $input.type == 'languageselector'}
          <div class="col-md-3 row" style="background-color: transparent;">
             <div class="top-logo">
+                {if isset($input.logoImg)}
                 <img src="{$input.logoImg}" alt="Clerk.io" style="float:left;max-width:64px;">
+                {/if}
             </div>
             <div class="col-md-8 top-module-description">
+                {if isset($input.moduleName)}
                 <h1 class="top-module-title" style="margin-top:0;">{$input.moduleName}</h1>
+                {/if}
+                {if isset($input.moduleVersion) && isset($input.prestashopVersion)}
                 <div class="top-module-my-name"><p>Version <strong>{$input.moduleVersion}</strong></p><p>PrestaShop Version <strong>{$input.prestashopVersion}</strong></p></div>
+                {/if}
             </div>
         </div>
     {else}
@@ -45,13 +51,15 @@
 
 {block name="input"}
 
-    {if $input.type == 'languageselector'}
+    {if isset($input.type) && $input.type == 'languageselector'}
 
         <div class="row" style="background-color: transparent;" >
             <div class="col-md-4">
                 <span><strong>{l s='Shop:' mod='clerk'}</strong></span>
                 <select id="clerk_shop_select" name="clerk_shop_select">
+                    {if isset($input.shops)}
                     {foreach $input.shops as $shop}
+                        {if isset($shop['id_shop']) && isset($input.current_shop) && isset($shop['name'])}
                         <option id="id_{$shop['id_shop']|escape}" value="{$shop['id_shop']|escape}"
                             {if ( $input.current_shop == $shop['id_shop'] )}
                             selected
@@ -59,14 +67,17 @@
                             >
                             {$shop['name']|escape}
                         </option>
+                        {/if}
                     {/foreach}
+                    {/if}
                 </select>
             </div>
-            {if !$input.monolanguage }
             <div class="col-md-4">
                 <span><strong>{l s='Language:' mod='clerk'}</strong></span>
                 <select id="clerk_language_select" name="clerk_language_select">
+                    {if isset($input.languages)}
                     {foreach $input.languages as $language}
+                        {if isset($language['id_lang']) && isset($input.current_language) && isset($language['name'])}
                         <option id="id_{$language['id_lang']|escape}" value="{$language['id_lang']|escape}"
                             {if ( $input.current_language == $language['id_lang'] )}
                             selected
@@ -74,10 +85,11 @@
                             >
                             {$language['name']|escape}
                         </option>
+                        {/if}
                     {/foreach}
+                    {/if}
                 </select>                
             </div>
-            {/if}
             <div class="col-md-3">
                 <div >&nbsp;</div>
                 <input type="submit" id="clerk_language_switch" onclick="Setignore();" value="{l s='Switch' mod='clerk'}" class="btn btn-primary">

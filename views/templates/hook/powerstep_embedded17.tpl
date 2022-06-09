@@ -23,30 +23,17 @@
 * SOFTWARE.
 *}
 
-<!-- Start of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
+<div class="clerk_powerstep_templates">
+{foreach $Contents as $Content}
+
+    {if $Content !== ''}
+
+    <span class="clerk_powerstep" data-template="@{$Content}" data-products="[{$ProductId}]"></span>
+
+    {/if}
+
+{/foreach}
+</div>
 <script>
-    (function(){
-        (function(w,d){
-            var e=d.createElement('script');e.type='text/javascript';e.async=true;
-            e.src=(d.location.protocol=='https:'?'https':'http')+'://cdn.clerk.io/clerk.js';
-            var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(e,s);
-            w.__clerk_q=w.__clerk_q||[];w.Clerk=w.Clerk|| function(){ w.__clerk_q.push(arguments) };
-        })(window,document);
-    })();
-
-    Clerk('config', {
-        {if isset($clerk_public_key)}
-        key: '{$clerk_public_key}',
-        {/if}
-        {if isset($clerk_datasync_collect_emails)}
-        collect_email: {$clerk_datasync_collect_emails},
-        {/if}
-        {if isset($language)}
-        language: '{$language}'
-        {/if}
-    });
-   
-
+Clerk('content', '.clerk_powerstep');
 </script>
-
-<!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->

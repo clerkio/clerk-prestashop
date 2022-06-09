@@ -40,7 +40,7 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
             'search_query' => $query,
             'lang_iso' => $this->context->language->iso_code,
             'faceted_navigation' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->context->language->id, null, $this->context->shop->id))),
-            'facets_enabled' => Configuration::get('CLERK_FACETS_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+            'facets_enabled' => Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->context->language->id, null, $this->context->shop->id),
             'facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->context->language->id, null, $this->context->shop->id),
             'facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $this->context->language->id, null, $this->context->shop->id),
             'search_categories' => Configuration::get('CLERK_SEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),

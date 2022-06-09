@@ -84,54 +84,6 @@ function checkcart(){
         };
 
 
-        /*
-
-        $(document).ajaxComplete(function(event,request, settings){
-        //console.log('event: ',event ,' request: ', request, ' settings: ', settings);
-
-        if( settings.data.includes("controller=cart") ){
-            console.log('cart chages found');
-
-            request = $.ajax({
-                            type : "POST",  
-                            url  : "{$link->getModuleLink('clerk', 'cart')}",  
-                        });
-
-                        request.done(function (response, textStatus, jqXHR){
-                            console.log("Hooray 001, it worked!:",response);
-                            var clerk_productids = response;
-                            var clerk_last_productids = [];
-                            if( localStorage.getItem('clerk_productids') !== null ){
-                                clerk_last_productids = localStorage.getItem('clerk_productids').split(",");
-                                clerk_last_productids = clerk_last_productids.map(Number);  
-                            }
-                            //sort
-                            clerk_productids = clerk_productids.sort((a, b) => a - b);
-                            clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
-                            // compare
-                            if(JSON.stringify(clerk_productids) == JSON.stringify(clerk_last_productids)){
-                                // if equal - maybe compare content??
-                                // console.log('equal: ', clerk_productids, clerk_last_productids)
-                            }else{
-                                // if not equal send cart to clerk
-                                //console.log('not equal: ', clerk_productids, clerk_last_productids)
-                                Clerk('cart', 'set', clerk_productids);
-                            }
-                            // save for next compare
-                            localStorage.setItem("clerk_productids", clerk_productids);
-                        });
-
-                        request.fail(function (jqXHR, textStatus, errorThrown){  
-                            console.error(
-                                "The following error occurred: "+
-                                textStatus, errorThrown
-                            );
-                        });
-                }   
-        });
-
-    */
-
     {/if}
 
 

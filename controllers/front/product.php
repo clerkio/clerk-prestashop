@@ -112,11 +112,17 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('qty', function ($product) {
+            //return var_dump($product);
             return $this->getStockForProduct($product);
         });
 
         $this->addFieldHandler('stock', function ($product) {
             return $this->getStockForProduct($product);
+        });
+
+        $this->addFieldHandler('description', function ($product) {
+            $description = ($product['description_short'] != '') ? trim(strip_tags($product['description_short'])) : trim(strip_tags($product['description']));
+            return $description;
         });
 
         $this->addFieldHandler('in_stock', function ($product) {
@@ -146,9 +152,37 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             /** @var ProductCore $product */
             $product = new Product();
-            $products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
-
+            $language_id = $this->getLanguageId();
+            $shop_id = $this->getShopId();
+            $offset = $this->offset;
+            $limit = $this->limit;
+            
+            //$products = $product->getProducts($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
+            
             $context = Context::getContext();
+
+            /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
+
+            $active = ' AND p.active = 1 AND p.available_for_order = 1';
+
+            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) == '1') {
+                $active = ' AND p.active = 1';
+            }
+
+            $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add, pl.description, pl.description_short, pl.name
+            FROM "._DB_PREFIX_."product p
+            LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
+            LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
+            LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
+            LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
+            WHERE pl.id_lang = ".$language_id." AND cl.id_lang = ".$language_id.$active."
+            GROUP BY p.id_product
+            ORDER BY p.id_product asc
+            LIMIT ".$offset.",".$limit;
+
+            $products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
+            /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
 
             $response = array();
             $fields = array_flip($this->fieldMap);
@@ -270,12 +304,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
-                if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
-                    if ($item['qty'] <= 0) {
-                        continue;
-                    }
-                }
-
                 // Adding Product Features
                 if (Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id) != '1') {
 
@@ -365,4 +393,5 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         }
     }
+
 }

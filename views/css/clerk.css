@@ -14,3 +14,9 @@
 
 
 }
+
+@media screen and (max-width: 600px){
+    .clerk-ios-mobile-zoom-fix{
+        font-size: 18px !important;
+    }
+}
