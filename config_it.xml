@@ -2,7 +2,7 @@
 <module>
 	<name>clerk</name>
 	<displayName><![CDATA[Clerk]]></displayName>
-	<version><![CDATA[6.5.0]]></version>
+	<version><![CDATA[6.6.0]]></version>
 	<description><![CDATA[Clerk.io Turns More Browsers Into Buyers]]></description>
 	<author><![CDATA[Clerk]]></author>
 	<tab><![CDATA[advertising_marketing]]></tab>
