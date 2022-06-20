@@ -110,7 +110,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
             
-            // CATEGORY SETTINGS (2)
+            // CART SETTINGS (2)
             'clerk_category_enabled' => Configuration::get('CLERK_CATEGORY_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_category_template' => Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->language_id, null, $this->shop_id),
 
