@@ -84,9 +84,6 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             if ($key == "clerk_datasync_collect_baskets") {
                 Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', array($this->language_id => $value, 0), false, null, $this->shop_id);
             }
-            if ($key == "clerk_datasync_sync_subscribers") {
-                Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', array($this->language_id => $value, 0), false, null, $this->shop_id);
-            }
             if ($key == "clerk_datasync_fields") {
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array($this->language_id => $value, 0), false, null, $this->shop_id);
             }
