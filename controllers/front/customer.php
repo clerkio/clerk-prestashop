@@ -78,6 +78,9 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 if($get_sub_status){
                     $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
                     $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
+                } else {
+                    unset($customers[$index]['subscribed']);
+                    unset($customers[$index]['optin']);
                 }
             }
 
