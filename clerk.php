@@ -226,6 +226,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop['id_shop']);
@@ -415,6 +416,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_BASKETS');
+        Configuration::deleteByName('CLERK_DATASYNC_SYNC_SUBSCRIBERS');
         Configuration::deleteByName('CLERK_DATASYNC_USE_REAL_TIME_UPDATES');
         Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
@@ -596,6 +598,10 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_datasync_collect_baskets', 1)
                 ), false, null, $this->shop_id);
 
+                Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_sync_subscribers', 1)
+                ), false, null, $this->shop_id);
+
                 Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array(
                     $this->language_id => Tools::getValue('clerk_datasync_use_real_time_updates', 1)
                 ), false, null, $this->shop_id);
@@ -705,6 +711,8 @@ class Clerk extends Module
             $datasync_collect_emails_enabled = Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id);
 
             $datasync_collect_baskets_enabled = Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->language_id, null, $this->shop_id);
+
+            $datasync_sync_subscribers_enabled = Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->language_id, null, $this->shop_id);
 
             $datasync_disable_order_synchronization_enabled = Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id);
 
@@ -1020,6 +1028,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_collect_emails_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Sync Subscribers'),
+                        'name' => 'clerk_datasync_sync_subscribers',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_sync_subscribers_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_sync_subscribers_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -2407,6 +2434,7 @@ CLERKJS;
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->shop_id),
@@ -2655,6 +2683,7 @@ CLERKJS;
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'exit_intent_template' => explode(',',Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id)))),
             'product_enabled' => (bool)Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id),

@@ -62,7 +62,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 unset($customers[$index]['id_customer']);
             }
             */
-
+            $get_sub_status = Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->getLanguageId(), null, $this->shop_id);
 			$dbquery = new DbQuery();
 			$dbquery->select('c.`id_customer` AS `id`, s.`name` AS `shop_name`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`');
 			$dbquery->from('customer', 'c');
@@ -72,8 +72,13 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 			$customers = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($dbquery->build());
             foreach ($customers as $index => $customer) {
                 unset($customers[$index]['shop_name']);
-                $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
-                $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
+                if($get_sub_status == true){
+                    $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
+                    $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
+                } else {
+		            unset($customers[$index]['subscribed']);
+                    unset($customers[$index]['optin']);
+		        }
             }
 
             $this->logger->log('Fetched Customers', ['response' => $customers]);
