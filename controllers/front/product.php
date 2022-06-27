@@ -88,14 +88,64 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName('home'));
             });
 
+            if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
+
+                $this->addFieldHandler('variant_images', function ($product) use ($context) {
+                    $id_list = [];
+                    $variant_images = [];
+                    $varArray = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+                    SELECT i.`id_image` as id
+                    FROM `' . _DB_PREFIX_ . 'image` i
+                    ' . Shop::addSqlAssociation('image', 'i') . '
+                    WHERE i.`id_product` = ' . (int) $product['id_product'] . '
+                    ORDER BY i.`position`');
+                    foreach ($varArray as $obj) {
+                        foreach ($obj as $key => $value) {
+                            array_push($id_list, $value);
+                        }
+                    }
+                    $image = Image::getCover($product['id_product']);
+                    foreach($id_list as $id){
+                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, ImageType::getFormattedName('home'));
+                        array_push($variant_images, $variant_image);
+                    }
+                    return $variant_images;
+                });
+
+            }
         }
         else {
 
             $this->addFieldHandler('image', function ($product) use ($context) {
                 $image = Image::getCover($product['id_product']);
-                return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
+                return $context->link->getImageLink($product['link_rewrite'], $id, 'home_default');
             });
 
+            if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
+
+                $this->addFieldHandler('variant_images', function ($product) use ($context) {
+                    $id_list = [];
+                    $variant_images = [];
+                    $varArray = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+                    SELECT i.`id_image` as id
+                    FROM `' . _DB_PREFIX_ . 'image` i
+                    ' . Shop::addSqlAssociation('image', 'i') . '
+                    WHERE i.`id_product` = ' . (int) $product['id_product'] . '
+                    ORDER BY i.`position`');
+                    foreach ($varArray as $obj) {
+                        foreach ($obj as $key => $value) {
+                            array_push($id_list, $value);
+                        }
+                    }
+                    $image = Image::getCover($product['id_product']);
+                    foreach($id_list as $id){
+                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
+                        array_push($variant_images, $variant_image);
+                    }
+                    return $variant_images;
+                });
+
+            }
         }
 
         $this->addFieldHandler('price', function ($product) {
