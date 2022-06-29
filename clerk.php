@@ -2519,7 +2519,7 @@ CLERKJS;
         $this->context->smarty->assign(array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-            'language' => $this->language
+            'clerk_language' => $this->language
         ));
         $View =  $this->display(__FILE__, 'clerk_js.tpl');
 
