@@ -41,8 +41,8 @@
         {if isset($clerk_datasync_collect_emails)}
         collect_email: {$clerk_datasync_collect_emails},
         {/if}
-        {if isset($language)}
-        language: '{$language}'
+        {if isset($clerk_language)}
+        language: '{$clerk_language}'
         {/if}
     });
    
