@@ -407,6 +407,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 'date_add'
             );
 
+            if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
+                array_push($default, 'variant_images');
+            }
+            
             //Get custom fields from configuration
             $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->getLanguageId(), null, $this->getShopId());
 
