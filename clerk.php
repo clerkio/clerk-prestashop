@@ -2675,7 +2675,7 @@ CLERKJS;
             $clerk_cart_update = true;
             $clerk_cart_products = $cookie->clerk_cart_products;
         }
-
+        $template_links = new Link();
         //Assign template variables
         $this->context->smarty->assign(array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -2702,7 +2702,10 @@ CLERKJS;
             'clerk_cart_products' => $clerk_cart_products,
             'templates' => $templates,
             'unix' => time(),
-            'isv17' => $is_v16
+            'isv17' => $is_v16,
+            'clerk_basket_link' => $template_links->getModuleLink('clerk', 'clerkbasket'),
+            'clerk_added_link' => $template_links->getModuleLink('clerk', 'added'),
+            'clerk_powerstep_link' => $template_links->getModuleLink('clerk', 'powerstep')
         ));
 
         $this->context->cookie->clerk_cart_update = false;
