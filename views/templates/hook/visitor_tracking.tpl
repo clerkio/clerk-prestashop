@@ -58,7 +58,7 @@ function checkcart(){
     }
     });
 
-    request.open('POST', "{$link->getModuleLink('clerk', 'clerkbasket')}", true);
+    request.open('POST', "{$clerk_basket_link}", true);
     request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
     request.send(data);
 
@@ -113,7 +113,7 @@ function checkcart(){
                 var product_id_attribute = e.resp.id_product_attribute;
 
                 {if ($powerstep_type === 'page')}
-                    window.location.replace('{$link->getModuleLink('clerk', 'added')}' + "?id_product=" + encodeURIComponent(product_id));
+                    window.location.replace("{$clerk_added_link}" + "?id_product=" + encodeURIComponent(product_id));
                 {else}
 
                 var clerkgetpower = new XMLHttpRequest();
@@ -159,7 +159,7 @@ function checkcart(){
                     }
                 };
 
-                clerkgetpower.open("POST", "{$link->getModuleLink('clerk', 'powerstep')}", true);
+                clerkgetpower.open("POST", "{$clerk_powerstep_link}", true);
                 clerkgetpower.send(data);
 
                 {/if}
