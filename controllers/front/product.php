@@ -118,7 +118,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             $this->addFieldHandler('image', function ($product) use ($context) {
                 $image = Image::getCover($product['id_product']);
-                return $context->link->getImageLink($product['link_rewrite'], $id, 'home_default');
+                return $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
             });
 
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
