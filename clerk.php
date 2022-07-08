@@ -2949,6 +2949,17 @@ CLERKJS;
                     'quantity' => $product['product_quantity'],
                     'price' => $product['product_price_wt'] - $discount_per_product,
                 );
+                $_product_id = $product['id_product'];
+                $_product = new Product ($_product_id, $this->context->language->id);
+                // group product get and update parent
+                if(Pack::isPacked($_product_id)){
+                    $PackParents = Pack::getPacksContainingItem($_product_id, $_product->id_pack_product_attribute, $this->context->language->id);
+                        foreach($PackParents as $PackParent){
+                            $productRaw = new Product ($PackParent->id, $this->context->language->id);
+                            $this->api->addProduct($productRaw, $productRaw->id);
+                    }
+                }
+                $this->api->addProduct($_product, $_product_id);
             }
 
             $this->context->smarty->assign(
