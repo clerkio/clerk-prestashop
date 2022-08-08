@@ -90,7 +90,7 @@ class Clerk_Api
                 }
 
                 if (version_compare(PHP_VERSION, '7.4') >= 0) {
-                    
+
                     $Product_params = [
                         'id' => $product_id,
                         'name' => $product->name[$this->language_id],
@@ -119,7 +119,7 @@ class Clerk_Api
                     }
                 }
                 else {
-                    
+
                     $Product_params = [
                         'id' => $product_id,
                         'name' => $product->name{$this->language_id},
