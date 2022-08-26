@@ -139,7 +139,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                     $image = Image::getCover($product['id_product']);
                     foreach($id_list as $id){
-                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
+                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, 'home_default');
                         array_push($variant_images, $variant_image);
                     }
                     return $variant_images;
