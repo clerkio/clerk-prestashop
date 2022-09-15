@@ -258,6 +258,18 @@ class Clerk_Api
                     }
                 }
 
+                // Adding Product Features
+                if (Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id) == '1') {
+
+                    $frontfeatures = Product::getFrontFeaturesStatic($this->language_id, $product_id);
+
+                    foreach($frontfeatures as $ftr){
+
+                        $Product_params[$ftr['name']] = $ftr['value'];
+
+                    }
+                }
+
                 $params = [
                     'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
                     'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
