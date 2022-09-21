@@ -170,6 +170,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return $this->getStockForProduct($product);
         });
 
+        $this->addFieldHandler('supplier', function ($product) {
+            $product_all_suppliers = ProductSupplier::getSupplierCollection($product['id_product'], true);
+
+            $suppliers = $product_all_suppliers->getResults();
+            $supplier_names = array();
+            foreach($suppliers as $s){
+                    $s_name = Supplier::getNameById($s->id_supplier);
+                    array_push($supplier_names, $s_name);
+            }
+            return $supplier_names;
+        });
+
         $this->addFieldHandler('description', function ($product) {
             $description = ($product['description_short'] != '') ? trim(strip_tags($product['description_short'])) : trim(strip_tags($product['description']));
             return $description;
