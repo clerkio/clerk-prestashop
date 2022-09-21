@@ -852,7 +852,13 @@ class Clerk extends Module
     public function renderForm()
     {
         $booleanType = 'radio';
-        $LoggingView = '';
+        $LoggingView = array(
+            'type' => 'html',
+            'label' => $this->l('Logging View'),
+            'name' => 'LoggingViewer',
+            'html_content' =>
+                '<script></script>',
+        );
 
         //Use switch if available, looks better
         if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
