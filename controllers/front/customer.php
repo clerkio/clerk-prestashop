@@ -55,30 +55,29 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
         try {
             header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
             //$customers = Customer::getCustomers($this->getLanguageId(), $this->offset, $this->limit, $this->order_by, $this->order, false, true);
-            /*
+
+
+            $sql = "SELECT c.`id_customer` AS `id`, s.`name` AS `shop_name`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`
+            FROM "._DB_PREFIX_."customer c
+            LEFT JOIN "._DB_PREFIX_."shop s ON (s.id_shop = c.id_shop)
+            LEFT JOIN "._DB_PREFIX_."gender g ON (g.id_gender = c.id_gender)
+            LEFT JOIN "._DB_PREFIX_."gender_lang gl ON (g.id_gender = gl.id_gender AND gl.id_lang = ".$this->getLanguageId().")
+            ORDER BY c.`id_customer` asc
+            LIMIT ".$this->offset.",".$this->limit;
+            
+			$customers = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
             foreach ($customers as $index => $customer) {
-                //Rename id_customer to id and prepend to response
-                $customers[$index] = array_merge(['id' => $customer['id_customer']], $customers[$index]);
-                unset($customers[$index]['id_customer']);
-            }
-            */
-            $get_sub_status = Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->getLanguageId(), null, $this->shop_id);
-			$dbquery = new DbQuery();
-			$dbquery->select('c.`id_customer` AS `id`, s.`name` AS `shop_name`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`');
-			$dbquery->from('customer', 'c');
-			$dbquery->leftJoin('shop', 's', 's.id_shop = c.id_shop');
-			$dbquery->leftJoin('gender', 'g', 'g.id_gender = c.id_gender');
-			$dbquery->leftJoin('gender_lang', 'gl', 'g.id_gender = gl.id_gender AND gl.id_lang = '.$this->getLanguageId());
-			$customers = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($dbquery->build());
-            foreach ($customers as $index => $customer) {
+                $customer_id = $customer['id'];
+                $address_id = Address::getFirstCustomerAddressId($customer_id);
+                $country_object = $this->getCustomerAddress($address_id, $customer_id);
+                if (count($country_object) === 1) {
+                    $country_object = $country_object[0];
+                }
+                $customers[$index]['country'] = $country_object['country'];
+                $customers[$index]['country_iso'] = $country_object['country_iso'];
                 unset($customers[$index]['shop_name']);
-                if($get_sub_status == true){
-                    $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
-                    $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
-                } else {
-		            unset($customers[$index]['subscribed']);
-                    unset($customers[$index]['optin']);
-		        }
+                $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
+                $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
             }
 
             $this->logger->log('Fetched Customers', ['response' => $customers]);
@@ -91,4 +90,52 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
         }
     }
+
+    public function getCustomerAddress($idAddress = null, $idCustomer)
+	{
+		
+		$idLang = $this->getLanguageId();
+		$shareOrder = (bool)Context::getContext()->shop->getGroup()->share_order;
+
+		$csql = 'SELECT DISTINCT
+                      a.`id_address` AS `id`,
+                      a.`alias`,
+                      a.`firstname`,
+                      a.`lastname`,
+                      a.`company`,
+                      a.`address1`,
+                      a.`address2`,
+                      a.`postcode`,
+                      a.`city`,
+                      a.`id_state`,
+                      s.name AS state,
+                      s.`iso_code` AS state_iso,
+                      a.`id_country`,
+                      cl.`name` AS country,
+                      co.`iso_code` AS country_iso,
+                      a.`other`,
+                      a.`phone`,
+                      a.`phone_mobile`,
+                      a.`vat_number`,
+                      a.`dni`
+                    FROM `' . _DB_PREFIX_ . 'address` a
+                    LEFT JOIN `' . _DB_PREFIX_ . 'country` co ON (a.`id_country` = co.`id_country`)
+                    LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl ON (co.`id_country` = cl.`id_country`)
+                    LEFT JOIN `' . _DB_PREFIX_ . 'state` s ON (s.`id_state` = a.`id_state`)
+                    ' . ($shareOrder ? '' : Shop::addSqlAssociation('country', 'co')) . '
+                    WHERE
+                        `id_lang` = ' . (int)$idLang . '
+                        AND `id_customer` = ' . (int)$idCustomer . '
+                        AND a.`deleted` = 0
+                        AND a.`active` = 1';
+
+		if (null !== $idAddress) {
+			$csql .= ' AND a.`id_address` = ' . (int)$idAddress;
+		}
+
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($csql);
+
+		return $result;
+	}
+
 }
