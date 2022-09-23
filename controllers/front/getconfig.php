@@ -147,7 +147,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
 
             $options = $this->getConfigFieldsValues(); // Array
 
-            $this->logger->log('Fetched settings', ['response' => $settings]);
+            $this->logger->log('Fetched settings', ['response' => $options]);
 
             return $options; // settings
 
