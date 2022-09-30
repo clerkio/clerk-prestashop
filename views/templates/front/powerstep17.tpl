@@ -67,27 +67,22 @@
                        class="clerk-pull-right btn btn-primary">{l s='Go to cart' mod='clerk'}</a>
                 </div>
             </div>
-            {$count = 0}
-            {$Issetdataexclude = false}
-            {$dataexcludestring = ''}
+            {assign var=_i value=0}
+            {assign var=_exclude_string value=""}
             {foreach from=$templates item=template}
-                {$count = $count+1}
-                {assign var=id value="clerk_`$unix`$count"}
-                <span class="clerk"
-                      id="{$id}"
-                {if $Issetdataexclude}
-                     data-exclude-from="{$dataexcludestring}"
-                {/if}
-                      data-template="@{$template}"
-                      data-products="[{$product->id}]"
-                      data-category="{$category}"
+                <span class="clerk {if $ExcludeDuplicates}clerk_{$_i}{/if}"
+                    {if $ExcludeDuplicates && $_i > 0}
+                        data-exclude-from="{$_exclude_string}"
+                    {/if}
+                    data-template="@{$template}"
+                    data-products="[{$product->id}]"
+                    data-category="{$category}"
                 ></span>
-                {if $count == 1}
-                    {$dataexcludestring = "`$dataexcludestring`#`$id`:limit(4)"}
-                {else}
-                    {$dataexcludestring = "`$dataexcludestring`,#`$id`:limit(4)"}
-                {/if}
-                {$Issetdataexclude = true}
+            {if $_i > 0}
+                {assign var=_exclude_string value="$_exclude_string`, `"}
+            {/if}
+            {assign var=_exclude_string value="$_exclude_string`.clerk_`$_i"}
+            {assign var=_i value=_i+1}
             {/foreach}
         </div>
     {/if}

@@ -126,6 +126,13 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id),
+
+
+            'clerk_cart_exclude_duplicates' => Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
+            'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
+            'clerk_product_exclude_duplicates' => Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
+            'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
+
         );
 
         return $clerk_configuration;

@@ -50,11 +50,21 @@ const clerkPowerstepInjection = (id) => {
     const powerstep_templates = {$Contents|json_encode};
     const powerstep_products = id;
     const modalContainer = document.querySelector('#layer_cart .crossseling');
+    const exclude_duplicates_powerstep = {$ExcludeDuplicates};
+    let exclude_string_powerstep = '';
     if(modalContainer){
         modalContainer.innerHTML = '';
-        powerstep_templates.forEach(template=>{
+        powerstep_templates.forEach((template, index)=>{
             const span = document.createElement('span');
             span.classList.add('clerk_powerstep');
+            if(exclude_duplicates_powerstep){
+                if(index > 0){
+                    exclude_string_powerstep += ', ';
+                    span.dataset.excludeFrom = exclude_string_powerstep;
+                }
+                exclude_string_powerstep += '.clerk_powerstep_'+index;
+                span.className += ' clerk_powerstep_'+index;
+            }
             span.setAttribute('data-template', '@'+template);
             span.setAttribute('data-products', '['+powerstep_products+']');
             modalContainer.append(span);

@@ -248,6 +248,11 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LOGGING_LEVEL', $loggingLevelValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LOGGING_TO', $loggingToValues, false, null, $shop['id_shop']);
 
+            Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+
         }
 
         return parent::install() &&
@@ -436,6 +441,10 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LOGGING_ENABLED');
         Configuration::deleteByName('CLERK_LOGGING_LEVEL');
         Configuration::deleteByName('CLERK_LOGGING_TO');
+        Configuration::deleteByName('CLERK_CART_EXCLUDE_DUPLICATES');
+        Configuration::deleteByName('CLERK_POWERSTEP_EXCLUDE_DUPLICATES');
+        Configuration::deleteByName('CLERK_PRODUCT_EXCLUDE_DUPLICATES');
+        Configuration::deleteByName('CLERK_CATEGORY_EXCLUDE_DUPLICATES');
 
         return parent::uninstall();
     }
@@ -674,6 +683,22 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_LOGGING_TO', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_logging_to', 'collect'))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', array(
+                    $this->language_id => Tools::getValue('clerk_cart_exclude_duplicates', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', array(
+                    $this->language_id => Tools::getValue('clerk_powerstep_exclude_duplicates', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', array(
+                    $this->language_id => Tools::getValue('clerk_product_exclude_duplicates', 0)
+                ), false, null, $this->shop_id);
+                
+                Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', array(
+                    $this->language_id => Tools::getValue('clerk_category_exclude_duplicates', 0)
                 ), false, null, $this->shop_id);
 
             }
@@ -1755,6 +1780,25 @@ class Clerk extends Module
                         'placeholder' => 'Content ID',
                         'name' => 'clerk_category_template',
                     ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Filter Duplicates'),
+                        'name' => 'clerk_category_exclude_duplicates',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_category_exclude_duplicates_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_category_exclude_duplicates_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
                 )
             ),
         );
@@ -1790,6 +1834,25 @@ class Clerk extends Module
                         'label' => $this->l('Templates'),
                         'placeholder' => 'Content ID',
                         'name' => 'clerk_product_template',
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Filter Duplicates'),
+                        'name' => 'clerk_product_exclude_duplicates',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_product_exclude_duplicates_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_product_exclude_duplicates_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
                     ),
                 )
             ),
@@ -1853,6 +1916,25 @@ class Clerk extends Module
                         'name' => 'clerk_powerstep_templates',
                         'desc' => $this->l('A comma separated list of clerk templates to render')
                     ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Filter Duplicates'),
+                        'name' => 'clerk_powerstep_exclude_duplicates',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_powerstep_exclude_duplicates_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_powerstep_exclude_duplicates_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
                 )
             ),
         );
@@ -1889,6 +1971,25 @@ class Clerk extends Module
                         'label' => $this->l('Templates'),
                         'placeholder' => 'Content ID',
                         'name' => 'clerk_cart_template',
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Filter Duplicates'),
+                        'name' => 'clerk_cart_exclude_duplicates',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_cart_exclude_duplicates_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_cart_exclude_duplicates_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
                     ),
                 )
             ),
@@ -2463,6 +2564,10 @@ CLERKJS;
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $_lang_id, null, $_shop_id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $_lang_id, null, $_shop_id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $_lang_id, null, $_shop_id),
+            'clerk_cart_exclude_duplicates' => Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
+            'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
+            'clerk_product_exclude_duplicates' => Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
+            'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
         );
     }
 
@@ -2561,12 +2666,14 @@ CLERKJS;
                 
                 $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
+                $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
                 
                     $this->context->smarty->assign(
                         array(
     
                             'Contents' => $Contents,
-                            'ProductId' => Tools::getValue('id_product')
+                            'ProductId' => Tools::getValue('id_product'),
+                            'ExcludeDuplicates' => $exclude_duplicates_powerstep
     
                         )
                     );
@@ -2581,10 +2688,13 @@ CLERKJS;
             if($category_id){
                 $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
+                $exclude_duplicates_category = (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+
                 $this->context->smarty->assign(
                     array(
                         'Contents' => $Contents,
-                        'CategoryId' => $category_id
+                        'CategoryId' => $category_id,
+                        'ExcludeDuplicates' => $exclude_duplicates_category
                     )
                 );
 
@@ -2637,6 +2747,8 @@ CLERKJS;
                     $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
                     $templates = array_filter(explode(',', $templatesConfig));
 
+                    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+
                     $categories = $product->getCategories();
                     $category = reset($categories);
 
@@ -2646,6 +2758,7 @@ CLERKJS;
                         'category' => $category,
                         'image' => $image,
                         'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
+                        'ExcludeDuplicates' => $exclude_duplicates_powerstep
                     ));
 
                     //Clear cookies
@@ -2707,6 +2820,10 @@ CLERKJS;
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
             'clerk_collect_cart' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_cart_exclude_duplicates' => (bool)Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_powerstep_exclude_duplicates' => (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_product_exclude_duplicates' => (bool)Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_category_exclude_duplicates' => (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
             'clerk_cart_update' => $clerk_cart_update,
             'clerk_cart_products' => $clerk_cart_products,
             'templates' => $templates,
@@ -2738,6 +2855,8 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_CART_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
+            $exclude_duplicates_cart = (bool)Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            
             $PreProductIds = $params['cart']->getProducts(true);
 
             foreach ($PreProductIds as $PreProductId) {
@@ -2751,7 +2870,8 @@ CLERKJS;
                 array(
 
                     'Contents' => $Contents,
-                    'ProductId' => $ProductsIds
+                    'ProductId' => $ProductsIds,
+                    'ExcludeDuplicates' => $exclude_duplicates_cart
 
                 )
             );
@@ -2774,6 +2894,7 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
+            $exclude_duplicates_category = (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
             $category_id = Tools::getValue("id_category");
 
@@ -2782,7 +2903,8 @@ CLERKJS;
                     array(
 
                         'Contents' => $Contents,
-                        'CategoryId' => $category_id
+                        'CategoryId' => $category_id,
+                        'ExcludeDuplicates' => $exclude_duplicates_category
 
                     )
                 );
@@ -2792,7 +2914,8 @@ CLERKJS;
                     array(
 
                         'Contents' => $Contents,
-                        'CategoryId' => $category_id
+                        'CategoryId' => $category_id,
+                        'ExcludeDuplicates' => $exclude_duplicates_category
 
                     )
                 );
@@ -2818,12 +2941,15 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
+            $exclude_duplicates_product = (bool)Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+
             if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
                 $this->context->smarty->assign(
                     array(
 
                         'Contents' => $Contents,
-                        'ProductId' => $params['product']['id']
+                        'ProductId' => $params['product']['id'],
+                        'ExcludeDuplicates' => $exclude_duplicates_product
 
                     )
                 );
@@ -2833,7 +2959,8 @@ CLERKJS;
                     array(
 
                         'Contents' => $Contents,
-                        'ProductId' => $params['product']->id
+                        'ProductId' => $params['product']->id,
+                        'ExcludeDuplicates' => $exclude_duplicates_product
 
                     )
                 );
@@ -2855,6 +2982,9 @@ CLERKJS;
     $context = Context::getContext();
     $enabled = Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
     $type = Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
+
+    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+
     if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
         $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
         $this->context->smarty->assign(
@@ -2863,7 +2993,8 @@ CLERKJS;
                 'Contents' => $Contents,
                 'ProductId' => Tools::getValue('id_product'),
                 'Enabled' => json_encode($enabled),
-                'Type' => json_encode($type)
+                'Type' => json_encode($type),
+                'ExcludeDuplicates' => $exclude_duplicates_powerstep
 
             )
         );
@@ -2902,7 +3033,7 @@ CLERKJS;
                     $data_string = json_encode([
                         'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
                         'products' => $cart_product_ids,
-                       'email' => $this->context->customer->email]);
+                        'email' => $this->context->customer->email]);
 
                     $curl = curl_init();
 
@@ -3022,6 +3153,7 @@ CLERKJS;
 
         $contentConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
         $contents = array_filter(explode(',', $contentConfig));
+        $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
         foreach ($contents as $key => $content) {
 
@@ -3036,7 +3168,8 @@ CLERKJS;
             'category' => $category,
             'cart' => $data,
             'cart_url' => $this->getCartSummaryURL(),
-            'contents' => $contents
+            'contents' => $contents,
+            'ExcludeDuplicates' => $exclude_duplicates_powerstep
         ));
 
         return $this->fetch('module:clerk/views/templates/front/powerstepmodal.tpl');

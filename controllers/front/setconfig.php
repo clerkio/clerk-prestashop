@@ -221,7 +221,20 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             }
             if ($key == "clerk_logging_to") {
                 Configuration::updateValue('CLERK_LOGGING_TO', array($this->language_id => $value), false, null, $this->shop_id);
-            }            
+            }
+            
+            if ($key == "clerk_cart_exclude_duplicates") {
+                Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
+            }
+            if ($key == "clerk_powerstep_exclude_duplicates") {
+                Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
+            }
+            if ($key == "clerk_product_exclude_duplicates") {
+                Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
+            }
+            if ($key == "clerk_category_exclude_duplicates") {
+                Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
+            }
         }
 
         // return array of all updates (succesfull or not )

@@ -29,12 +29,22 @@ const clerkCategoryInjection = () => {
     const category_contents = {$Contents|json_encode};
     const category_id = {$CategoryId|json_encode};
     const category_heading = document.querySelector('#center_column');
+    const exclude_duplicates_category = {$ExcludeDuplicates};
+    let exclude_string_category = '';
     if(category_heading){
-        category_contents.forEach(template=>{
+        category_contents.forEach((template, index)=>{
             const span = document.createElement('span');
             span.classList.add('clerk-manual');
             span.setAttribute('data-template', '@'+template);
             span.setAttribute('data-category', category_id);
+            if(exclude_duplicates_category){
+                if(index > 0){
+                    exclude_string_category += ', ';
+                    span.dataset.excludeFrom = exclude_string_category;
+                }
+                exclude_string_category += '.clerk_category_'+index;
+                span.className += ' clerk_category_'+index;
+            }
             category_heading.prepend(span);
         });
         Clerk('content', '.clerk-manual');
