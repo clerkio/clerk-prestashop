@@ -59,8 +59,8 @@ const clerkPowerstepInjection = (id) => {
             span.classList.add('clerk_powerstep');
             if(exclude_duplicates_powerstep){
                 if(index > 0){
-                    exclude_string_powerstep += ', ';
                     span.dataset.excludeFrom = exclude_string_powerstep;
+                    exclude_string_powerstep += ', ';
                 }
                 exclude_string_powerstep += '.clerk_powerstep_'+index;
                 span.className += ' clerk_powerstep_'+index;

@@ -32,6 +32,9 @@ const clerkCategoryInjection = () => {
     const exclude_duplicates_category = {$ExcludeDuplicates};
     let exclude_string_category = '';
     if(category_heading){
+        const div_wrapper = document.createElement('div');
+        div_wrapper.id = 'clerk_category_wrapper';
+        category_heading.prepend(div_wrapper);
         category_contents.forEach((template, index)=>{
             const span = document.createElement('span');
             span.classList.add('clerk-manual');
@@ -39,13 +42,13 @@ const clerkCategoryInjection = () => {
             span.setAttribute('data-category', category_id);
             if(exclude_duplicates_category){
                 if(index > 0){
-                    exclude_string_category += ', ';
                     span.dataset.excludeFrom = exclude_string_category;
+                    exclude_string_category += ', ';
                 }
                 exclude_string_category += '.clerk_category_'+index;
                 span.className += ' clerk_category_'+index;
             }
-            category_heading.prepend(span);
+            document.querySelector('#clerk_category_wrapper').append(span);
         });
         Clerk('content', '.clerk-manual');
     }
