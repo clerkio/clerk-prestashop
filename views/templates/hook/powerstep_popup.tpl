@@ -62,6 +62,8 @@
 </div>
 {assign var=_i value=0}
 {assign var=_exclude_string value=""}
+{assign var=default_class value=".clerk_"}
+{assign var=exc_sep value=", "}
 <div class="clerk_powerstep_templates">
     {foreach from=$templates item=template}
         <span class="clerk {if $ExcludeDuplicates}clerk_{$_i}{/if}"
@@ -73,10 +75,10 @@
             data-category="{$category}"
         ></span>
     {if $_i > 0}
-        {assign var=_exclude_string value="$_exclude_string`, `"}
+        {assign var=_exclude_string value="$_exclude_string$exc_sep"}
     {/if}
-    {assign var=_exclude_string value="$_exclude_string`.clerk_`$_i"}
-    {assign var=_i value=_i+1}
+    {assign var=_exclude_string value="$_exclude_string$default_class$_i"}
+    {assign var=_i value=$_i+1}
     {/foreach}
 </div>
 </div>
