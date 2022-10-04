@@ -59,6 +59,8 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
             Tools::redirect('index.php');
         }
 
+        $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+
         $image = Image::getCover($id_product);
 
         $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
@@ -76,7 +78,8 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
             'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
             'unix' => time(),
             'template_count' => count($templates),
-            'popup' => 0
+            'popup' => 0,
+            'ExcludeDuplicates' => $exclude_duplicates_powerstep
         ));
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {

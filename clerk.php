@@ -3081,7 +3081,14 @@ CLERKJS;
             $productArray = array();
 
             $discounts = $order->total_discounts_tax_incl;
-            $discount_per_product = $discounts / count($products);
+
+            $product_cart_count = 0;
+            foreach ($products as $product) {
+                $qty = (integer)$product['product_quantity'];
+                $product_cart_count += $qty;
+            }
+
+            $discount_per_product = $discounts / $product_cart_count;
 
             foreach ($products as $product) {
                 $productArray[] = array(
