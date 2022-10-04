@@ -62,7 +62,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             
             // GENERAL (1)
             if ($key == "clerk_language") {
-                Configuration::updateValue('CLERK_LANGUAGE', array($this->language_id => $value, 0), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_LANGUAGE', array($this->language_id => $value), false, null, $this->shop_id);
             }
 
             // DATA-SYNC SETTINGS (10)
@@ -267,6 +267,8 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
 
                 $this->logger->log('Clerk settings updated', $body);
 
+            } else {
+                $settings = ["status" => "No request body sent!"];
             }
 
             return $settings;
