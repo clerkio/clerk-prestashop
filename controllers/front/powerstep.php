@@ -67,6 +67,8 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
 
             }
 
+            $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+
             $categories = $product->getCategories();
             $category = reset($categories);
 
@@ -78,7 +80,8 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
                 'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
                 'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
                 'popup' => (int)Tools::getValue('popup'),
-                'unix' => time()
+                'unix' => time(),
+                'ExcludeDuplicates' => $exclude_duplicates_powerstep 
             ));
 
             if ($popup == 1) {

@@ -2747,7 +2747,7 @@ CLERKJS;
                     $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
                     $templates = array_filter(explode(',', $templatesConfig));
 
-                    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
                     $categories = $product->getCategories();
                     $category = reset($categories);
@@ -2980,8 +2980,8 @@ CLERKJS;
     public function hookDisplayCartModalFooter($params)
     {
     $context = Context::getContext();
-    $enabled = Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
-    $type = Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
+    $enabled = (bool)Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
+    $type = (string)Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
 
     $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
@@ -2992,8 +2992,8 @@ CLERKJS;
 
                 'Contents' => $Contents,
                 'ProductId' => Tools::getValue('id_product'),
-                'Enabled' => json_encode($enabled),
-                'Type' => json_encode($type),
+                'Enabled' => $enabled,
+                'Type' => $type,
                 'ExcludeDuplicates' => $exclude_duplicates_powerstep
 
             )

@@ -72,8 +72,8 @@
             {assign var=default_class value=".clerk_"}
             {assign var=exc_sep value=", "}
             {foreach from=$templates item=template}
-                <span class="clerk {if $ExcludeDuplicates}clerk_{$_i}{/if}"
-                    {if $ExcludeDuplicates && $_i > 0}
+                <span class="clerk clerk_{$_i}"
+                    {if $_i > 0}
                         data-exclude-from="{$_exclude_string}"
                     {/if}
                     data-template="@{$template}"
