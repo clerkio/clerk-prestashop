@@ -2513,6 +2513,9 @@ CLERKJS;
     {
         $_shop_id = (!empty(Shop::getContextShopID())) ? Shop::getContextShopID() : $this->shop_id;
         $_lang_id = (!empty(Language::getLanguages(true, $_shop_id, true))) ? Language::getLanguages(true, $_shop_id, true)[0] : $this->language_id;
+        if(Tools::getValue('clerk_language_select')){
+            $_lang_id = (int)Tools::getValue('clerk_language_select');
+        }
         return array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $_lang_id, null, $_shop_id),
             'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $_lang_id, null, $_shop_id),
