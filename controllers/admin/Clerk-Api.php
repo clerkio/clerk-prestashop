@@ -89,66 +89,37 @@ class Clerk_Api
 
                 }
 
-                if (version_compare(PHP_VERSION, '7.4') >= 0) {
 
-                    $Product_params = [
-                        'id' => $product_id,
-                        'name' => $product->name[$this->language_id],
-                        'description' => $product->description[$this->language_id],
-                        'price' => (float)Product::getPriceStatic($product_id, true),
-                        'list_price' => (float)Product::getPriceStatic($product_id, true, null, 6, null, false, false),
-                        'url' => $context->link->getProductLink($product_id),
-                        'categories' => $categories,
-                        'sku' => $product->reference,
-                        'on_sale' => $product->on_sale,
-                        'brand' => (Validate::isLoadedObject($manufacturer))? $manufacturer->name : '',
-                        'in_stock' => $this->getStockForProduct($product) > 0,
-                        'qty' => $qty,
+                $Product_params = [
+                    'id' => $product_id,
+                    'name' => $product->name[$this->language_id],
+                    'description' => $product->description[$this->language_id],
+                    'price' => (float)Product::getPriceStatic($product_id, true),
+                    'list_price' => (float)Product::getPriceStatic($product_id, true, null, 6, null, false, false),
+                    'url' => $context->link->getProductLink($product_id),
+                    'categories' => $categories,
+                    'sku' => $product->reference,
+                    'on_sale' => $product->on_sale,
+                    'brand' => (Validate::isLoadedObject($manufacturer))? $manufacturer->name : '',
+                    'in_stock' => $this->getStockForProduct($product) > 0,
+                    'qty' => $qty,
 
-                    ];
+                ];
 
-                    if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+                if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
 
-                        $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName('home'));
+                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName('home'));
 
-                    }
-                    else {
+                } else {
 
-                        $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], 'home_default');
+                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], 'home_default');
 
-                    }
-                }
-                else {
-
-                    $Product_params = [
-                        'id' => $product_id,
-                        'name' => $product->name{$this->language_id},
-                        'description' => $product->description{$this->language_id},
-                        'price' => (float)Product::getPriceStatic($product_id, true),
-                        'list_price' => (float)Product::getPriceStatic($product_id, true, null, 6, null, false, false),
-                        'url' => $context->link->getProductLink($product_id),
-                        'categories' => $categories,
-                        'sku' => $product->reference,
-                        'on_sale' => $product->on_sale,
-                        'brand' => (Validate::isLoadedObject($manufacturer))? $manufacturer->name : '',
-                        'in_stock' => $this->getStockForProduct($product) > 0,
-                        'qty' => $qty,
-
-                    ];
-
-                    if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-
-                        $Product_params['image'] = $context->link->getImageLink($product->link_rewrite{$this->language_id}, $image['id_image'], ImageType::getFormattedName('home'));
-
-                    }
-                    else {
-
-                        $Product_params['image'] = $context->link->getImageLink($product->link_rewrite{$this->language_id}, $image['id_image'], 'home_default');
-
-                    }
                 }
 
-                // new stuff
+                if(strpos($Product_params['image'], '/-')){
+                    $iso = Context::getContext()->language->iso_code;
+                    $Product_params['image'] = __PS_BASE_URL__ . '/img/p/' . $iso . '-default-home_default.jpg';
+                }
 
                 $combinations = $product->getAttributeCombinations((int)$this->language_id, true);
 
