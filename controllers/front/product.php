@@ -378,8 +378,30 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                     $frontfeatures = Product::getFrontFeaturesStatic($this->language_id, $product['id_product']);
 
-                    foreach($frontfeatures as $ftr){
-                        $item[$ftr['name']] = $ftr['value'];
+                    if( !empty( $frontfeatures ) ){
+                        if( count($frontfeatures) > 0 ){
+                            $features_object = array();
+                            foreach($frontfeatures as $feature){
+                                if( isset($feature['name']) ){
+                                    $feature['name'] = str_replace( array(' ', '-'), '_', $feature['name'] );
+                                    if( ! array_key_exists( $feature['name'], $features_object) ){
+                                        $features_object[$feature['name']] = array();
+                                        array_push($features_object[$feature['name']], $feature['value']);
+                                    } else {
+                                        array_push($features_object[$feature['name']], $feature['value']);
+                                    }
+                                }
+                            }
+                            foreach($features_object as $key => $value){
+                                if(count($value) === 0){
+                                    $value = "";
+                                }
+                                if(count($value) === 1){
+                                    $value = $value[0];
+                                }
+                                $item[$key] = $value;
+                            }
+                        }
                     }
                 }
 
