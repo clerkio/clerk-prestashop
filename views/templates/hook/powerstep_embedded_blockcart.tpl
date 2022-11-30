@@ -24,16 +24,15 @@
 *}
 
 <script>
-const clerkAjaxIntercept = () => {
-(function() {
-    const send = XMLHttpRequest.prototype.send
-    XMLHttpRequest.prototype.send = function() { 
-        this.addEventListener('load', function() {
-            if(this.status == 200){
+let lastProductId = null;
+document.addEventListener('DOMContentLoaded', function() {
+    XMLHttpRequest.prototype.send = function () {
+        this.addEventListener('load', function () {
+            if (this.status == 200) {
                 try {
                     rsp = JSON.parse(this.responseText);
                     add_event = rsp.hasOwnProperty('productTotal');
-                    if(add_event){
+                    if (add_event) {
                         lastProductId = rsp.products[rsp.products.length - 1].id;
                         clerkPowerstepInjection(lastProductId);
                     }
@@ -41,11 +40,10 @@ const clerkAjaxIntercept = () => {
                 }
 
             }
-        })
+        });
         return send.apply(this, arguments);
     }
-})();
-}
+});
 const clerkPowerstepInjection = (id) => {
     const powerstep_templates = {$Contents|json_encode};
     const powerstep_products = id;
@@ -73,5 +71,4 @@ const clerkPowerstepInjection = (id) => {
         Clerk('content', '.clerk_powerstep');
     }
 }
-clerkAjaxIntercept();
 </script>
