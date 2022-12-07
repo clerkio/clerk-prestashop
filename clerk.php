@@ -164,7 +164,7 @@ class Clerk extends Module
             ];
 
             foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
-                $defaultHookPositions[$language['id_lang']] = 'top';
+                $defaultHookPositions[$language['id_lang']] = 'displayTop';
                 $emptyValues[$language['id_lang']] = '';
                 $trueValues[$language['id_lang']] = 1;
                 $falseValues[$language['id_lang']] = 0;
