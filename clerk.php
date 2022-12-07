@@ -164,6 +164,7 @@ class Clerk extends Module
             ];
 
             foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
+                $defaultHookPositions[$language['id_lang']] = 'top';
                 $emptyValues[$language['id_lang']] = '';
                 $trueValues[$language['id_lang']] = 1;
                 $falseValues[$language['id_lang']] = 0;
@@ -191,7 +192,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_PRIVATE_KEY', $emptyValues, false, null, $shop['id_shop']);
 
             // Adding option to switch header hook due to people removing hooks form their themes files. :)
-            Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', $defaultHookPositions, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_SEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
