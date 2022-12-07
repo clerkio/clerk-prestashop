@@ -1023,7 +1023,7 @@ class Clerk extends Module
                             array(
                                 'id' => 'clerk_datasync_include_pages_on',
                                 'value' => 1,
-                                'label' => $this->l(/emb'Enabled')
+                                'label' => $this->l('Enabled')
                             ),
                             array(
                                 'id' => 'clerk_datasync_include_pages_off',
