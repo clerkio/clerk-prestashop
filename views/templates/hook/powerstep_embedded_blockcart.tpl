@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         clerkPowerstepInjection(lastProductId);
                     }
                 } catch (e) {
+                    console.log('Could not check Response Json');
                 }
-
             }
         });
         return send.apply(this, arguments);
@@ -48,7 +48,7 @@ const clerkPowerstepInjection = (id) => {
     const powerstep_templates = {$Contents|json_encode};
     const powerstep_products = id;
     const modalContainer = document.querySelector('#layer_cart .crossseling');
-    const exclude_duplicates_powerstep = {$ExcludeDuplicates};
+    const exclude_duplicates_powerstep = '{$ExcludeDuplicates}';
     let exclude_string_powerstep = '';
     if(modalContainer){
         modalContainer.innerHTML = '';
