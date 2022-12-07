@@ -1,4 +1,5 @@
 <?php
+
 /**
  *  @author Clerk.io
  *  @copyright Copyright (c) 202222 Clerk.io
@@ -35,7 +36,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
     {
         parent::__construct();
 
-        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/ClerkLogger.php');
 
         $context = Context::getContext();
 
@@ -46,23 +47,27 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
 
         //Needed for PHP 5.3 support
         $context = $this->context;
-
     }
 
     /**
      * Set configuration field values
      */
-    public function setConfigFieldsValues($settings) 
+    public function setConfigFieldsValues($settings)
     {
         $update = [];
 
         foreach ($settings as $key => $value) {
 
             $update[$key] = $value;
-            
+
             // GENERAL (1)
             if ($key == "clerk_language") {
                 Configuration::updateValue('CLERK_LANGUAGE', array($this->language_id => $value), false, null, $this->shop_id);
+            }
+
+            // JS TRACKING HOOK POSITIONS
+            if ($key == "clerk_tracking_hook_position") {
+                Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', array($this->language_id => $value), false, null, $this->shop_id);
             }
 
             // DATA-SYNC SETTINGS (10)
@@ -186,7 +191,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             }
             if ($key == "clerk_exit_intent_template") {
                 Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', array($this->language_id => $value), false, null, $this->shop_id);
-            }  
+            }
 
             // CART SETTINGS (2)
             if ($key == "clerk_cart_enabled") {
@@ -222,7 +227,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             if ($key == "clerk_logging_to") {
                 Configuration::updateValue('CLERK_LOGGING_TO', array($this->language_id => $value), false, null, $this->shop_id);
             }
-            
+
             if ($key == "clerk_cart_exclude_duplicates") {
                 Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
@@ -251,32 +256,29 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
     {
         try {
 
-            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
+            header('User-Agent: ClerkExtensionBot Prestashop/v' . _PS_VERSION_ . ' Clerk/v' . Module::getInstanceByName('clerk')->version . ' PHP/v' . phpversion());
             header('Content-type: application/json;charset=utf-8');
 
             // grab ALL the data - only thing that works here for some reason
             $jsonRawPostData = file_get_contents('php://input');
 
             $body = [];
-            
+
             $body = json_decode($jsonRawPostData, true); // Array
-            
-            if($body) {
+
+            if ($body) {
 
                 $settings = $this->setConfigFieldsValues($body);
 
                 $this->logger->log('Clerk settings updated', $body);
-
             } else {
                 $settings = ["status" => "No request body sent!"];
             }
 
             return $settings;
-
         } catch (Exception $e) {
 
             $this->logger->error('ERROR setconfig getJsonResponse', ['error' => $e->getMessage()]);
-
         }
     }
 }

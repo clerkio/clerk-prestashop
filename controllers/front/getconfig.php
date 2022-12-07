@@ -1,4 +1,5 @@
 <?php
+
 /**
  *  @author Clerk.io
  *  @copyright Copyright (c) 202222 Clerk.io
@@ -35,7 +36,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
     {
         parent::__construct();
 
-        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/ClerkLogger.php');
 
         $context = Context::getContext();
 
@@ -46,7 +47,6 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
 
         //Needed for PHP 5.3 support
         $context = $this->context;
-
     }
 
     /**
@@ -60,7 +60,10 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             // GENERAL (2)
             'clerk_language' => Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id),
             'clerk_import_url' => _PS_BASE_URL_,
-            
+
+            // JS TRACKING HOOK POSTITION
+            'clerk_tracking_hook_position' => Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->shop_id),
+
             // DATA-SYNC SETTINGS (10)
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->shop_id),
@@ -73,7 +76,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_product_features' => Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id),
-            
+
             // SEARCH SETTINGS (6)
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_search_categories' => Configuration::get('CLERK_SEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
@@ -81,14 +84,14 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_search_number_pages' => Configuration::get('CLERK_SEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
             'clerk_search_pages_type' => Configuration::get('CLERK_SEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
-            
+
             // FACETED NAVIGATION (5)
             'clerk_faceted_navigation_enabled' => Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_facets_attributes' => Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->language_id, null, $this->shop_id),
             'clerk_facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $this->language_id, null, $this->shop_id),
             'clerk_facets_position' => Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id),
             'clerk_facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id),
-            
+
             // LIVE SEARCH SETTINGS (10)
             'clerk_livesearch_enabled' => Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_categories' => Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->language_id, null, $this->shop_id),
@@ -100,16 +103,16 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_pages_type' => Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_dropdown_position' => Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->language_id, null, $this->shop_id),
-            
+
             // POWERSTEP SETTINGS (3)
             'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->language_id, null, $this->shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->language_id, null, $this->shop_id),
-            
+
             // EXIT INTENT SETTINGS (2)
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->language_id, null, $this->shop_id),
-            
+
             // CART SETTINGS (2)
             'clerk_category_enabled' => Configuration::get('CLERK_CATEGORY_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_category_template' => Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->language_id, null, $this->shop_id),
@@ -117,11 +120,11 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             // CART SETTINGS (2)
             'clerk_cart_enabled' => Configuration::get('CLERK_CART_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_cart_template' => Configuration::get('CLERK_CART_TEMPLATE', $this->language_id, null, $this->shop_id),
-            
+
             // PRODUCT SETTINGS (2)
             'clerk_product_enabled' => Configuration::get('CLERK_PRODUCT_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_product_template' => Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->language_id, null, $this->shop_id),
-            
+
             // LOGGING SETTINGS (3)
             'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->language_id, null, $this->shop_id),
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->language_id, null, $this->shop_id),
@@ -145,10 +148,10 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
      */
     public function getJsonResponse()
     {
-        
+
         try {
 
-            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
+            header('User-Agent: ClerkExtensionBot Prestashop/v' . _PS_VERSION_ . ' Clerk/v' . Module::getInstanceByName('clerk')->version . ' PHP/v' . phpversion());
 
             $options = [];
 
@@ -161,7 +164,6 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
         } catch (Exception $e) {
 
             $this->logger->error('ERROR getconfig getJsonResponse', ['error' => $e->getMessage()]);
-
         }
     }
 }
