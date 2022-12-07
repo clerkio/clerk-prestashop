@@ -258,6 +258,7 @@ class Clerk extends Module
         return parent::install() &&
             $tab->add() &&
             $this->registerHook('top') &&
+            $this->registerHook('displayTop') &&
             $this->registerHook('footer') &&
             $this->registerHook('actionCartSave') &&
             $this->registerHook('displayOrderConfirmation') &&
@@ -2574,7 +2575,7 @@ CLERKJS;
         );
     }
 
-    public function hookTop($params)
+    public function hookDisplayTop($params)
     {
 
         switch ($this->context->language->iso_code) {
