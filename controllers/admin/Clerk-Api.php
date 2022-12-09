@@ -116,7 +116,8 @@ class Clerk_Api
 
                 }
 
-                if(strpos($Product_params['image'], '/-')){
+                $image_check = substr(explode(__PS_BASE_URL__, $Product_params['image'])[1], 0, 2);
+                if('/-' == $image_check){
                     $iso = Context::getContext()->language->iso_code;
                     $Product_params['image'] = __PS_BASE_URL__ . '/img/p/' . $iso . '-default-home_default.jpg';
                 }

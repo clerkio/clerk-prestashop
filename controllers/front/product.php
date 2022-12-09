@@ -86,7 +86,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $this->addFieldHandler('image', function ($product) use ($context) {
                 $image = Image::getCover($product['id_product']);
                 $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName('home'));
-                if(strpos($image_path, '/-')){
+                $image_check = substr(explode(__PS_BASE_URL__, $Product_params['image'])[1], 0, 2);
+                if('/-' == $image_check){
                     $iso = Context::getContext()->language->iso_code;
                     $image_path = __PS_BASE_URL__ . '/img/p/' . $iso . '-default-home_default.jpg';
                 }
