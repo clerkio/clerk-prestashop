@@ -86,9 +86,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $this->addFieldHandler('image', function ($product) use ($context) {
                 $image = Image::getCover($product['id_product']);
                 $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName('home'));
-                if(strpos($image_path, '/-')){
+                $base_domain = explode('//', _PS_BASE_URL_)[1];
+                $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
+                if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $image_path = __PS_BASE_URL__ . '/img/p/' . $iso . '-default-home_default.jpg';
+                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-home_default.jpg';
                 }
                 return $image_path;
             });
@@ -122,11 +124,13 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $this->addFieldHandler('image', function ($product) use ($context) {
                 $image = Image::getCover($product['id_product']);
                 $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
-                if(strpos($image_path, '/-')){
+                $base_domain = explode('//', _PS_BASE_URL_)[1];
+                $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
+                if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $image_path = __PS_BASE_URL__ . '/img/p/' . $iso . '-default-home_default.jpg';
+                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-home_default.jpg';
                 }
-                return $image_path;
+                return $base_domain;
             });
 
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {

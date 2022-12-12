@@ -20,14 +20,12 @@ class Clerk_Api
 
     public function __construct()
     {
-
         $context = Context::getContext();
 
         $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
         $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
 
         $this->logger = new ClerkLogger();
-
     }
 
     /**
@@ -36,28 +34,20 @@ class Clerk_Api
      */
     public function addProduct($product, $product_id, $qty = 0)
     {
-
         try {
-
             $continue = true;
 
             if ($product === 0) {
-
                 $product = new Product($product_id);
-
             }
 
             if (!$product->active) {
-
                 $continue = false;
                 $this->removeProduct($product_id);
-
             }
 
             if ($qty === 0) {
-
                 $qty = $this->getStockForProduct($product);
-
             }
 
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
@@ -67,7 +57,6 @@ class Clerk_Api
             }
 
             if ($continue) {
-
                 $context = Context::getContext();
 
                 $categories = array();
@@ -80,13 +69,9 @@ class Clerk_Api
                 $image = Image::getCover($product_id);
 
                 if ($product->id_manufacturer) {
-
                     $manufacturer = new Manufacturer($product->id_manufacturer, $this->language_id);
-
                 } else {
-
                     $manufacturer = '';
-
                 }
 
 
@@ -100,25 +85,23 @@ class Clerk_Api
                     'categories' => $categories,
                     'sku' => $product->reference,
                     'on_sale' => $product->on_sale,
-                    'brand' => (Validate::isLoadedObject($manufacturer))? $manufacturer->name : '',
+                    'brand' => (Validate::isLoadedObject($manufacturer)) ? $manufacturer->name : '',
                     'in_stock' => $this->getStockForProduct($product) > 0,
                     'qty' => $qty,
 
                 ];
 
                 if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-
                     $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName('home'));
-
                 } else {
-
                     $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], 'home_default');
-
                 }
 
-                if(strpos($Product_params['image'], '/-')){
+                $base_domain = explode('//', _PS_BASE_URL_)[1];
+                $image_check = substr(explode($base_domain, $Product_params['image'])[1], 0, 2);
+                if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $Product_params['image'] = __PS_BASE_URL__ . '/img/p/' . $iso . '-default-home_default.jpg';
+                    $Product_params['image'] = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-home_default.jpg';
                 }
 
                 $combinations = $product->getAttributeCombinations((int)$this->language_id, true);
@@ -127,49 +110,37 @@ class Clerk_Api
                 $variants = [];
 
                 if (count($combinations) > 0) {
-
                     foreach ($combinations as $combination) {
-
-                        if(isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
-
+                        if (isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
                             array_push($variants, $combination['reference']);
-
-                        } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants))  {
+                        } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants)) {
                             array_push($variants, $combination['id_product_attribute']);
                         }
 
-                        $setGroupfield = str_replace(' ','',$combination['group_name']);
+                        $setGroupfield = str_replace(' ', '', $combination['group_name']);
 
-                        if(!isset($attributes[$setGroupfield])) {
-
+                        if (!isset($attributes[$setGroupfield])) {
                             $attributes[$setGroupfield][] = $combination['attribute_name'];
-
                         } else {
-
                             if (!in_array($combination['attribute_name'], $attributes[$setGroupfield])) {
-
                                 $attributes[$setGroupfield][] = $combination['attribute_name'];
-
                             }
                         }
-
                     }
-
                 }
 
-                 //Get custom fields from configuration
-                 $default = array(
-                    'id',
-                    'name',
-                );
-                 $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS',$this->language_id, null, $this->shop_id);
-                 $tempfields = explode(',', $fieldsConfig);
-                 $fields = array_merge($default, $tempfields);
+                //Get custom fields from configuration
+                $default = array(
+                            'id',
+                            'name',
+                            );
+                $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id);
+                $tempfields = explode(',', $fieldsConfig);
+                $fields = array_merge($default, $tempfields);
 
                 foreach ($fields as $field) {
-
-                    $field = str_replace(' ','',$field);
-                    if ($attributes && array_key_exists($field, $attributes)){
+                    $field = str_replace(' ', '', $field);
+                    if ($attributes && array_key_exists($field, $attributes)) {
                         $Product_params[$field] = $attributes[$field];
                     }
 
@@ -178,9 +149,8 @@ class Clerk_Api
                     }
                 }
 
-                if(Pack::isPack($product_id)){
-                    foreach($customFields as $_field){
-
+                if (Pack::isPack($product_id)) {
+                    foreach ($customFields as $_field) {
                         if (empty($attriarr)) {
                             $attriarr = Attribute::getAttributes($this->language_id, true);
                         };
@@ -195,32 +165,28 @@ class Clerk_Api
 
                                 foreach ($combarr as $comb) {
                                     foreach ($attriarr as $attri) {
-                                        if ($attri['id_attribute'] === $comb['id_attribute'] ){
-                                            if(str_replace(' ','',$attri['public_name']) == str_replace(' ','',$_field)){
+                                        if ($attri['id_attribute'] === $comb['id_attribute']) {
+                                            if (str_replace(' ', '', $attri['public_name']) == str_replace(' ', '', $_field)) {
                                                 $childatributes[] = $attri['name'];
                                             }
-
                                         }
                                     }
                                 }
                             }
 
-                            if ($attributes && array_key_exists($_field, $attributes)){
+                            if ($attributes && array_key_exists($_field, $attributes)) {
                                 $childatributes[$_field] = $attributes[$_field];
                             }
 
-                           if (isset($child->$_field)) {
+                            if (isset($child->$_field)) {
                                 $childatributes[] = $child->$_field;
                             }
-
                         }
 
-                        if(!empty($childatributes)){
+                        if (!empty($childatributes)) {
                             $item['child_'.$_field.'s'] = $childatributes;
                         }
-
                     }
-
                 }
 
                 if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
@@ -231,13 +197,10 @@ class Clerk_Api
 
                 // Adding Product Features
                 if (Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id) == '1') {
-
                     $frontfeatures = Product::getFrontFeaturesStatic($this->language_id, $product_id);
 
-                    foreach($frontfeatures as $ftr){
-
+                    foreach ($frontfeatures as $ftr) {
                         $Product_params[$ftr['name']] = $ftr['value'];
-
                     }
                 }
 
@@ -249,20 +212,15 @@ class Clerk_Api
 
                 $this->post('product/add', $params);
                 $this->logger->log('Created product ' . $Product_params['name'], ['params' => $params['products']]);
-
             }
         } catch (Exception $e) {
-
             $this->logger->error('ERROR addProduct', ['error' => $e->getMessage()]);
-
         }
-
     }
 
     private function getStockForProduct($product)
     {
         try {
-
             $id_product_attribute = isset($product->id_product_attribute) ? $product->id_product_attribute : null;
 
             if (isset($this->stock[$product->id][$id_product_attribute])) {
@@ -274,11 +232,8 @@ class Clerk_Api
             $this->stock[$product->id][$id_product_attribute] = $availableQuantity;
 
             return $this->stock[$product->id][$id_product_attribute];
-
         } catch (Exception $e) {
-
             $this->logger->error('ERROR getStockForProduct', ['error' => $e->getMessage()]);
-
         }
     }
 
@@ -290,9 +245,7 @@ class Clerk_Api
      */
     private function post($endpoint, $params = [])
     {
-
         try {
-
             $url = $this->baseurl . $endpoint;
             $curl = curl_init();
 
@@ -306,13 +259,9 @@ class Clerk_Api
             curl_close($curl);
 
             $this->logger->log('POST request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
-
         } catch (Exception $e) {
-
             $this->logger->error('POST request failed', ['error' => $e->getMessage()]);
-
         }
-
     }
 
     /**
@@ -322,9 +271,7 @@ class Clerk_Api
      */
     public function removeProduct($product_id)
     {
-
         try {
-
             $params = [
                 'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
                 'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
@@ -333,13 +280,9 @@ class Clerk_Api
 
             $this->get('product/remove', $params);
             $this->logger->log('Removed product ', ['params' => $params['products']]);
-
         } catch (Exception $e) {
-
             $this->logger->error('ERROR removeProduct', ['error' => $e->getMessage()]);
-
         }
-
     }
 
     /**
@@ -349,9 +292,7 @@ class Clerk_Api
      */
     public function get($endpoint, $params = [])
     {
-
         try {
-
             $url = $this->baseurl . $endpoint . '?' . http_build_query($params);
             $curl = curl_init();
 
@@ -366,12 +307,8 @@ class Clerk_Api
             $this->logger->log('GET request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
 
             return $response;
-
         } catch (Exception $e) {
-
             $this->logger->error('GET request failed', ['error' => $e->getMessage()]);
-
         }
-
     }
 }
