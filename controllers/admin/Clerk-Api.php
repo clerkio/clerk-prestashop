@@ -84,7 +84,7 @@ class Clerk_Api
                     'url' => $context->link->getProductLink($product_id),
                     'categories' => $categories,
                     'sku' => $product->reference,
-                    'on_sale' => $product->on_sale,
+                    'on_sale' => ($product->on_sale == 1) ? true : false,
                     'brand' => (Validate::isLoadedObject($manufacturer)) ? $manufacturer->name : '',
                     'in_stock' => $this->getStockForProduct($product) > 0,
                     'qty' => $qty,
