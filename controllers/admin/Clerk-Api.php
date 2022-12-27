@@ -74,11 +74,32 @@ class Clerk_Api
                     $manufacturer = '';
                 }
 
+                $product_name = '';
+
+                if(isset($product->name)){
+                    if(is_array($product->name)){
+                        $product_name = $product->name[$this->language_id];
+                    }
+                    if(is_string($product->name)){
+                        $product_name = $product->name;
+                    }
+                }
+
+                $product_description = '';
+
+                if(isset($product->description)){
+                    if(is_array($product->description)){
+                        $product_description = $product->description[$this->language_id];
+                    }
+                    if(is_string($product->description)){
+                        $product_description = $product->description;
+                    }
+                }
 
                 $Product_params = [
                     'id' => $product_id,
-                    'name' => $product->name[$this->language_id],
-                    'description' => $product->description[$this->language_id],
+                    'name' => $product_name,
+                    'description' => $product_description,
                     'price' => (float)Product::getPriceStatic($product_id, true),
                     'list_price' => (float)Product::getPriceStatic($product_id, true, null, 6, null, false, false),
                     'url' => $context->link->getProductLink($product_id),
