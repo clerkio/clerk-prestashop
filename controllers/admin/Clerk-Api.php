@@ -220,8 +220,30 @@ class Clerk_Api
                 if (Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id) == '1') {
                     $frontfeatures = Product::getFrontFeaturesStatic($this->language_id, $product_id);
 
-                    foreach ($frontfeatures as $ftr) {
-                        $Product_params[$ftr['name']] = $ftr['value'];
+                    if( !empty( $frontfeatures ) ){
+                        if( count($frontfeatures) > 0 ){
+                            $features_object = array();
+                            foreach($frontfeatures as $feature){
+                                if( isset($feature['name']) ){
+                                    $feature['name'] = str_replace( array(' ', '-'), '_', $feature['name'] );
+                                    if( ! array_key_exists( $feature['name'], $features_object) ){
+                                        $features_object[$feature['name']] = array();
+                                        array_push($features_object[$feature['name']], $feature['value']);
+                                    } else {
+                                        array_push($features_object[$feature['name']], $feature['value']);
+                                    }
+                                }
+                            }
+                            foreach($features_object as $key => $value){
+                                if(count($value) === 0){
+                                    $value = "";
+                                }
+                                if(count($value) === 1){
+                                    $value = $value[0];
+                                }
+                                $Product_params[$key] = $value;
+                            }
+                        }
                     }
                 }
 

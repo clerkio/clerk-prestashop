@@ -227,6 +227,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $falseValues, false, null, $shop['id_shop']);
@@ -428,6 +429,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
+        Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK');
         Configuration::deleteByName('CLERK_INCLUDE_VARIANT_REFERENCES');
         Configuration::deleteByName('CLERK_DATASYNC_PRODUCT_FEATURES');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
@@ -632,6 +634,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', array(
                     $this->language_id => Tools::getValue('clerk_datasync_include_out_of_stock_products', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_include_only_local_stock', 0)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', array(
@@ -1052,6 +1058,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_include_out_of_stock_products_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Only Check Local Stock'),
+                        'name' => 'clerk_datasync_include_only_local_stock',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_include_only_local_stock_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_include_only_local_stock_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -2556,6 +2581,7 @@ CLERKJS;
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $_shop_id),
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $_shop_id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $_shop_id),
+            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $_shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $_lang_id, null, $_shop_id),
             'clerk_datasync_product_features' => Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $_lang_id, null, $_shop_id),
@@ -2939,6 +2965,7 @@ CLERKJS;
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
+            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
             'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->context->language->id, null, $this->context->shop->id),
@@ -3358,12 +3385,10 @@ CLERKJS;
     {
         if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
 
-            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
+            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) != '0') {
                 if ($params['quantity'] <= 0) {
-
                     $this->api->removeProduct($params['id_product']);
                 } else {
-
                     $this->api->addProduct(0, $params['id_product'], $params['quantity']);
                 }
             }

@@ -173,7 +173,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('qty', function ($product) {
-            //return var_dump($product);
             return $this->getStockForProduct($product);
         });
 
@@ -236,7 +235,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
 
-            $active = ' AND p.active = 1 AND p.available_for_order = 1';
+            if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1') {
+                $active = ' AND p.active = 1';
+            } else {
+                $active = ' AND p.active = 1 AND p.available_for_order = 1';
+            }
 
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) == '1') {
                 $active = ' AND p.active = 1';
@@ -406,6 +409,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                                 $item[$key] = $value;
                             }
                         }
+                    }
+                }
+
+                if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
+                    if($item['stock'] <= 0){
+                        continue;
                     }
                 }
 
