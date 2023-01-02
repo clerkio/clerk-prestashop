@@ -38,10 +38,8 @@
     <script>
 
         ClerkSearchPage = function(){
-            
             var form_selector = htmlDecode('{$livesearch_form_selector}');
             var search_field_selector = htmlDecode('{$livesearch_selector}');
-           
             var forms = document.querySelectorAll(form_selector);
             forms.forEach(function(el, index, array){
                 el.setAttribute('action', '{$baseUrl}module/clerk/search');
@@ -83,7 +81,7 @@
         }
 
         window.DOMready(function() {
-                ClerkSearchPage(); 
+                ClerkSearchPage();
         });
 
     </script>
