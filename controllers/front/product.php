@@ -418,6 +418,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                if(Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1'){
+                    if($productRaw->out_of_stock != '1' && $item['stock'] <= 0){
+                        continue;
+                    }
+                }
+
                 $response[] = $item;
             }
 

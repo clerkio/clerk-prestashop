@@ -39,7 +39,7 @@ function checkcart(){
         var clerk_last_productids = [];
         if( localStorage.getItem('clerk_productids') !== null ){
             clerk_last_productids = localStorage.getItem('clerk_productids').split(",");
-            clerk_last_productids = clerk_last_productids.map(Number);  
+            clerk_last_productids = clerk_last_productids.map(Number);
         }
         //sort
         clerk_productids = clerk_productids.sort((a, b) => a - b);
