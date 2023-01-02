@@ -171,7 +171,7 @@ class Clerk_Api
                 }
 
                 if (Pack::isPack($product_id)) {
-                    foreach ($customFields as $_field) {
+                    foreach ($fields as $_field) {
                         if (empty($attriarr)) {
                             $attriarr = Attribute::getAttributes($this->language_id, true);
                         };
@@ -205,7 +205,7 @@ class Clerk_Api
                         }
 
                         if (!empty($childatributes)) {
-                            $item['child_'.$_field.'s'] = $childatributes;
+                            $Product_params['child_'.$_field.'s'] = $childatributes;
                         }
                     }
                 }
