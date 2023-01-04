@@ -84,13 +84,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
 
             $this->addFieldHandler('image', function ($product) use ($context) {
+                $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
                 $image = Image::getCover($product['id_product']);
-                $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName('home'));
+                $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName($image_type));
                 $base_domain = explode('//', _PS_BASE_URL_)[1];
                 $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
                 if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-home_default.jpg';
+                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-'.$image_type.'_default.jpg';
                 }
                 return $image_path;
             });
@@ -98,6 +99,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
+                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
                     $id_list = [];
                     $variant_images = [];
                     $varArray = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -112,7 +114,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                         }
                     }
                     foreach($id_list as $id){
-                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, ImageType::getFormattedName('home'));
+                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, ImageType::getFormattedName($image_type));
                         array_push($variant_images, $variant_image);
                     }
                     return $variant_images;
@@ -122,20 +124,22 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         } else {
 
             $this->addFieldHandler('image', function ($product) use ($context) {
+                $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
                 $image = Image::getCover($product['id_product']);
-                $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], 'home_default');
+                $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], $image_type);
                 $base_domain = explode('//', _PS_BASE_URL_)[1];
                 $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
                 if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-home_default.jpg';
+                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-'.$image_type.'.jpg';
                 }
-                return $base_domain;
+                return $image_path;
             });
 
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
+                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
                     $id_list = [];
                     $variant_images = [];
                     $varArray = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -150,7 +154,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                         }
                     }
                     foreach($id_list as $id){
-                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, 'home_default');
+                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, $image_type);
                         array_push($variant_images, $variant_image);
                     }
                     return $variant_images;

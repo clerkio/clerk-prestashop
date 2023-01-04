@@ -77,6 +77,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->language_id, null, $this->shop_id),
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id),
             'clerk_datasync_product_features' => Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id),
+            'clerk_image_size' => Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id),
 
             // SEARCH SETTINGS (6)
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),

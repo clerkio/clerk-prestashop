@@ -113,16 +113,19 @@ class Clerk_Api
                 ];
 
                 if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName('home'));
+                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
+                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName($image_type));
                 } else {
-                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], 'home_default');
+                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
+                    $Product_params['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], $image_type);
                 }
 
                 $base_domain = explode('//', _PS_BASE_URL_)[1];
                 $image_check = substr(explode($base_domain, $Product_params['image'])[1], 0, 2);
                 if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $Product_params['image'] = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-home_default.jpg';
+                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
+                    $Product_params['image'] = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-'.$image_type.'.jpg';
                 }
 
                 $combinations = $product->getAttributeCombinations((int)$this->language_id, true);

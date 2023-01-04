@@ -168,6 +168,7 @@ class Clerk extends Module
                 $emptyValues[$language['id_lang']] = '';
                 $trueValues[$language['id_lang']] = 1;
                 $falseValues[$language['id_lang']] = 0;
+                $imageValue[$language['id_lang']] = 'home';
                 $dropdownNumberValues[$language['id_lang']] = 1;
                 $searchTemplateValues[$language['id_lang']] = 'search-page';
                 $standardFacetAttributes[$language['id_lang']] = json_encode($defaultFacetString);
@@ -235,6 +236,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_IMAGE_SIZE', $imageValue, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
@@ -432,6 +434,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK');
         Configuration::deleteByName('CLERK_INCLUDE_VARIANT_REFERENCES');
         Configuration::deleteByName('CLERK_DATASYNC_PRODUCT_FEATURES');
+        Configuration::deleteByName('CLERK_IMAGE_SIZE');
         Configuration::deleteByName('CLERK_DISABLE_ORDER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_FIELDS');
         Configuration::deleteByName('CLERK_EXIT_INTENT_ENABLED');
@@ -650,6 +653,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', array(
                     $this->language_id => Tools::getValue('clerk_datasync_product_features', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_IMAGE_SIZE', array(
+                    $this->language_id => Tools::getValue('clerk_image_size', '')
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array(
@@ -1199,6 +1206,26 @@ class Clerk extends Module
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
+                        )
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Image Size'),
+                        'name' => 'clerk_image_size',
+                        'class' => 't',
+                        'options' => array(
+                            'query' => array(
+                                ['name' => 'Home', 'Value' => 'home'],
+                                ['name' => 'Small', 'Value' => 'small'],
+                                ['name' => 'Medium', 'Value' => 'medium'],
+                                ['name' => 'Large', 'Value' => 'large'],
+                                ['name' => 'Thickbox', 'Value' => 'thickbox'],
+                                ['name' => 'Category', 'Value' => 'category'],
+                                ['name' => 'Scene', 'Value' => 'scene'],
+                                ['name' => 'M Scene', 'Value' => 'm_scene']
+                            ),
+                            'id' => 'Value',
+                            'name' => 'name',
                         )
                     ),
                 ),
@@ -2586,6 +2613,7 @@ CLERKJS;
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $_lang_id, null, $_shop_id),
             'clerk_datasync_product_features' => Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $_lang_id, null, $_shop_id),
             'clerk_datasync_fields' => Configuration::get('CLERK_DATASYNC_FIELDS', $_lang_id, null, $_shop_id),
+            'clerk_image_size' => Configuration::get('CLERK_IMAGE_SIZE', $_lang_id, null, $_shop_id),
             'clerk_exit_intent_enabled' => Configuration::get('CLERK_EXIT_INTENT_ENABLED', $_lang_id, null, $_shop_id),
             'clerk_exit_intent_template' => Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $_lang_id, null, $_shop_id),
             'clerk_product_enabled' => Configuration::get('CLERK_PRODUCT_ENABLED', $_lang_id, null, $_shop_id),
