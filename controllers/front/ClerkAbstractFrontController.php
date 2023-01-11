@@ -119,13 +119,18 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         try {
 
-            $public_key = Tools::getValue('key', '');
-            $private_key = Tools::getValue('private_key', '');
+            if('POST' !== $_SERVER['REQUEST_METHOD']){
+                return false;
+            }
 
-            if ($public_key === Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId()) && $private_key === Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId())) {
+            $request_body = json_decode(file_get_contents('php://input'), true);
+            $request_public_key = array_key_exists('key', $request_body) ? $request_body['key'] : '';
+            $request_private_key = array_key_exists('private_key', $request_body) ? $request_body['private_key'] : '';
+            $scope_public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId());
+            $scope_private_key = Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId());
 
+            if($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->timingSafeEquals($scope_private_key, $request_private_key)) {
                 return true;
-
             }
 
             $this->logger->warn('API key was not validated', ['response' => false]);
@@ -137,6 +142,29 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         }
     }
+
+    /**
+     * Compare keys from request
+     *
+     * @return bool
+     */
+	protected function timingSafeEquals( $safe, $user ) {
+		$safe_value_length = strlen( $safe );
+		$user_value_length = strlen( $user );
+
+		if ( $user_value_length !== $safe_value_length ) {
+			return false;
+		}
+
+		$result = 0;
+
+		for ( $i = 0; $i < $user_value_length; $i++ ) {
+			$result |= ( ord( $safe[ $i ] ) ^ ord( $user[ $i ] ) );
+		}
+
+		// They are only identical strings if $result is exactly 0...
+		return 0 === $result;
+	}
 
     /**
      * Display unauthorized response
