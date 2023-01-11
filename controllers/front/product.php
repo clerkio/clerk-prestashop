@@ -364,7 +364,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                                 $childatributes[$_field] = $attributes[$_field];
                             }
 
-                           if (isset($child->$_field)) {
+                            if (isset($child->$_field)) {
                                 $childatributes[] = $child->$_field;
                             }
 

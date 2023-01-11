@@ -108,8 +108,7 @@ class Clerk_Api
                     'on_sale' => ($product->on_sale == 1) ? true : false,
                     'brand' => (Validate::isLoadedObject($manufacturer)) ? $manufacturer->name : '',
                     'in_stock' => $this->getStockForProduct($product) > 0,
-                    'qty' => $qty,
-
+                    'qty' => $qty
                 ];
 
                 if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
