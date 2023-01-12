@@ -106,7 +106,6 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->from('emailsubscription', 'e');
                     $dbquery->leftJoin('shop', 's', 's.id_shop = e.id_shop');
                     $dbquery->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
-                    $dbquery->where('e.`active` = 1');
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
                 } else {
                     // Default newletter table for ^1.6.0 is ps_newsletter
@@ -114,7 +113,6 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->select('CONCAT(\'N\', n.`id`) AS `id`, n.`email`, n.`active` AS `subscribed`');
                     $dbquery->from('newsletter', 'n');
                     $dbquery->leftJoin('shop', 's', 's.id_shop = n.id_shop');
-                    $dbquery->where('n.`active` = 1');
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
                 }
                 foreach ($non_customers as $index => $subscriber){
