@@ -119,11 +119,18 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         try {
 
+            // Exit if not POST
             if('POST' !== $_SERVER['REQUEST_METHOD']){
                 return false;
             }
 
             $request_body = json_decode(file_get_contents('php://input'), true);
+
+            // Exit if Auth cannot be parsed
+            if(!is_array($request_body)){
+                return false;
+            }
+
             $request_public_key = array_key_exists('key', $request_body) ? $request_body['key'] : '';
             $request_private_key = array_key_exists('private_key', $request_body) ? $request_body['private_key'] : '';
             $scope_public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId());
