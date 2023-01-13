@@ -428,6 +428,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                if(array_key_exists('sku', $item)){
+                    $item['search_string_1'] = preg_replace( '/[^a-z0-9 ]/i', '', $item['sku']);
+                    $item['search_string_2'] = preg_replace( '/[^a-z0-9 ]/i', '/', $item['sku']);
+                    $item['search_string_3'] = preg_replace( '/[^a-z0-9 ]/i', '-', $item['sku']);
+                    $item['search_string_4'] = preg_replace( '/[^a-z0-9 ]/i', ' ', $item['sku']);
+                    $item['search_string_5'] = preg_replace( '/[^a-z0-9 ]/i', '_', $item['sku']);
+                }
+
                 $response[] = $item;
             }
 

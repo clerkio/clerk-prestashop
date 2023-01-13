@@ -248,7 +248,13 @@ class Clerk_Api
                         }
                     }
                 }
-
+                if(array_key_exists('sku', $Product_params)){
+                    $Product_params['search_string_1'] = preg_replace( '/[^a-z0-9 ]/i', '', $Product_params['sku']);
+                    $Product_params['search_string_2'] = preg_replace( '/[^a-z0-9 ]/i', '/', $Product_params['sku']);
+                    $Product_params['search_string_3'] = preg_replace( '/[^a-z0-9 ]/i', '-', $Product_params['sku']);
+                    $Product_params['search_string_4'] = preg_replace( '/[^a-z0-9 ]/i', ' ', $Product_params['sku']);
+                    $Product_params['search_string_5'] = preg_replace( '/[^a-z0-9 ]/i', '_', $Product_params['sku']);
+                }
                 $params = [
                     'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
                     'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
