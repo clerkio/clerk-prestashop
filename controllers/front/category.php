@@ -84,6 +84,14 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
                         'url' => $this->context->link->getCategoryLink($category['id_category'], null, $id_lang),
                     );
 
+                    if(array_key_exists('name', $item)){
+                        $item['search_string_1'] = preg_replace( '/[^a-z0-9 ]/i', '', $item['name']);
+                        $item['search_string_2'] = preg_replace( '/[^a-z0-9 ]/i', '/', $item['name']);
+                        $item['search_string_3'] = preg_replace( '/[^a-z0-9 ]/i', '-', $item['name']);
+                        $item['search_string_4'] = preg_replace( '/[^a-z0-9 ]/i', ' ', $item['name']);
+                        $item['search_string_5'] = preg_replace( '/[^a-z0-9 ]/i', '_', $item['name']);
+                    }
+
                     //Append parent id
                     if ($category['id_parent'] !== $root_category) {
                         $item['parent'] = $category['id_parent'];
