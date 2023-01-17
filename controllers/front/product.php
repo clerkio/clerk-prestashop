@@ -428,6 +428,25 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                // Add Specific price to product data if present
+                $specific_prices = SpecificPrice::getByProductId($product['id_product']);
+                if( ! empty($specific_prices) && $productRaw->base_price ){
+                    foreach($specific_prices as $sp_price){
+                        $tmp_tax = ($sp_price['reduction_tax'] * ($productRaw->tax_rate / 100)) + 1;
+                        $tmp_price = ($productRaw->base_price * $tmp_tax);
+                        if($sp_price['reduction_type'] == 'percentage'){
+                            $reduction = 1 - $sp_price['reduction'];
+                            $tmp_price = $tmp_price * $reduction;
+                        }
+                        if($sp_price['reduction_type'] == 'amount'){
+                            $tmp_price = $tmp_price - $sp_price['reduction'];
+                        }
+                        if(is_numeric($tmp_price)){
+                            $item['customer_group_price_' . $sp_price['id_group']] = $tmp_price;
+                        }
+                    }
+                }
+
                 $response[] = $item;
             }
 

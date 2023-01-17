@@ -42,10 +42,17 @@
         collect_email: {$clerk_datasync_collect_emails},
         {/if}
         {if isset($clerk_language)}
-        language: '{$clerk_language}'
+        language: '{$clerk_language}',
         {/if}
+        globals: {
+            {if isset($customer_logged_in)}
+            customer_logged_in: '{$customer_logged_in}',
+            {/if}
+            {if isset($customer_group_id)}
+            customer_group_id: '{$customer_group_id}'
+            {/if}
+        }
     });
-   
 
 </script>
 
