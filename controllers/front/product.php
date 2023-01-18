@@ -78,7 +78,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         $context = $this->context;
 
         $this->addFieldHandler('url', function ($product) use ($context) {
-            return $context->link->getProductLink($product['id_product']);
+            return $context->link->getProductLink($product['id_product'], null, null, null, $this->language_id);
         });
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
