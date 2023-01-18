@@ -376,15 +376,17 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         $lang_iso = false;
         if(strlen($lang_path) > 0){
-            if(strpos($lang_path, '/module') !== -1){
+            if(strpos($lang_path, '/module') > -1){
                 if(substr($lang_path, 0, strlen('/module')) !== '/module'){
                     $lang_iso = explode('/module', $lang_path)[1];
                     $lang_iso = str_replace("/", "", $lang_iso);
                 }
             } else {
-                $lang_iso = explode('/', $lang_path)[1];
+                if(strpos($lang_path, '/') > -1){
+                    $lang_iso = explode('/', $lang_path)[1];
+                }
 
-                if(strpos($lang_iso, '?')){
+                if(strpos($lang_iso, '?') > -1){
                     $lang_iso = explode('?', $lang_iso)[0];
                 }
 
@@ -405,5 +407,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         }
 
     }
+
 
 }
