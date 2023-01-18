@@ -347,7 +347,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         } else {
             return $this->getLanguages();
         }
-
     }
 
     /**
@@ -360,7 +359,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         return $this->context->shop->id;
     }
 
-        /**
+    /**
      * Get languages
      *
      * @return mixed
@@ -370,6 +369,11 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
         $lang_info = Language::getLanguages(true, $this->context->shop->id);
         $lang_path = filter_input(INPUT_SERVER, 'REDIRECT_URL', FILTER_SANITIZE_SPECIAL_CHARS);
+
+        if(! is_string($lang_path)){
+            return false;
+        }
+
         $lang_iso = false;
         if(strlen($lang_path) > 0){
             if(strpos($lang_path, '/module') !== -1){
@@ -379,6 +383,11 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
                 }
             } else {
                 $lang_iso = explode('/', $lang_path)[1];
+
+                if(strpos($lang_iso, '?')){
+                    $lang_iso = explode('?', $lang_iso)[0];
+                }
+
                 if(strlen($lang_iso) !== 2){
                     $lang_iso = false;
                 }
