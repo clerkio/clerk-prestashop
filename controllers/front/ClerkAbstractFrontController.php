@@ -342,8 +342,11 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getLanguageId()
     {
-
-        return $this->context->language->id;
+        if($this->getLanguages() == false){
+            return $this->context->language->id;
+        } else {
+            return $this->getLanguages();
+        }
 
     }
 
@@ -356,4 +359,42 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         return $this->context->shop->id;
     }
+
+        /**
+     * Get languages
+     *
+     * @return mixed
+     */
+    protected function getLanguages()
+    {
+
+        $lang_info = Language::getLanguages(true, $this->context->shop->id);
+        $lang_path = filter_input(INPUT_SERVER, 'REDIRECT_URL', FILTER_SANITIZE_SPECIAL_CHARS);
+        $lang_iso = false;
+        if(strlen($lang_path) > 0){
+            if(strpos($lang_path, '/module') !== -1){
+                if(substr($lang_path, 0, strlen('/module')) !== '/module'){
+                    $lang_iso = explode('/module', $lang_path)[1];
+                    $lang_iso = str_replace("/", "", $lang_iso);
+                }
+            } else {
+                $lang_iso = explode('/', $lang_path)[1];
+                if(strlen($lang_iso) !== 2){
+                    $lang_iso = false;
+                }
+            }
+        }
+
+        if(!$lang_iso){
+            return false;
+        }
+
+        foreach($lang_info as $lang){
+            if($lang['iso_code'] == $lang_iso){
+                return $lang['id_lang'];
+            }
+        }
+
+    }
+
 }
