@@ -406,6 +406,8 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             }
         }
 
+        return false;
+
     }
 
 
