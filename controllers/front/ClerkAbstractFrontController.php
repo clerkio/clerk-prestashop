@@ -80,7 +80,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         parent::__construct();
         $this->ajax = true;
-        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/ClerkLogger.php');
         $this->logger = new ClerkLogger();
     }
 
@@ -120,14 +120,14 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         try {
 
             // Exit if not POST
-            if('POST' !== $_SERVER['REQUEST_METHOD']){
+            if ('POST' !== $_SERVER['REQUEST_METHOD']) {
                 return false;
             }
 
             $request_body = json_decode(file_get_contents('php://input'), true);
 
             // Exit if Auth cannot be parsed
-            if(!is_array($request_body)){
+            if (!is_array($request_body)) {
                 return false;
             }
 
@@ -136,7 +136,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             $scope_public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId());
             $scope_private_key = Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId());
 
-            if($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->timingSafeEquals($scope_private_key, $request_private_key)) {
+            if ($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->timingSafeEquals($scope_private_key, $request_private_key)) {
                 return true;
             }
 
@@ -155,23 +155,25 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      *
      * @return bool
      */
-	protected function timingSafeEquals( $safe, $user ) {
-		$safe_value_length = strlen( $safe );
-		$user_value_length = strlen( $user );
+    protected function timingSafeEquals($safe, $user)
+    {
 
-		if ( $user_value_length !== $safe_value_length ) {
-			return false;
-		}
+        $safe_value_length = strlen($safe);
+        $user_value_length = strlen($user);
 
-		$result = 0;
+        if ($user_value_length !== $safe_value_length) {
+            return false;
+        }
 
-		for ( $i = 0; $i < $user_value_length; $i++ ) {
-			$result |= ( ord( $safe[ $i ] ) ^ ord( $user[ $i ] ) );
-		}
+        $result = 0;
 
-		// They are only identical strings if $result is exactly 0...
-		return 0 === $result;
-	}
+        for ($i = 0; $i < $user_value_length; $i++) {
+            $result |= (ord($safe[$i]) ^ ord($user[$i]));
+        }
+
+        // They are only identical strings if $result is exactly 0...
+        return 0 === $result;
+    }
 
     /**
      * Display unauthorized response
@@ -233,9 +235,9 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         try {
 
-            $this->debug = (bool)Tools::getValue('debug', false);
-            $this->limit = (int)Tools::getValue('limit', 0);
-            $this->page = (int)Tools::getValue('page', 0);
+            $this->debug = (bool) Tools::getValue('debug', false);
+            $this->limit = (int) Tools::getValue('limit', 0);
+            $this->page = (int) Tools::getValue('page', 0);
             $this->order_by = Tools::getValue('orderby', 'id_product');
             $this->order = Tools::getValue('order', 'desc');
 
@@ -248,7 +250,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             /**
              * Explode fields on , and filter out "empty" entries
              */
-            $fields = (string)Tools::getValue('fields');
+            $fields = (string) Tools::getValue('fields');
             if ($fields) {
                 $this->fields = array_filter(explode(',', $fields), 'strlen');
             } else {
@@ -274,7 +276,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         try {
 
-        $this->fieldHandlers[$field] = $handler;
+            $this->fieldHandlers[$field] = $handler;
 
         } catch (Exception $e) {
 
@@ -342,7 +344,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getLanguageId()
     {
-        if($this->getLanguages() == false){
+        if ($this->getLanguages() == false) {
             return $this->context->language->id;
         } else {
             return $this->getLanguages();
@@ -367,46 +369,54 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     protected function getLanguages()
     {
 
-        $lang_info = Language::getLanguages(true, $this->context->shop->id);
-        $lang_path = filter_input(INPUT_SERVER, 'REDIRECT_URL', FILTER_SANITIZE_SPECIAL_CHARS);
+        try {
 
-        if(! is_string($lang_path)){
-            return false;
-        }
+            $lang_info = Language::getLanguages(true, $this->context->shop->id);
+            $lang_path = filter_input(INPUT_SERVER, 'REDIRECT_URL', FILTER_SANITIZE_SPECIAL_CHARS);
 
-        $lang_iso = false;
-        if(strlen($lang_path) > 0){
-            if(strpos($lang_path, '/module') > -1){
-                if(substr($lang_path, 0, strlen('/module')) !== '/module'){
-                    $lang_iso = explode('/module', $lang_path)[1];
-                    $lang_iso = str_replace("/", "", $lang_iso);
-                }
-            } else {
-                if(strpos($lang_path, '/') > -1){
-                    $lang_iso = explode('/', $lang_path)[1];
-                }
+            if (!is_string($lang_path)) {
+                return false;
+            }
 
-                if(strpos($lang_iso, '?') > -1){
-                    $lang_iso = explode('?', $lang_iso)[0];
-                }
+            $lang_iso = false;
+            if (strlen($lang_path) > 0) {
+                if (strpos($lang_path, '/module') > -1) {
+                    if (substr($lang_path, 0, strlen('/module')) !== '/module') {
+                        $lang_iso = explode('/module', $lang_path)[1];
+                        $lang_iso = str_replace("/", "", $lang_iso);
+                    }
+                } else {
+                    if (strpos($lang_path, '/') > -1) {
+                        $lang_iso = explode('/', $lang_path)[1];
+                    }
 
-                if(strlen($lang_iso) !== 2){
-                    $lang_iso = false;
+                    if (strpos($lang_iso, '?') > -1) {
+                        $lang_iso = explode('?', $lang_iso)[0];
+                    }
+
+                    if (strlen($lang_iso) !== 2) {
+                        $lang_iso = false;
+                    }
                 }
             }
-        }
 
-        if(!$lang_iso){
-            return false;
-        }
-
-        foreach($lang_info as $lang){
-            if($lang['iso_code'] == $lang_iso){
-                return $lang['id_lang'];
+            if (!$lang_iso) {
+                return false;
             }
-        }
 
-        return false;
+            foreach ($lang_info as $lang) {
+                if ($lang['iso_code'] == $lang_iso) {
+                    return $lang['id_lang'];
+                }
+            }
+
+            return false;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getLanguages', ['error' => $e->getMessage()]);
+
+        }
 
     }
 
