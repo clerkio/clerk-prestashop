@@ -65,11 +65,14 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 $get_email = true;
             }
 
+            $language_iso = Language::getIsoById($this->getLanguageId()) ? strtoupper(Language::getIsoById($this->getLanguageId())) : null;
+
             $sql = "SELECT c.`id_customer` AS `id`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`
             FROM " . _DB_PREFIX_ . "customer c
             LEFT JOIN " . _DB_PREFIX_ . "shop s ON (s.id_shop = c.id_shop)
             LEFT JOIN " . _DB_PREFIX_ . "gender g ON (g.id_gender = c.id_gender)
             LEFT JOIN " . _DB_PREFIX_ . "gender_lang gl ON (g.id_gender = gl.id_gender AND gl.id_lang = " . $this->getLanguageId() . ")
+            WHERE c.`id_shop` = " . $this->getShopId() . " AND c.`id_lang` = " . $this->getLanguageId() . "
             ORDER BY c.`id_customer` asc
             LIMIT " . $this->offset . "," . $this->limit;
 
@@ -82,8 +85,12 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 if (count($country_object) === 1) {
                     $country_object = $country_object[0];
                 }
-                $customers[$index]['country'] = $country_object['country'];
-                $customers[$index]['country_iso'] = $country_object['country_iso'];
+                if(is_array($country_object)){
+                    $customers[$index]['country'] = $country_object['country'];
+                    $customers[$index]['country_iso'] = $country_object['country_iso'];
+                }
+
+                $customers[$index]['language'] = $language_iso;
 
                 if(!$get_email){
                     $customers[$index]['email'] = '';
@@ -95,6 +102,9 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 if($get_sub_status){
                     $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
                     $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
+                } else {
+                    $customers[$index]['subscribed'] = false;
+                    $customers[$index]['optin'] = false;
                 }
             }
 
@@ -106,6 +116,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->from('emailsubscription', 'e');
                     $dbquery->leftJoin('shop', 's', 's.id_shop = e.id_shop');
                     $dbquery->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
+                    $dbquery->where('e.id_shop = ' . $this->getShopId() . ' AND e.id_lang = ' . $this->getLanguageId());
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
                 } else {
                     // Default newletter table for ^1.6.0 is ps_newsletter
@@ -113,6 +124,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->select('CONCAT(\'N\', n.`id`) AS `id`, n.`email`, n.`active` AS `subscribed`');
                     $dbquery->from('newsletter', 'n');
                     $dbquery->leftJoin('shop', 's', 's.id_shop = n.id_shop');
+                    $dbquery->where('n.id_shop = ' . $this->getShopId());
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
                 }
                 foreach ($non_customers as $index => $subscriber){
