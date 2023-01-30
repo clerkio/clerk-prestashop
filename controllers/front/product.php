@@ -432,13 +432,15 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $specific_prices = SpecificPrice::getByProductId($product['id_product']);
                 if( ! empty($specific_prices) && $productRaw->base_price ){
                     foreach($specific_prices as $sp_price){
-                        $tmp_tax = ($sp_price['reduction_tax'] * ($productRaw->tax_rate / 100)) + 1;
-                        $tmp_price = ($productRaw->base_price * $tmp_tax);
                         if($sp_price['reduction_type'] == 'percentage'){
+                            $tmp_tax = ($productRaw->tax_rate / 100 + 1);
+                            $tmp_price = ($productRaw->base_price * $tmp_tax);
                             $reduction = 1 - $sp_price['reduction'];
                             $tmp_price = $tmp_price * $reduction;
                         }
                         if($sp_price['reduction_type'] == 'amount'){
+                            $tmp_tax = ($sp_price['reduction_tax'] * ($productRaw->tax_rate / 100)) + 1;
+                            $tmp_price = ($productRaw->base_price * $tmp_tax);
                             $tmp_price = $tmp_price - $sp_price['reduction'];
                         }
                         if(is_numeric($tmp_price)){
