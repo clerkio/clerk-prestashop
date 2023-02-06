@@ -235,9 +235,9 @@ class AdminClerkDashboardController extends ModuleAdminController
 
             $storePart = $this->getStorePart($publicKey);
 
-            $this->logger->log('Fetched EmberUrl',['response' => sprintf('https://my.clerk.io/#/store/%s/analytics/%s?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey)]);
+            $this->logger->log('Fetched EmberUrl',['response' => sprintf('https://my.clerk.io/#/store/%s/%s/analytics?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey)]);
 
-            return sprintf('https://my.clerk.io/#/store/%s/analytics/%s?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey);
+            return sprintf('https://my.clerk.io/#/store/%s/%s/analytics?key=%s&private_key=%s&embed=yes', $storePart, $this->mode, $publicKey, $privateKey);
 
         } catch (Exception $e) {
 
