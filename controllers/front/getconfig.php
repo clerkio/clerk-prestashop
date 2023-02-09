@@ -55,11 +55,12 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
      */
     public function getConfigFieldsValues()
     {
+        $sync_url =  explode("module/clerk/version", (string)Context::getContext()->link->getModuleLink('clerk', 'version', [], null, $this->language_id, $this->shop_id, false))[0];
 
         $clerk_configuration =  array(
             // GENERAL (2)
             'clerk_language' => Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id),
-            'clerk_import_url' => _PS_BASE_URL_,
+            'clerk_import_url' => $sync_url,
 
             // JS TRACKING HOOK POSTITION
             'clerk_tracking_hook_position' => Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->shop_id),

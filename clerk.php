@@ -2571,12 +2571,15 @@ CLERKJS;
         if (Tools::getValue('clerk_language_select')) {
             $_lang_id = (int)Tools::getValue('clerk_language_select');
         }
+
+        $sync_url =  explode("module/clerk/version", (string)Context::getContext()->link->getModuleLink('clerk', 'version', [], null, $_lang_id, $_shop_id, false))[0];
+
         return array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $_lang_id, null, $_shop_id),
             'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $_lang_id, null, $_shop_id),
             'clerk_language' => Configuration::get('CLERK_LANGUAGE', $_lang_id, null, $_shop_id),
             'clerk_tracking_hook_position' => Configuration::get('CLERK_TRACKING_HOOK_POSITION', $_lang_id, null, $_shop_id),
-            'clerk_import_url' => _PS_BASE_URL_,
+            'clerk_import_url' => $sync_url,
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $_lang_id, null, $_shop_id),
             'clerk_search_categories' => Configuration::get('CLERK_SEARCH_CATEGORIES', $_lang_id, null, $_shop_id),
             'clerk_search_number_categories' => Configuration::get('CLERK_SEARCH_NUMBER_CATEGORIES', $_lang_id, null, $_shop_id),
