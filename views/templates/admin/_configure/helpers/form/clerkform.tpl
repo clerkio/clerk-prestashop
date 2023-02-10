@@ -29,7 +29,7 @@
 
 {block name="label"}
     {if isset($input.type) && $input.type == 'languageselector'}
-         <div class="col-md-3 row" style="background-color: transparent;">
+        <div class="col-md-3 row" style="background-color: transparent;">
             <div class="top-logo">
                 {if isset($input.logoImg)}
                 <img src="{$input.logoImg}" alt="Clerk.io" style="float:left;max-width:64px;">
@@ -88,7 +88,7 @@
                         {/if}
                     {/foreach}
                     {/if}
-                </select>                
+                </select>
             </div>
             <div class="col-md-3">
                 <div >&nbsp;</div>
