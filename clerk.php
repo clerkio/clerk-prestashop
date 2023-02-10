@@ -1221,7 +1221,7 @@ class Clerk extends Module
                     ),
                     array(
                         'type' => $booleanType,
-                        'label' => $this->l('Query Products By Stock'),
+                        'label' => $this->l('Order Products Query By Stock'),
                         'name' => 'clerk_datasync_query_by_stock',
                         'is_bool' => true,
                         'class' => 't',
