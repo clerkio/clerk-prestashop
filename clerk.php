@@ -229,6 +229,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $falseValues, false, null, $shop['id_shop']);
@@ -432,6 +433,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK');
+        Configuration::deleteByName('CLERK_DATASYNC_QUERY_BY_STOCK');
         Configuration::deleteByName('CLERK_INCLUDE_VARIANT_REFERENCES');
         Configuration::deleteByName('CLERK_DATASYNC_PRODUCT_FEATURES');
         Configuration::deleteByName('CLERK_IMAGE_SIZE');
@@ -642,6 +644,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', array(
                     $this->language_id => Tools::getValue('clerk_datasync_include_only_local_stock', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_query_by_stock', 0)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', array(
@@ -1058,44 +1064,6 @@ class Clerk extends Module
                     ),
                     array(
                         'type' => $booleanType,
-                        'label' => $this->l('Include Out Of Stock Products'),
-                        'name' => 'clerk_datasync_include_out_of_stock_products',
-                        'is_bool' => true,
-                        'class' => 't',
-                        'values' => array(
-                            array(
-                                'id' => 'clerk_datasync_include_out_of_stock_products_on',
-                                'value' => 1,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'clerk_datasync_include_out_of_stock_products_off',
-                                'value' => 0,
-                                'label' => $this->l('Disabled')
-                            )
-                        )
-                    ),
-                    array(
-                        'type' => $booleanType,
-                        'label' => $this->l('Only Check Local Stock'),
-                        'name' => 'clerk_datasync_include_only_local_stock',
-                        'is_bool' => true,
-                        'class' => 't',
-                        'values' => array(
-                            array(
-                                'id' => 'clerk_datasync_include_only_local_stock_on',
-                                'value' => 1,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'clerk_datasync_include_only_local_stock_off',
-                                'value' => 0,
-                                'label' => $this->l('Disabled')
-                            )
-                        )
-                    ),
-                    array(
-                        'type' => $booleanType,
                         'label' => $this->l('Collect Emails'),
                         'name' => 'clerk_datasync_collect_emails',
                         'is_bool' => true,
@@ -1153,7 +1121,7 @@ class Clerk extends Module
                     ),
                     array(
                         'type' => 'text',
-                        'label' => $this->l('Additional Fields'),
+                        'label' => $this->l('Additional Fields Products'),
                         'name' => 'clerk_datasync_fields',
                     ),
                     array(
@@ -1208,6 +1176,63 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_product_features_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Include Out Of Stock Products'),
+                        'name' => 'clerk_datasync_include_out_of_stock_products',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_include_out_of_stock_products_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_include_out_of_stock_products_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Only Check Local Stock'),
+                        'name' => 'clerk_datasync_include_only_local_stock',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_include_only_local_stock_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_include_only_local_stock_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Query Products By Stock'),
+                        'name' => 'clerk_datasync_query_by_stock',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_query_by_stock_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_query_by_stock_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -1793,8 +1818,6 @@ class Clerk extends Module
         }
 
 
-
-
         $this->fields_form[] = array(
             'form' => array(
                 'legend' => array(
@@ -1804,13 +1827,6 @@ class Clerk extends Module
                 'input' => $facet_input,
             ),
         );
-
-
-
-
-
-
-
 
         //Category settings
         $this->fields_form[] = array(
@@ -2151,145 +2167,143 @@ class Clerk extends Module
         <script>
         function DOMready(fn) {
             if (document.readyState != "loading") {
-               fn();
+                fn();
             } else if (document.addEventListener) {
                 document.addEventListener("DOMContentLoaded", fn);
             } else {
                 document.attachEvent("onreadystatechange", function() {
                 if (document.readyState != "loading")
-                   fn();
+                    fn();
                 });
             }
         }
 
-        
+
         class ConfirmDialog {
             constructor({titleText, questionText, trueButtonText, falseButtonText, parent }) {
-              this.titleText = titleText || "Title";
-              this.questionText = questionText || "Are you sure?";
-              this.trueButtonText = trueButtonText || "Yes";
-              this.falseButtonText = falseButtonText || "No";
-              this.parent = parent || document.body;
-          
-              this.dialog = undefined;
-              this.trueButton = undefined;
-              this.falseButton = undefined;
-          
-              this._createDialog();
-              this._appendDialog();
-            }
-          
-            confirm() {
-              return new Promise((resolve, reject) => {
-                const somethingWentWrongUponCreation =
-                  !this.dialog || !this.trueButton || !this.falseButton;
-                if (somethingWentWrongUponCreation) {
-                  reject('Someting went wrong when creating the modal');
-                  return;
-                }
-                
-                this.dialog.showModal();
-                this.trueButton.focus();
-          
-                this.trueButton.addEventListener("click", () => {
-                  resolve(true);
-                  this._destroy();
-                });
-          
-                this.falseButton.addEventListener("click", () => {
-                  resolve(false);
-                  this._destroy();
-                });
-              });
-            }
-          
-            _createDialog() {
-              this.dialog = document.createElement("dialog");
-              this.dialog.style.fontFamily = "inherit";
-              this.dialog.style.borderRadius = "5px";
-              this.dialog.style.border = "0";
-              this.dialog.classList.add("confirm-dialog");
+                this.titleText = titleText || "Title";
+                this.questionText = questionText || "Are you sure?";
+                this.trueButtonText = trueButtonText || "Yes";
+                this.falseButtonText = falseButtonText || "No";
+                this.parent = parent || document.body;
 
-              const title = document.createElement("div");
-              title.textContent = this.titleText;
-              title.classList.add("confirm-dialog-title");
-              title.style.fontSize = "22px";
-              title.style.lineHeight = "20px";
-              title.style.paddingBottom = "15px";
-              
-              this.dialog.appendChild(title);
-          
-              const question = document.createElement("div");
-              question.textContent = this.questionText;
-              question.classList.add("confirm-dialog-question");
-              question.style.paddingBottom = "15px";
-              this.dialog.appendChild(question);
-          
-              const buttonGroup = document.createElement("div");
-              buttonGroup.classList.add("confirm-dialog-button-group");
-              buttonGroup.style.float = "right";
-              this.dialog.appendChild(buttonGroup);
-          
-              this.falseButton = document.createElement("button");
-              this.falseButton.classList.add(
-                "confirm-dialog-button",
-                "confirm-dialog-button--false"
-              );
-              this.falseButton.type = "button";
-              this.falseButton.textContent = this.falseButtonText;
-              this.falseButton.style.backgroundColor = "#e74c3c";
-              this.falseButton.style.color = "#fff";
-              this.falseButton.style.textTransform = "uppercase";
-              this.falseButton.style.fontSize = "14px";
-              this.falseButton.style.fontWeight = "bold";
-              this.falseButton.style.margin = "4px 4px 4px 4px";
-              this.falseButton.style.padding = "6px 12px";
-              this.falseButton.style.textAlign = "center";
-              this.falseButton.style.verticalAlign = "middle";
-              this.falseButton.style.borderRadius = "4px";
-              this.falseButton.style.minHeight = "1em";
-              this.falseButton.style.border = "0";
-        
-              buttonGroup.appendChild(this.falseButton);
-          
-              this.trueButton = document.createElement("button");
-              this.trueButton.classList.add(
-                "confirm-dialog-button",
-                "confirm-dialog-button--true"
-              );
-              this.trueButton.type = "button";
-              this.trueButton.textContent = this.trueButtonText;
-              this.trueButton.style.backgroundColor = "#3498db";
-              this.trueButton.style.color = "#fff";
-              this.trueButton.style.textTransform = "uppercase";
-              this.trueButton.style.fontSize = "14px";
-              this.trueButton.style.fontWeight = "bold";
-              this.trueButton.style.margin = "4px 4px 4px 4px";
-              this.trueButton.style.padding = "6px 12px";
-              this.trueButton.style.textAlign = "center";
-              this.trueButton.style.verticalAlign = "middle";
-              this.trueButton.style.borderRadius = "4px";
-              this.trueButton.style.minHeight = "1em";
-              this.trueButton.style.border = "0";
-    
-              buttonGroup.appendChild(this.trueButton);
+                this.dialog = undefined;
+                this.trueButton = undefined;
+                this.falseButton = undefined;
+
+                this._createDialog();
+                this._appendDialog();
             }
-          
+
+            confirm() {
+                return new Promise((resolve, reject) => {
+                    const somethingWentWrongUponCreation =
+                    !this.dialog || !this.trueButton || !this.falseButton;
+                    if (somethingWentWrongUponCreation) {
+                    reject('Someting went wrong when creating the modal');
+                    return;
+                    }
+
+                    this.dialog.showModal();
+                    this.trueButton.focus();
+
+                    this.trueButton.addEventListener("click", () => {
+                    resolve(true);
+                    this._destroy();
+                    });
+
+                    this.falseButton.addEventListener("click", () => {
+                    resolve(false);
+                    this._destroy();
+                    });
+                });
+            }
+            _createDialog() {
+                this.dialog = document.createElement("dialog");
+                this.dialog.style.fontFamily = "inherit";
+                this.dialog.style.borderRadius = "5px";
+                this.dialog.style.border = "0";
+                this.dialog.classList.add("confirm-dialog");
+
+                const title = document.createElement("div");
+                title.textContent = this.titleText;
+                title.classList.add("confirm-dialog-title");
+                title.style.fontSize = "22px";
+                title.style.lineHeight = "20px";
+                title.style.paddingBottom = "15px";
+
+                this.dialog.appendChild(title);
+
+                const question = document.createElement("div");
+                question.textContent = this.questionText;
+                question.classList.add("confirm-dialog-question");
+                question.style.paddingBottom = "15px";
+                this.dialog.appendChild(question);
+
+                const buttonGroup = document.createElement("div");
+                buttonGroup.classList.add("confirm-dialog-button-group");
+                buttonGroup.style.float = "right";
+                this.dialog.appendChild(buttonGroup);
+
+                this.falseButton = document.createElement("button");
+                this.falseButton.classList.add(
+                    "confirm-dialog-button",
+                    "confirm-dialog-button--false"
+                );
+                this.falseButton.type = "button";
+                this.falseButton.textContent = this.falseButtonText;
+                this.falseButton.style.backgroundColor = "#e74c3c";
+                this.falseButton.style.color = "#fff";
+                this.falseButton.style.textTransform = "uppercase";
+                this.falseButton.style.fontSize = "14px";
+                this.falseButton.style.fontWeight = "bold";
+                this.falseButton.style.margin = "4px 4px 4px 4px";
+                this.falseButton.style.padding = "6px 12px";
+                this.falseButton.style.textAlign = "center";
+                this.falseButton.style.verticalAlign = "middle";
+                this.falseButton.style.borderRadius = "4px";
+                this.falseButton.style.minHeight = "1em";
+                this.falseButton.style.border = "0";
+
+                buttonGroup.appendChild(this.falseButton);
+
+                this.trueButton = document.createElement("button");
+                this.trueButton.classList.add(
+                    "confirm-dialog-button",
+                    "confirm-dialog-button--true"
+                );
+                this.trueButton.type = "button";
+                this.trueButton.textContent = this.trueButtonText;
+                this.trueButton.style.backgroundColor = "#3498db";
+                this.trueButton.style.color = "#fff";
+                this.trueButton.style.textTransform = "uppercase";
+                this.trueButton.style.fontSize = "14px";
+                this.trueButton.style.fontWeight = "bold";
+                this.trueButton.style.margin = "4px 4px 4px 4px";
+                this.trueButton.style.padding = "6px 12px";
+                this.trueButton.style.textAlign = "center";
+                this.trueButton.style.verticalAlign = "middle";
+                this.trueButton.style.borderRadius = "4px";
+                this.trueButton.style.minHeight = "1em";
+                this.trueButton.style.border = "0";
+
+                buttonGroup.appendChild(this.trueButton);
+            }
+
             _appendDialog() {
-              this.parent.appendChild(this.dialog);
+                this.parent.appendChild(this.dialog);
             }
-          
+
             _destroy() {
-              this.parent.removeChild(this.dialog);
-              delete this;
+                this.parent.removeChild(this.dialog);
+                delete this;
             }
-          }
-          
-          var before_logging_level;
+        }
+
+        var before_logging_level;
 
         window.DOMready(function() {
 
-           
             document.getElementById("clerk_logging_level").addEventListener('focus', function () {
 
                 before_logging_level =  document.getElementById("clerk_logging_level").value;
@@ -2297,11 +2311,11 @@ class Clerk extends Module
             });
 
             document.getElementById('clerk_logging_level').addEventListener('change', async () =>{
-               
+
                 if (document.getElementById("clerk_logging_level").value !== 'all') {
 
                     before_logging_level =  document.getElementById("clerk_logging_level").value;
-                    
+
                     } else {
 
                         const dialog = new ConfirmDialog({
@@ -2320,7 +2334,7 @@ class Clerk extends Module
                             }
 
                     }
-                         
+
             });
 
         });
@@ -2617,6 +2631,7 @@ CLERKJS;
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $_lang_id, null, $_shop_id),
+            'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $_lang_id, null, $_shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $_lang_id, null, $_shop_id),
             'clerk_datasync_product_features' => Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $_lang_id, null, $_shop_id),
@@ -3150,6 +3165,7 @@ CLERKJS;
                 'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->context->language->id, null, $this->context->shop->id),

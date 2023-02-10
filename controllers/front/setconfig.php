@@ -110,6 +110,9 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             if ($key == "clerk_image_size") {
                 Configuration::updateValue('CLERK_IMAGE_SIZE', array($this->language_id => $value), false, null, $this->shop_id);
             }
+            if ($key == "clerk_datasync_query_by_stock") {
+                Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', array($this->language_id => $value), false, null, $this->shop_id);
+            }
 
             // SEARCH SETTINGS (6)
             if ($key == "clerk_search_enabled") {

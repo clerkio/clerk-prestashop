@@ -177,11 +177,19 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('qty', function ($product) {
-            return $this->getStockForProduct($product);
+            if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
+                return (int)$product['quantity'];
+            } else {
+                return $this->getStockForProduct($product);
+            }
         });
 
         $this->addFieldHandler('stock', function ($product) {
-            return $this->getStockForProduct($product);
+            if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
+                return (int)$product['quantity'];
+            } else {
+                return $this->getStockForProduct($product);
+            }
         });
 
         $this->addFieldHandler('supplier', function ($product) {
@@ -202,7 +210,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('in_stock', function ($product) {
-            return $this->getStockForProduct($product) > 0;
+            if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
+                return $product['quantity'] > 0;
+            } else {
+                return $this->getStockForProduct($product) > 0;
+            }
         });
 
         $this->addFieldHandler('categories', function ($product) {
@@ -249,16 +261,40 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $active = ' AND p.active = 1';
             }
 
-            $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add, pl.description, pl.description_short, pl.name, p.visibility
-            FROM "._DB_PREFIX_."product p
-            LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
-            LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
-            LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
-            LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
-            WHERE pl.id_lang = ".$language_id." AND cl.id_lang = ".$language_id.$active."
-            GROUP BY p.id_product
-            ORDER BY p.id_product asc
-            LIMIT ".$offset.",".$limit;
+            if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
+
+                /* Heavier quantity sorted query ensures no intermitent empty pages are returned */
+
+                $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
+                pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity'
+                FROM "._DB_PREFIX_."product p
+                LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
+                LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
+                LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
+                LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
+                LEFT JOIN "._DB_PREFIX_."stock_available psa ON (p.id_product = psa.id_product)
+                WHERE pl.id_lang = ".$language_id." AND cl.id_lang = ".$language_id.$active."
+                GROUP BY p.id_product
+                ORDER BY quantity desc
+                LIMIT ".$offset.",".$limit;
+
+            } else {
+
+                /* Lighter query sorted by id_product is Default */
+
+                $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
+                pl.description, pl.description_short, pl.name, p.visibility
+                FROM "._DB_PREFIX_."product p
+                LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
+                LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
+                LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
+                LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
+                WHERE pl.id_lang = ".$language_id." AND cl.id_lang = ".$language_id.$active."
+                GROUP BY p.id_product
+                ORDER BY p.id_product asc
+                LIMIT ".$offset.",".$limit;
+
+            }
 
             $products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
