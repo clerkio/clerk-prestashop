@@ -84,14 +84,14 @@ class Clerk extends Module
         //Set shop id
         if (!isset($_SESSION["shop_id"])) {
 
-            $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id;
+            $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int) Tools::getValue('clerk_shop_select') : $this->context->shop->id;
         } else {
 
             $this->shop_id = $_SESSION["shop_id"];
         }
 
         //Set language id
-        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int)Tools::getValue('clerk_language_select') : $this->context->language->id;
+        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int) Tools::getValue('clerk_language_select') : $this->context->language->id;
     }
 
     /**
@@ -383,8 +383,8 @@ class Clerk extends Module
      */
     public function uninstall()
     {
-        $id_tab = (int)Tab::getIdFromClassName('AdminClerkDashboard');
-        $id_tab2 = (int)Tab::getIdFromClassName('AdminModules&configure=clerk');
+        $id_tab = (int) Tab::getIdFromClassName('AdminClerkDashboard');
+        $id_tab2 = (int) Tab::getIdFromClassName('AdminModules&configure=clerk');
 
         if ($id_tab2) {
             $tab = new Tab($id_tab2);
@@ -483,9 +483,10 @@ class Clerk extends Module
                 return true;
             }
 
-            if ((Tools::getValue('clerk_language_select') !== false && (int)Tools::getValue('clerk_language_select') === $this->language_id)
+            if (
+                (Tools::getValue('clerk_language_select') !== false && (int) Tools::getValue('clerk_language_select') === $this->language_id)
                 || (Tools::getValue('clerk_language_select') === false
-                    && (int)Configuration::get('PS_LANG_DEFAULT') === $this->language_id)
+                    && (int) Configuration::get('PS_LANG_DEFAULT') === $this->language_id)
             ) {
                 Configuration::updateValue('CLERK_PUBLIC_KEY', array(
                     $this->language_id => trim(Tools::getValue('clerk_public_key', ''))
@@ -572,11 +573,11 @@ class Clerk extends Module
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', array(
-                    $this->language_id =>  Tools::getValue('clerk_livesearch_selector', '.ui-autocomplete-input')
+                    $this->language_id => Tools::getValue('clerk_livesearch_selector', '.ui-autocomplete-input')
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', array(
-                    $this->language_id =>  Tools::getValue('clerk_livesearch_form_selector', '#search_widget > form')
+                    $this->language_id => Tools::getValue('clerk_livesearch_form_selector', '#search_widget > form')
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', array(
@@ -990,6 +991,10 @@ class Clerk extends Module
                                 array(
                                     'value' => 'displayTop',
                                     'name' => $this->l('displayTop')
+                                ),
+                                array(
+                                    'value' => 'footer',
+                                    'name' => $this->l('Footer')
                                 )
                             ),
                             'id' => 'value',
@@ -1698,7 +1703,7 @@ class Clerk extends Module
             )
         );
 
-        $facets_design =  array(
+        $facets_design = array(
             'type' => 'text',
             'placeholder' => 'Template ID (optional)',
             'label' => $this->l('Design'),
@@ -1766,11 +1771,11 @@ class Clerk extends Module
                     '<th>Position</th>' .
                     '<th>Delete</th></tr>';
                 foreach ($attributes as $attribute) {
-                    $attributeHTML =   '<tr class="facets_lines">';
-                    $attributeHTML .=  '<td style="padding:8px 10px 8px 0px;"><input type="text" name="clerk_facets_attributes[]" value="' . $attribute . '" readonly=""></td>';
-                    $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_title[' . $attribute . '][]" value="' . $titles[$attribute][0] . '"></td>';
-                    $attributeHTML .=  '<td style="padding-right:10px;"><input type="text" name="clerk_facets_position[' . $attribute . '][]" value="' . $positions[$attribute][0] . '"></td>';
-                    $attributeHTML .=  '<td style="padding-right:10px;" onclick="removeFacet();" ><i class="icon-remove"></i></td></tr>';
+                    $attributeHTML = '<tr class="facets_lines">';
+                    $attributeHTML .= '<td style="padding:8px 10px 8px 0px;"><input type="text" name="clerk_facets_attributes[]" value="' . $attribute . '" readonly=""></td>';
+                    $attributeHTML .= '<td style="padding-right:10px;"><input type="text" name="clerk_facets_title[' . $attribute . '][]" value="' . $titles[$attribute][0] . '"></td>';
+                    $attributeHTML .= '<td style="padding-right:10px;"><input type="text" name="clerk_facets_position[' . $attribute . '][]" value="' . $positions[$attribute][0] . '"></td>';
+                    $attributeHTML .= '<td style="padding-right:10px;" onclick="removeFacet();" ><i class="icon-remove"></i></td></tr>';
                     $facetHTML .= $attributeHTML;
                 }
             } else {
@@ -1782,7 +1787,7 @@ class Clerk extends Module
                 'type' => 'html',
                 'label' => $this->l('Facet Attributes'),
                 'name' => 'faceted navigation',
-                'html_content' =>  $facetHTML
+                'html_content' => $facetHTML
             );
             array_push($facet_input, $facets_design, $facet_attribute_input, $facettable, $clerk_custom_facet_script);
         }
@@ -1796,7 +1801,7 @@ class Clerk extends Module
                     'title' => $this->l('Faceted navigation'),
                     'icon' => 'icon-search'
                 ),
-                'input' =>  $facet_input,
+                'input' => $facet_input,
             ),
         );
 
@@ -2099,45 +2104,45 @@ class Clerk extends Module
                 'name' => 'LoggingViewer',
                 'html_content' =>
                 '<script>' .
-                    'function DOMready(fn) {' .
-                    'if (document.readyState != "loading") {' .
-                    '   fn();' .
-                    '} else if (document.addEventListener) {' .
-                    '    document.addEventListener("DOMContentLoaded", fn);' .
-                    '} else {' .
-                    '    document.attachEvent("onreadystatechange", function() {' .
-                    '    if (document.readyState != "loading")' .
-                    '        fn();' .
-                    '    });' .
-                    '}' .
-                    '}' .
+                'function DOMready(fn) {' .
+                'if (document.readyState != "loading") {' .
+                '   fn();' .
+                '} else if (document.addEventListener) {' .
+                '    document.addEventListener("DOMContentLoaded", fn);' .
+                '} else {' .
+                '    document.attachEvent("onreadystatechange", function() {' .
+                '    if (document.readyState != "loading")' .
+                '        fn();' .
+                '    });' .
+                '}' .
+                '}' .
 
-                    'window.DOMready(function() {' .
-                    'document.getElementById(\'clerk_logging_viewer\').scrollTop = document.getElementById(\'clerk_logging_viewer\').scrollHeight;' .
-                    '});' .
-                    '(function () {' .
-                    'var clerklog = new XMLHttpRequest();' .
-                    'clerklog.onreadystatechange = function() {' .
-                    'if (clerklog.readyState == XMLHttpRequest.DONE) {' .   // XMLHttpRequest.DONE == 4
-                    'if (clerklog.status == 200) {' .
-                    'res = clerklog.responseText;' .
-                    'document.getElementById(\'clerk_logging_viewer\').innerHTML = res;' .
-                    '}' .
-                    'else if (clerklog.status == 400) {' .
-                    'console.log("There was an error 400");' .
-                    '}' .
-                    'else {' .
-                    'console.log("something else other than 200 was returned");' .
-                    '}' .
-                    '}' .
-                    '};' .
+                'window.DOMready(function() {' .
+                'document.getElementById(\'clerk_logging_viewer\').scrollTop = document.getElementById(\'clerk_logging_viewer\').scrollHeight;' .
+                '});' .
+                '(function () {' .
+                'var clerklog = new XMLHttpRequest();' .
+                'clerklog.onreadystatechange = function() {' .
+                'if (clerklog.readyState == XMLHttpRequest.DONE) {' . // XMLHttpRequest.DONE == 4
+                'if (clerklog.status == 200) {' .
+                'res = clerklog.responseText;' .
+                'document.getElementById(\'clerk_logging_viewer\').innerHTML = res;' .
+                '}' .
+                'else if (clerklog.status == 400) {' .
+                'console.log("There was an error 400");' .
+                '}' .
+                'else {' .
+                'console.log("something else other than 200 was returned");' .
+                '}' .
+                '}' .
+                '};' .
 
-                    'clerklog.open("GET", "/modules/clerk/clerk_log.log", true);' .
-                    'clerklog.send();' .
+                'clerklog.open("GET", "/modules/clerk/clerk_log.log", true);' .
+                'clerklog.send();' .
 
-                    'setTimeout(arguments.callee, 5000);' .
-                    '})();' .
-                    '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
+                'setTimeout(arguments.callee, 5000);' .
+                '})();' .
+                '</script><div style="height: 300px; white-space:pre-wrap; background: black; color: white; overflow: scroll;" id="clerk_logging_viewer"></div>',
             );
         }
 
@@ -2335,6 +2340,38 @@ CLERKJS;
                 'label' => $this->l(''),
                 'name' => 'Debug message',
                 'html_content' => '<hr><strong>PrestaShop Debug Mode is disabled</strong>' .
+                '<p>When debug mode is disabled, PrestaShop hides a lot of errors and making it impossible for Clerk logger to detect and catch these errors.</p>' .
+                '<p>To make it possibel for Clerk logger to catch all errors you have to enable debug mode.</p>' .
+                '<p>Debug is not recommended in production in a longer period of time.</p>' .
+                '</br><p><strong>When you store is in debug mode</strong></p>' .
+                '<ul>' .
+                '<li>Caching is disabled.</li>' .
+                '<li>Errors will be visible.</li>' .
+                '<li>Clerk logger can catch all errors.</li>' .
+                '</ul>' .
+                '</br><p><strong>Step By Step Guide to enable debug mode</strong></p>' .
+                '<ol>' .
+                '<li>Please enable PrestaShop Debug Mode.</li>' .
+                '<li>Enable Clerk Logging.</li>' .
+                '<li>Set the logging level to "ERROR + WARN + DEBUG".</li>' .
+                '<li>Set Logging to "my.clerk.io".</li>' .
+                '</ol>' .
+                '<p>Thanks, that will make it a lot easier for our customer support to help you.</p>' .
+                '</br><p><strong>HOW TO ENABLE DEBUG MODE:</strong></p>' .
+                '<p>Open config/defines.inc.php and usually at line 29 you will find</p>' .
+                '<p>define(\'_PS_MODE_DEV_\', false);</p>' .
+                '<p>change it to:</p>' .
+                '<p>define(\'_PS_MODE_DEV_\', true);</p>' .
+                '<hr>'
+            );
+
+            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+                $Debug_message = array(
+                    'type' => 'html',
+                    'label' => $this->l(''),
+                    'name' => 'Debug message',
+                    'html_content' => '<hr><strong>PrestaShop Debug Mode is disabled</strong>' .
                     '<p>When debug mode is disabled, PrestaShop hides a lot of errors and making it impossible for Clerk logger to detect and catch these errors.</p>' .
                     '<p>To make it possibel for Clerk logger to catch all errors you have to enable debug mode.</p>' .
                     '<p>Debug is not recommended in production in a longer period of time.</p>' .
@@ -2353,39 +2390,7 @@ CLERKJS;
                     '</ol>' .
                     '<p>Thanks, that will make it a lot easier for our customer support to help you.</p>' .
                     '</br><p><strong>HOW TO ENABLE DEBUG MODE:</strong></p>' .
-                    '<p>Open config/defines.inc.php and usually at line 29 you will find</p>' .
-                    '<p>define(\'_PS_MODE_DEV_\', false);</p>' .
-                    '<p>change it to:</p>' .
-                    '<p>define(\'_PS_MODE_DEV_\', true);</p>' .
-                    '<hr>'
-            );
-
-            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-
-                $Debug_message = array(
-                    'type' => 'html',
-                    'label' => $this->l(''),
-                    'name' => 'Debug message',
-                    'html_content' => '<hr><strong>PrestaShop Debug Mode is disabled</strong>' .
-                        '<p>When debug mode is disabled, PrestaShop hides a lot of errors and making it impossible for Clerk logger to detect and catch these errors.</p>' .
-                        '<p>To make it possibel for Clerk logger to catch all errors you have to enable debug mode.</p>' .
-                        '<p>Debug is not recommended in production in a longer period of time.</p>' .
-                        '</br><p><strong>When you store is in debug mode</strong></p>' .
-                        '<ul>' .
-                        '<li>Caching is disabled.</li>' .
-                        '<li>Errors will be visible.</li>' .
-                        '<li>Clerk logger can catch all errors.</li>' .
-                        '</ul>' .
-                        '</br><p><strong>Step By Step Guide to enable debug mode</strong></p>' .
-                        '<ol>' .
-                        '<li>Please enable PrestaShop Debug Mode.</li>' .
-                        '<li>Enable Clerk Logging.</li>' .
-                        '<li>Set the logging level to "ERROR + WARN + DEBUG".</li>' .
-                        '<li>Set Logging to "my.clerk.io".</li>' .
-                        '</ol>' .
-                        '<p>Thanks, that will make it a lot easier for our customer support to help you.</p>' .
-                        '</br><p><strong>HOW TO ENABLE DEBUG MODE:</strong></p>' .
-                        '<p>Advanced Parameters > Performance > DEBUG MODE PANEL > Set it to YES</p><hr>'
+                    '<p>Advanced Parameters > Performance > DEBUG MODE PANEL > Set it to YES</p><hr>'
                 );
             }
         } else {
@@ -2395,10 +2400,40 @@ CLERKJS;
                 'label' => $this->l(''),
                 'name' => 'Debug message',
                 'html_content' => '<hr><p style="color: red;"><strong>PrestaShop Debug Mode is enabled</strong></p>' .
+                '<ul>' .
+                '<li style="color: red;">Caching is disabled.</li>' .
+                '<li style="color: red;">Errors will be visible.</li>' .
+                '<li style="color: red;">Clerk logger can catch all errors.</li>' .
+                '<li style="color: red;">Remember to disable it again after use!</li>' .
+                '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>' .
+                '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>' .
+                '</ul>' .
+                '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>' .
+                '<ol>' .
+                '<li>Please disable PrestaShop Debug Mode.</li>' .
+                '<li>Keep Clerk Logging enabled.</li>' .
+                '<li>Set the logging level to "ERROR + WARN".</li>' .
+                '<li>Keep Logging to "my.clerk.io".</li>' .
+                '</ol>' .
+                '</br><p><strong>HOW TO DISABLE DEBUG MODE:</strong></p>' .
+                '<p>Open config/defines.inc.php and usually at line 29 you will find</p>' .
+                '<p>define(\'_PS_MODE_DEV_\', true);</p>' .
+                '<p>change it to:</p>' .
+                '<p>define(\'_PS_MODE_DEV_\', false);</p>' .
+                '<hr>'
+            );
+
+            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+                $Debug_message = array(
+                    'type' => 'html',
+                    'label' => $this->l(''),
+                    'name' => 'Debug message',
+                    'html_content' => '<hr><p style="color: red;"><strong>PrestaShop Debug Mode is enabled</strong></p>' .
                     '<ul>' .
                     '<li style="color: red;">Caching is disabled.</li>' .
                     '<li style="color: red;">Errors will be visible.</li>' .
-                    '<li style="color: red;">Clerk logger can catch all errors.</li>' .
+                    '<li style="color: red;">It will be possible for Clerk logger to catch errors.</li>' .
                     '<li style="color: red;">Remember to disable it again after use!</li>' .
                     '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>' .
                     '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>' .
@@ -2411,37 +2446,7 @@ CLERKJS;
                     '<li>Keep Logging to "my.clerk.io".</li>' .
                     '</ol>' .
                     '</br><p><strong>HOW TO DISABLE DEBUG MODE:</strong></p>' .
-                    '<p>Open config/defines.inc.php and usually at line 29 you will find</p>' .
-                    '<p>define(\'_PS_MODE_DEV_\', true);</p>' .
-                    '<p>change it to:</p>' .
-                    '<p>define(\'_PS_MODE_DEV_\', false);</p>' .
-                    '<hr>'
-            );
-
-            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-
-                $Debug_message = array(
-                    'type' => 'html',
-                    'label' => $this->l(''),
-                    'name' => 'Debug message',
-                    'html_content' => '<hr><p style="color: red;"><strong>PrestaShop Debug Mode is enabled</strong></p>' .
-                        '<ul>' .
-                        '<li style="color: red;">Caching is disabled.</li>' .
-                        '<li style="color: red;">Errors will be visible.</li>' .
-                        '<li style="color: red;">It will be possible for Clerk logger to catch errors.</li>' .
-                        '<li style="color: red;">Remember to disable it again after use!</li>' .
-                        '<li style="color: red;">It\'s not best practice to have it enabled in production.</li>' .
-                        '<li style="color: red;">it\'s only recommended for at very short period af time for debug use.</li>' .
-                        '</ul>' .
-                        '</br><p><strong>Step By Step Guide to disable debug mode</strong></p>' .
-                        '<ol>' .
-                        '<li>Please disable PrestaShop Debug Mode.</li>' .
-                        '<li>Keep Clerk Logging enabled.</li>' .
-                        '<li>Set the logging level to "ERROR + WARN".</li>' .
-                        '<li>Keep Logging to "my.clerk.io".</li>' .
-                        '</ol>' .
-                        '</br><p><strong>HOW TO DISABLE DEBUG MODE:</strong></p>' .
-                        '<p>Advanced Parameters > Performance > DEBUG MODE PANEL > Set it to NO</p><hr>'
+                    '<p>Advanced Parameters > Performance > DEBUG MODE PANEL > Set it to NO</p><hr>'
                 );
             }
         }
@@ -2532,7 +2537,7 @@ CLERKJS;
 
         $helper->show_toolbar = false;
         $helper->table = $this->table;
-        $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
+        $lang = new Language((int) Configuration::get('PS_LANG_DEFAULT'));
 
         $helper->default_form_language = $lang->id;
         $helper->allow_employee_form_lang = $lang->id;
@@ -2569,10 +2574,10 @@ CLERKJS;
         $_shop_id = (!empty(Shop::getContextShopID())) ? Shop::getContextShopID() : $this->shop_id;
         $_lang_id = (!empty(Language::getLanguages(true, $_shop_id, true))) ? Language::getLanguages(true, $_shop_id, true)[0] : $this->language_id;
         if (Tools::getValue('clerk_language_select')) {
-            $_lang_id = (int)Tools::getValue('clerk_language_select');
+            $_lang_id = (int) Tools::getValue('clerk_language_select');
         }
 
-        $sync_url =  explode("module/clerk/version", (string)Context::getContext()->link->getModuleLink('clerk', 'version', [], null, $_lang_id, $_shop_id, false))[0];
+        $sync_url = explode("module/clerk/version", (string) Context::getContext()->link->getModuleLink('clerk', 'version', [], null, $_lang_id, $_shop_id, false))[0];
 
         return array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $_lang_id, null, $_shop_id),
@@ -2638,7 +2643,7 @@ CLERKJS;
     public function hookTop($params)
     {
 
-        if(Configuration::get('CLERK_TRACKING_HOOK_POSITION',  $this->context->language->id, null, $this->context->shop->id) !== 'top') {
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'top') {
             return;
         }
 
@@ -2696,33 +2701,37 @@ CLERKJS;
             $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
         }
 
-        $this->context->smarty->assign(array(
-            'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_language' => $this->language,
-            'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-            'customer_group_id' => (Customer::getDefaultGroupId((int)$this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int)$this->context->customer->id) : false
-        ));
-        $View =  $this->display(__FILE__, 'clerk_js.tpl');
+        $this->context->smarty->assign(
+            array(
+                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_language' => $this->language,
+                'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
+                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
+            )
+        );
+        $View = $this->display(__FILE__, 'clerk_js.tpl');
 
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
-            $this->smarty->assign(array(
-                'clerksearch_type' => 'top',
-                'search_query' => (string)Tools::getValue('search_query', ''),
-                'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_number_categories' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_number_suggestions' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_pages_type' => (string)Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_dropdown_position' => (string)Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
-                'search_enabled' => (bool)Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
-                'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
-                'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-            ));
+            $this->smarty->assign(
+                array(
+                    'clerksearch_type' => 'top',
+                    'search_query' => (string) Tools::getValue('search_query', ''),
+                    'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                    'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
+                    'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
+                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                )
+            );
 
             $View .= $this->display(__FILE__, 'search-top.tpl', $key);
         }
@@ -2735,7 +2744,7 @@ CLERKJS;
 
                     $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
-                    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                     $this->context->smarty->assign(
                         array(
@@ -2753,7 +2762,7 @@ CLERKJS;
                 if ($category_id) {
                     $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-                    $exclude_duplicates_category = (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                     $this->context->smarty->assign(
                         array(
@@ -2773,7 +2782,7 @@ CLERKJS;
     public function hookDisplayTop($params)
     {
 
-        if(Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayTop') {
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayTop') {
             return;
         }
 
@@ -2831,33 +2840,37 @@ CLERKJS;
             $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
         }
 
-        $this->context->smarty->assign(array(
-            'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_language' => $this->language,
-            'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-            'customer_group_id' => (Customer::getDefaultGroupId((int)$this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int)$this->context->customer->id) : false
-        ));
-        $View =  $this->display(__FILE__, 'clerk_js.tpl');
+        $this->context->smarty->assign(
+            array(
+                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_language' => $this->language,
+                'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
+                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
+            )
+        );
+        $View = $this->display(__FILE__, 'clerk_js.tpl');
 
         if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
-            $this->smarty->assign(array(
-                'clerksearch_type' => 'top',
-                'search_query' => (string)Tools::getValue('search_query', ''),
-                'livesearch_enabled' => (bool)Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_categories' => (int)Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_number_categories' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_number_suggestions' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_number_pages' => (int)Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_pages_type' => (string)Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_dropdown_position' => (string)Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
-                'search_enabled' => (bool)Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
-                'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
-                'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
-                'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-            ));
+            $this->smarty->assign(
+                array(
+                    'clerksearch_type' => 'top',
+                    'search_query' => (string) Tools::getValue('search_query', ''),
+                    'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                    'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
+                    'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
+                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                )
+            );
 
             $View .= $this->display(__FILE__, 'search-top.tpl', $key);
         }
@@ -2870,7 +2883,7 @@ CLERKJS;
 
                     $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
-                    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                     $this->context->smarty->assign(
                         array(
@@ -2888,7 +2901,7 @@ CLERKJS;
                 if ($category_id) {
                     $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-                    $exclude_duplicates_category = (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                     $this->context->smarty->assign(
                         array(
@@ -2912,11 +2925,145 @@ CLERKJS;
      */
     public function hookFooter()
     {
+
+        $templateOutput = '';
+
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) === 'footer') {
+
+            switch ($this->context->language->iso_code) {
+                case 'da':
+                    $this->language = 'danish';
+                    break;
+                case 'nl':
+                    $this->language = 'dutch';
+                    break;
+                case 'en':
+                    $this->language = 'english';
+                    break;
+                case 'fi':
+                    $this->language = 'finnish';
+                    break;
+                case 'fr':
+                    $this->language = 'french';
+                    break;
+                case 'de':
+                    $this->language = 'german';
+                    break;
+                case 'hu':
+                    $this->language = 'hungarian';
+                    break;
+                case 'it':
+                    $this->language = 'italian';
+                    break;
+                case 'no':
+                    $this->language = 'norwegian';
+                    break;
+                case 'pt':
+                    $this->language = 'portuguese';
+                    break;
+                case 'ro':
+                    $this->language = 'romanian';
+                    break;
+                case 'ru':
+                    $this->language = 'russian';
+                    break;
+                case 'es':
+                    $this->language = 'spanish';
+                    break;
+                case 'sv':
+                    $this->language = 'swedish';
+                    break;
+                case 'tr':
+                    $this->language = 'turkish';
+                    break;
+            }
+
+            if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
+
+                $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+            }
+
+            $this->context->smarty->assign(
+                array(
+                    'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                    'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                    'clerk_language' => $this->language,
+                    'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
+                    'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
+                )
+            );
+            $templateOutput = $this->display(__FILE__, 'clerk_js.tpl');
+
+            if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+                $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
+                $this->smarty->assign(
+                    array(
+                        'clerksearch_type' => 'top',
+                        'search_query' => (string) Tools::getValue('search_query', ''),
+                        'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                        'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
+                        'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
+                        'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                    )
+                );
+
+                $templateOutput .= $this->display(__FILE__, 'search-top.tpl', $key);
+            }
+            if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
+                $context = Context::getContext();
+                $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
+                if ($enabled) {
+                    $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
+                    if ($correctType) {
+
+                        $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
+
+                        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+
+                        $this->context->smarty->assign(
+                            array(
+                                'Contents' => $Contents,
+                                'ProductId' => Tools::getValue('id_product'),
+                                'ExcludeDuplicates' => $exclude_duplicates_powerstep
+                            )
+                        );
+                        $templateOutput .= $this->display(__FILE__, 'powerstep_embedded_blockcart.tpl');
+                    }
+                }
+                if (Configuration::get('CLERK_CATEGORY_ENABLED', $context->language->id, null, $this->context->shop->id)) {
+                    $category_id = Tools::getValue("id_category");
+
+                    if ($category_id) {
+                        $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
+
+                        $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+
+                        $this->context->smarty->assign(
+                            array(
+                                'Contents' => $Contents,
+                                'CategoryId' => $category_id,
+                                'ExcludeDuplicates' => $exclude_duplicates_category
+                            )
+                        );
+
+                        $templateOutput .= $this->display(__FILE__, 'category_products_embedded.tpl');
+                    }
+                }
+            }
+        }
+
+
         //Determine if we should redirect to powerstep
         $controller = $this->context->controller;
         $cookie = $this->context->cookie;
-
-        $popup = '';
 
 
         //Determine if powerstep is enabled
@@ -2945,25 +3092,27 @@ CLERKJS;
                     $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
                     $templates = array_filter(explode(',', $templatesConfig));
 
-                    $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
                     $categories = $product->getCategories();
                     $category = reset($categories);
 
-                    $this->context->smarty->assign(array(
-                        'templates' => $templates,
-                        'product' => $product,
-                        'category' => $category,
-                        'image' => $image,
-                        'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
-                        'ExcludeDuplicates' => $exclude_duplicates_powerstep
-                    ));
+                    $this->context->smarty->assign(
+                        array(
+                            'templates' => $templates,
+                            'product' => $product,
+                            'category' => $category,
+                            'image' => $image,
+                            'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
+                            'ExcludeDuplicates' => $exclude_duplicates_powerstep
+                        )
+                    );
 
                     //Clear cookies
                     unset($cookie->clerk_show_powerstep);
                     unset($cookie->clerk_last_product);
 
-                    $popup .= $this->display(__FILE__, 'powerstep_modal.tpl');
+                    $templateOutput .= $this->display(__FILE__, 'powerstep_modal.tpl');
                 }
             }
         }
@@ -2996,48 +3145,49 @@ CLERKJS;
         }
         $template_links = new Link();
         //Assign template variables
-        $this->context->smarty->assign(array(
-            'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->context->language->id, null, $this->context->shop->id),
-            'exit_intent_enabled' => (bool)Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'exit_intent_template' => explode(',', Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id)))),
-            'product_enabled' => (bool)Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'product_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-            'category_enabled' => (bool)Configuration::get('CLERK_CATEGORY_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'category_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-            'cart_enabled' => (bool)Configuration::get('CLERK_CART_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'cart_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_CART_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-            'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_collect_cart' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_cart_exclude_duplicates' => (bool)Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_powerstep_exclude_duplicates' => (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_product_exclude_duplicates' => (bool)Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_category_exclude_duplicates' => (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
-            'clerk_cart_update' => $clerk_cart_update,
-            'clerk_cart_products' => $clerk_cart_products,
-            'templates' => $templates,
-            'unix' => time(),
-            'isv17' => $is_v16,
-            'clerk_basket_link' => $template_links->getModuleLink('clerk', 'clerkbasket'),
-            'clerk_added_link' => $template_links->getModuleLink('clerk', 'added'),
-            'clerk_powerstep_link' => $template_links->getModuleLink('clerk', 'powerstep')
-        ));
+        $this->context->smarty->assign(
+            array(
+                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->context->language->id, null, $this->context->shop->id),
+                'exit_intent_enabled' => (bool) Configuration::get('CLERK_EXIT_INTENT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'exit_intent_template' => explode(',', Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_EXIT_INTENT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id)))),
+                'product_enabled' => (bool) Configuration::get('CLERK_PRODUCT_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'product_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                'category_enabled' => (bool) Configuration::get('CLERK_CATEGORY_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'category_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                'cart_enabled' => (bool) Configuration::get('CLERK_CART_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'cart_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_CART_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                'powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_logging_enabled' => Configuration::get('CLERK_LOGGING_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_collect_cart' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_cart_exclude_duplicates' => (bool) Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_powerstep_exclude_duplicates' => (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_product_exclude_duplicates' => (bool) Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_category_exclude_duplicates' => (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_cart_update' => $clerk_cart_update,
+                'clerk_cart_products' => $clerk_cart_products,
+                'templates' => $templates,
+                'unix' => time(),
+                'isv17' => $is_v16,
+                'clerk_basket_link' => $template_links->getModuleLink('clerk', 'clerkbasket'),
+                'clerk_added_link' => $template_links->getModuleLink('clerk', 'added'),
+                'clerk_powerstep_link' => $template_links->getModuleLink('clerk', 'powerstep')
+            )
+        );
 
         $this->context->cookie->clerk_cart_update = false;
 
-        $output = $this->display(__FILE__, 'visitor_tracking.tpl');
-        $output .= $popup;
+        $templateOutput .= $this->display(__FILE__, 'visitor_tracking.tpl');
 
-        return $output;
+        return $templateOutput;
     }
 
     /**
@@ -3053,7 +3203,7 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_CART_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-            $exclude_duplicates_cart = (bool)Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $exclude_duplicates_cart = (bool) Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
             $PreProductIds = $params['cart']->getProducts(true);
 
@@ -3089,7 +3239,7 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-            $exclude_duplicates_category = (bool)Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
             $category_id = Tools::getValue("id_category");
 
@@ -3133,7 +3283,7 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-            $exclude_duplicates_product = (bool)Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $exclude_duplicates_product = (bool) Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
             if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
                 $this->context->smarty->assign(
@@ -3169,10 +3319,10 @@ CLERKJS;
     public function hookDisplayCartModalFooter($params)
     {
         $context = Context::getContext();
-        $enabled = (bool)Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
-        $type = (string)Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
+        $enabled = (bool) Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
+        $type = (string) Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
 
-        $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
             $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
@@ -3214,7 +3364,7 @@ CLERKJS;
                 $cart_product_ids = array();
 
                 foreach ($cart_products as $product)
-                    $cart_product_ids[] = (int)$product['id_product'];
+                    $cart_product_ids[] = (int) $product['id_product'];
 
                 if ($this->context->customer->email) {
                     $Endpoint = 'https://api.clerk.io/v2/log/basket/set';
@@ -3270,7 +3420,7 @@ CLERKJS;
 
             $product_cart_count = 0;
             foreach ($products as $product) {
-                $qty = (int)$product['product_quantity'];
+                $qty = (int) $product['product_quantity'];
                 $product_cart_count += $qty;
             }
 
@@ -3346,7 +3496,7 @@ CLERKJS;
 
         $contentConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
         $contents = array_filter(explode(',', $contentConfig));
-        $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
         foreach ($contents as $key => $content) {
 
@@ -3355,14 +3505,16 @@ CLERKJS;
 
         $category = $product['id_category_default'];
 
-        $this->smarty->assign(array(
-            'product' => $product,
-            'category' => $category,
-            'cart' => $data,
-            'cart_url' => $this->getCartSummaryURL(),
-            'contents' => $contents,
-            'ExcludeDuplicates' => $exclude_duplicates_powerstep
-        ));
+        $this->smarty->assign(
+            array(
+                'product' => $product,
+                'category' => $category,
+                'cart' => $data,
+                'cart_url' => $this->getCartSummaryURL(),
+                'contents' => $contents,
+                'ExcludeDuplicates' => $exclude_duplicates_powerstep
+            )
+        );
 
         return $this->fetch('module:clerk/views/templates/front/powerstepmodal.tpl');
     }
