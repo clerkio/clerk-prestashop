@@ -2992,10 +2992,9 @@ CLERKJS;
                     'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
                 )
             );
-            $templateOutput = $this->display(__FILE__, 'clerk_js.tpl');
+            $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
 
             if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-                $key = $this->getCacheId('clerksearch-top');
                 $this->smarty->assign(
                     array(
                         'clerksearch_type' => 'top',
@@ -3015,7 +3014,7 @@ CLERKJS;
                     )
                 );
 
-                $templateOutput .= $this->display(__FILE__, 'search-top.tpl', $key);
+                $templateOutput .= $this->display(__FILE__, 'search-top.tpl');
             }
             if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
                 $context = Context::getContext();

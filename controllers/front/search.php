@@ -26,7 +26,6 @@
 
 class ClerkSearchModuleFrontController extends ModuleFrontController
 {
-    
     public function initContent()
     {
         $this->display_column_left = false;
