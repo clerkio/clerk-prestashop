@@ -29,7 +29,7 @@ const clerkCategoryInjection = () => {
     const category_contents = {$Contents|json_encode};
     const category_id = {$CategoryId|json_encode};
     const category_heading = document.querySelector('#center_column');
-    const exclude_duplicates_category = {$ExcludeDuplicates};
+    const exclude_duplicates_category = '{$ExcludeDuplicates}';
     let exclude_string_category = '';
     if(category_heading){
         const div_wrapper = document.createElement('div');
