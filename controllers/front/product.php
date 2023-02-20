@@ -84,9 +84,19 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
 
             $this->addFieldHandler('image', function ($product) use ($context) {
+
+                $productRaw = new Product ($product['id_product'], $this->language_id);
+
+                $product_link_rewrite = $productRaw->link_rewrite;
+                if(is_array($product_link_rewrite)){
+                    if(array_key_exists($this->language_id, $product_link_rewrite)){
+                        $product_link_rewrite = $product_link_rewrite[$this->language_id];
+                    }
+                }
+
                 $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
                 $image = Image::getCover($product['id_product']);
-                $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], ImageType::getFormattedName($image_type));
+                $image_path = $context->link->getImageLink($product_link_rewrite, $image['id_image'], ImageType::getFormattedName($image_type));
                 $base_domain = explode('//', _PS_BASE_URL_)[1];
                 $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
                 if ('/-' === $image_check) {
@@ -99,6 +109,16 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
+                    
+                    $productRaw = new Product ($product['id_product'], $this->language_id);
+
+                    $product_link_rewrite = $productRaw->link_rewrite;
+                    if(is_array($product_link_rewrite)){
+                        if(array_key_exists($this->language_id, $product_link_rewrite)){
+                            $product_link_rewrite = $product_link_rewrite[$this->language_id];
+                        }
+                    }
+                    
                     $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
                     $id_list = [];
                     $variant_images = [];
@@ -114,7 +134,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                         }
                     }
                     foreach($id_list as $id){
-                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, ImageType::getFormattedName($image_type));
+                        $variant_image = $context->link->getImageLink($product_link_rewrite, $id, ImageType::getFormattedName($image_type));
                         array_push($variant_images, $variant_image);
                     }
                     return $variant_images;
@@ -124,9 +144,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         } else {
 
             $this->addFieldHandler('image', function ($product) use ($context) {
+                $productRaw = new Product ($product['id_product'], $this->language_id);
+
+                $product_link_rewrite = $productRaw->link_rewrite;
+                if(is_array($product_link_rewrite)){
+                    if(array_key_exists($this->language_id, $product_link_rewrite)){
+                        $product_link_rewrite = $product_link_rewrite[$this->language_id];
+                    }
+                }
+
                 $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
                 $image = Image::getCover($product['id_product']);
-                $image_path = $context->link->getImageLink($product['link_rewrite'], $image['id_image'], $image_type);
+                $image_path = $context->link->getImageLink($product_link_rewrite, $image['id_image'], $image_type);
                 $base_domain = explode('//', _PS_BASE_URL_)[1];
                 $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
                 if ('/-' === $image_check) {
@@ -139,6 +168,16 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
+                    
+                    $productRaw = new Product ($product['id_product'], $this->language_id);
+
+                    $product_link_rewrite = $productRaw->link_rewrite;
+                    if(is_array($product_link_rewrite)){
+                        if(array_key_exists($this->language_id, $product_link_rewrite)){
+                            $product_link_rewrite = $product_link_rewrite[$this->language_id];
+                        }
+                    }
+                    
                     $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
                     $id_list = [];
                     $variant_images = [];
@@ -154,7 +193,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                         }
                     }
                     foreach($id_list as $id){
-                        $variant_image = $context->link->getImageLink($product['link_rewrite'], $id, $image_type);
+                        $variant_image = $context->link->getImageLink($product_link_rewrite, $id, $image_type);
                         array_push($variant_images, $variant_image);
                     }
                     return $variant_images;
@@ -162,6 +201,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             }
         }
+
 
         $this->addFieldHandler('price', function ($product) {
             return Product::getPriceStatic($product['id_product'], true);
@@ -205,8 +245,27 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('description', function ($product) {
-            $description = ($product['description_short'] != '') ? trim(strip_tags($product['description_short'])) : trim(strip_tags($product['description']));
-            return $description;
+            $productRaw = new Product ($product['id_product'], $this->language_id);
+
+            $product_desc = $productRaw->description_short;
+
+            if(is_array($product_desc)){
+                if(array_key_exists($this->language_id, $product_desc)){
+                    $product_desc = $product_desc[$this->language_id];
+                }
+            }
+
+            if($product_desc === ''){
+                $product_desc = $productRaw->description;
+            }
+
+            if(is_array($product_desc)){
+                if(array_key_exists($this->language_id, $product_desc)){
+                    $product_desc = $product_desc[$this->language_id];
+                }
+            }
+
+            return trim(strip_tags($product_desc));
         });
 
         $this->addFieldHandler('in_stock', function ($product) {
@@ -215,6 +274,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             } else {
                 return $this->getStockForProduct($product) > 0;
             }
+        });
+
+        $this->addFieldHandler('name', function ($product) {
+            $productRaw = new Product ($product['id_product'], $this->language_id);
+            $product_name = $productRaw->name;
+            if(is_array($product_name)){
+                if(array_key_exists($this->language_id, $product_name)){
+                    $product_name = $product_name[$this->language_id];
+                }
+            }
+            
+            return $product_name;
         });
 
         $this->addFieldHandler('categories', function ($product) {
@@ -446,7 +517,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                                 if(count($value) === 1){
                                     $value = $value[0];
                                 }
-                                $item[$key] = $value;
+                                $item[preg_replace('/([^0-9a-zA-Z_]+)/', '', $key)] = $value;
                             }
                         }
                     }
@@ -509,21 +580,21 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         try {
 
             $default = array(
-                'id',
-                'name',
-                'description',
-                'price',
-                'list_price',
-                'image',
-                'url',
-                'categories',
                 'brand',
-                'sku',
-                'on_sale',
-                'qty',
+                'categories',
+                'date_add',
+                'description',
+                'id',
+                'image',
                 'in_stock',
+                'list_price',
+                'name',
+                'on_sale',
+                'price',
+                'qty',
+                'sku',
                 'stock',
-                'date_add'
+                'url'
             );
 
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
