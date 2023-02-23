@@ -323,13 +323,13 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
 
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1') {
-                $active = ' AND p.active = 1';
+                $active = ' AND (ps.active = 1 OR p.active = 1)';
             } else {
-                $active = ' AND p.active = 1 AND p.available_for_order = 1';
+                $active = ' AND (ps.active = 1 OR p.active = 1) AND (p.available_for_order = 1 OR ps.available_for_order = 1)';
             }
 
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) == '1') {
-                $active = ' AND p.active = 1';
+                $active = ' AND (ps.active = 1 OR p.active = 1)';
             }
 
             if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
@@ -337,14 +337,19 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 /* Heavier quantity sorted query ensures no intermitent empty pages are returned */
 
                 $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
-                pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity'
+                pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity', 
+                ps.active as 'shop_active', p.active as 'product_active',
+                ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
                 FROM "._DB_PREFIX_."product p
                 LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
                 LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
                 LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
                 LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
                 LEFT JOIN "._DB_PREFIX_."stock_available psa ON (p.id_product = psa.id_product)
-                WHERE pl.id_lang = ".$language_id." AND cl.id_lang = ".$language_id.$active."
+                LEFT JOIN "._DB_PREFIX_."product_shop ps ON (p.id_product = ps.id_product)
+                WHERE pl.id_lang = ". $language_id ." AND cl.id_lang = ". $language_id ."
+                AND pl.id_shop = " . $shop_id . " AND cl.id_shop = ". $shop_id ."
+                AND ps.id_shop = " . $shop_id . $active . "
                 GROUP BY p.id_product
                 ORDER BY quantity desc
                 LIMIT ".$offset.",".$limit;
@@ -354,13 +359,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 /* Lighter query sorted by id_product is Default */
 
                 $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
-                pl.description, pl.description_short, pl.name, p.visibility
+                pl.description, pl.description_short, pl.name, p.visibility, 
+                ps.active as 'shop_active', p.active as 'product_active',
+                ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
                 FROM "._DB_PREFIX_."product p
                 LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
                 LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
                 LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
                 LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
-                WHERE pl.id_lang = ".$language_id." AND cl.id_lang = ".$language_id.$active."
+                LEFT JOIN "._DB_PREFIX_."product_shop ps ON (p.id_product = ps.id_product)
+                WHERE pl.id_lang = ". $language_id ." AND cl.id_lang = ". $language_id ."
+                AND pl.id_shop = " . $shop_id . " AND cl.id_shop = ". $shop_id ."
+                AND ps.id_shop = " . $shop_id . $active . "
                 GROUP BY p.id_product
                 ORDER BY p.id_product asc
                 LIMIT ".$offset.",".$limit;
