@@ -2722,7 +2722,8 @@ CLERKJS;
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
+                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
+                'currency_conversion_rate' => Currency::getConversionRate() !== null ? Currency::getConversionRate() : 1
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -2861,7 +2862,8 @@ CLERKJS;
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
+                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
+                'currency_conversion_rate' => Currency::getConversionRate() !== null ? Currency::getConversionRate() : 1
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -3004,7 +3006,8 @@ CLERKJS;
                     'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                     'clerk_language' => $this->language,
                     'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-                    'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false
+                    'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
+                    'currency_conversion_rate' => Currency::getConversionRate() !== null ? Currency::getConversionRate() : 1
                 )
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');

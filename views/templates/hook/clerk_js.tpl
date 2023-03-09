@@ -51,6 +51,12 @@
             {if isset($customer_group_id)}
             customer_group_id: '{$customer_group_id}'
             {/if}
+        },
+        formatters: {
+            currency_converter: function(price) {
+                let conversion_rate = parseFloat({$currency_conversion_rate});
+                return price * conversion_rate;
+            }
         }
     });
 
