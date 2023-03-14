@@ -55,6 +55,10 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
         try {
             header('User-Agent: ClerkExtensionBot Prestashop/v' . _PS_VERSION_ . ' Clerk/v' . Module::getInstanceByName('clerk')->version . ' PHP/v' . phpversion());
 
+            if (Configuration::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
+                return array();
+            }
+
             $get_sub_status = false;
             if (Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
                 $get_sub_status = true;
@@ -103,8 +107,8 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
                     $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
                 } else {
-                    $customers[$index]['subscribed'] = false;
-                    $customers[$index]['optin'] = false;
+                    unset($customers[$index]['subscribed']);
+                    unset($customers[$index]['optin']);
                 }
             }
 

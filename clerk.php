@@ -238,6 +238,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_IMAGE_SIZE', $imageValue, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
@@ -428,6 +429,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_BASKETS');
         Configuration::deleteByName('CLERK_DATASYNC_SYNC_SUBSCRIBERS');
+        Configuration::deleteByName('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC');
         Configuration::deleteByName('CLERK_DATASYNC_USE_REAL_TIME_UPDATES');
         Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
@@ -624,6 +626,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', array(
                     $this->language_id => Tools::getValue('clerk_datasync_sync_subscribers', 1)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_disable_customer_sync', 1)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array(
@@ -1076,6 +1082,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_collect_emails_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Sync Subscribers'),
+                        'name' => 'clerk_datasync_disable_customer_sync',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_disable_customer_sync_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_disable_customer_sync_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -2626,6 +2651,7 @@ CLERKJS;
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $_lang_id, null, $_shop_id),
             'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $_lang_id, null, $_shop_id),
             'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $_lang_id, null, $_shop_id),
+            'clerk_datasync_disable_customer_sync' => Configuration::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $_lang_id, null, $_shop_id),
             'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $_lang_id, null, $_shop_id),
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $_lang_id, null, $_shop_id),
