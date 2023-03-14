@@ -1089,7 +1089,7 @@ class Clerk extends Module
                     ),
                     array(
                         'type' => $booleanType,
-                        'label' => $this->l('Sync Subscribers'),
+                        'label' => $this->l('Disable Customer Sync'),
                         'name' => 'clerk_datasync_disable_customer_sync',
                         'is_bool' => true,
                         'class' => 't',
