@@ -2749,7 +2749,7 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => Currency::getConversionRate() !== null ? Currency::getConversionRate() : 1
+                'currency_conversion_rate' => Currency::getConversationRate() !== null ? Currency::getConversationRate() : 1
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -2889,7 +2889,7 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => Currency::getConversionRate() !== null ? Currency::getConversionRate() : 1
+                'currency_conversion_rate' => Currency::getConversationRate() !== null ? Currency::getConversationRate() : 1
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -3033,7 +3033,7 @@ CLERKJS;
                     'clerk_language' => $this->language,
                     'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                     'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                    'currency_conversion_rate' => Currency::getConversionRate() !== null ? Currency::getConversionRate() : 1
+                    'currency_conversion_rate' => Currency::getConversationRate() !== null ? Currency::getConversationRate() : 1
                 )
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
