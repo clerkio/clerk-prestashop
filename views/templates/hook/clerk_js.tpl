@@ -49,7 +49,10 @@
             customer_logged_in: '{$customer_logged_in}',
             {/if}
             {if isset($customer_group_id)}
-            customer_group_id: '{$customer_group_id}'
+            customer_group_id: '{$customer_group_id}',
+            {/if}
+            {if isset($currency_symbol)}
+            currency_symbol: '{$currency_symbol}',
             {/if}
         },
         formatters: {

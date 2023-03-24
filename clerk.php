@@ -2749,7 +2749,8 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1
+                'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
+                'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -2889,8 +2890,9 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1
-            )
+                'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
+                'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
 
@@ -3033,8 +3035,9 @@ CLERKJS;
                     'clerk_language' => $this->language,
                     'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                     'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                    'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1
-                )
+                    'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
+                    'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                    )
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
 
