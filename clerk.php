@@ -2751,6 +2751,7 @@ CLERKJS;
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
                 'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -2892,6 +2893,7 @@ CLERKJS;
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
                 'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
                 )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -3037,6 +3039,7 @@ CLERKJS;
                     'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
                     'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
                     'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                    'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
                     )
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
