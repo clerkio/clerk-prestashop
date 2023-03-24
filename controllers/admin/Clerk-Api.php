@@ -100,16 +100,28 @@ class Clerk_Api
                     'id' => $product_id,
                     'name' => $product_name,
                     'description' => $product_description,
-                    'price' => (float)Product::getPriceStatic($product_id, true),
-                    'list_price' => (float)Product::getPriceStatic($product_id, true, null, 6, null, false, false),
                     'url' => $context->link->getProductLink($product_id),
                     'categories' => $categories,
                     'sku' => $product->reference,
-                    'on_sale' => ($product->on_sale == 1) ? true : false,
                     'brand' => (Validate::isLoadedObject($manufacturer)) ? $manufacturer->name : '',
                     'in_stock' => $this->getStockForProduct($product) > 0,
                     'qty' => $qty
                 ];
+
+                $address = new Address();
+                $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+                $address->id_state = 0;
+                $address->postcode = 0;
+                $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product_id, $context));
+                $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+                $tax_rate = ($tax_rate / 100) + 1;
+                $price_exc_tax = Product::getPriceStatic($product_id, false);
+                $list_price_exc_tax = Product::getPriceStatic($product_id, false, null, 6, null, false, false);
+
+                $Product_params['price'] = $price_exc_tax * $tax_rate;
+                $Product_params['list_price'] = $list_price_exc_tax * $tax_rate;
+                $Product_params['on_sale'] = $price_exc_tax < $list_price_exc_tax;
+
 
                 if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
                     $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);

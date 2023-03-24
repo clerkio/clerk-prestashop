@@ -109,7 +109,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
-                    
+
                     $productRaw = new Product ($product['id_product'], $this->language_id);
 
                     $product_link_rewrite = $productRaw->link_rewrite;
@@ -118,7 +118,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                             $product_link_rewrite = $product_link_rewrite[$this->language_id];
                         }
                     }
-                    
+
                     $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
                     $id_list = [];
                     $variant_images = [];
@@ -168,7 +168,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
-                    
+
                     $productRaw = new Product ($product['id_product'], $this->language_id);
 
                     $product_link_rewrite = $productRaw->link_rewrite;
@@ -177,7 +177,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                             $product_link_rewrite = $product_link_rewrite[$this->language_id];
                         }
                     }
-                    
+
                     $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
                     $id_list = [];
                     $variant_images = [];
@@ -203,17 +203,45 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         }
 
 
-        $this->addFieldHandler('price', function ($product) {
-            return Product::getPriceStatic($product['id_product'], true);
+        $this->addFieldHandler('price', function ($product) use ($context) {
+
+            if ($context === null) {
+                $context = Context::getContext();
+            }
+
+            $address = new Address();
+            $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+            $address->id_state = 0;
+            $address->postcode = 0;
+            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
+            $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+            $tax_rate = ($tax_rate / 100) + 1;
+            $price_exc_tax = Product::getPriceStatic($product['id_product'], false);
+
+            return $price_exc_tax * $tax_rate;
+        });
+
+        $this->addFieldHandler('list_price', function ($product) use ($context) {
+            //Get price without reduction
+
+            if ($context === null) {
+                $context = Context::getContext();
+            }
+
+            $address = new Address();
+            $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+            $address->id_state = 0;
+            $address->postcode = 0;
+            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
+            $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+            $tax_rate = ($tax_rate / 100) + 1;
+            $price_exc_tax = Product::getPriceStatic($product['id_product'], false, null, 6, null, false, false);
+
+            return $price_exc_tax * $tax_rate;
         });
 
         $this->addFieldHandler('date_add', function ($product) {
             return strtotime($product['date_add']);
-        });
-
-        $this->addFieldHandler('list_price', function ($product) {
-            //Get price without reduction
-            return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
         });
 
         $this->addFieldHandler('qty', function ($product) {
