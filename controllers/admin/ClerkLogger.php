@@ -70,11 +70,11 @@ class ClerkLogger extends ModuleAdminController
         header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
-            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         else {
 
-            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         }
 
@@ -102,7 +102,7 @@ class ClerkLogger extends ModuleAdminController
 
                 if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                    $Endpoint = 'http://api.clerk.io/v2/log/debug';
+                    $Endpoint = 'https://api.clerk.io/v2/log/debug';
 
                     $data_string = json_encode([
                         'key' =>$this->Key,
@@ -147,11 +147,11 @@ class ClerkLogger extends ModuleAdminController
         header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
-            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         else {
 
-            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         }
 
@@ -174,7 +174,7 @@ class ClerkLogger extends ModuleAdminController
 
             if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                $Endpoint = 'http://api.clerk.io/v2/log/debug';
+                $Endpoint = 'https://api.clerk.io/v2/log/debug';
 
                 $data_string = json_encode([
                     'debug' => '1',
@@ -219,11 +219,11 @@ class ClerkLogger extends ModuleAdminController
         header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
-            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         else {
 
-            $Metadata['uri'] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         }
 
@@ -251,7 +251,7 @@ class ClerkLogger extends ModuleAdminController
 
                 if (Configuration::get('CLERK_LOGGING_TO', $this->language_id, null, $this->shop_id) == 'collect') {
 
-                    $Endpoint = 'http://api.clerk.io/v2/log/debug';
+                    $Endpoint = 'https://api.clerk.io/v2/log/debug';
 
                     $data_string = json_encode([
                         'debug' => '1',

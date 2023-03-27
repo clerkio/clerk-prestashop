@@ -67,11 +67,11 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
-            $this->url_base = "http://".$_SERVER['HTTP_HOST'];
+            $this->url_base = "https://".$_SERVER['HTTP_HOST'];
 
         else {
 
-            $this->url_base = "http://".$_SERVER['HTTP_HOST'];
+            $this->url_base = "https://".$_SERVER['HTTP_HOST'];
 
         }
 

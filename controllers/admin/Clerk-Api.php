@@ -5,7 +5,7 @@ class Clerk_Api
     /**
      * @var string
      */
-    protected $baseurl = 'http://api.clerk.io/v2/';
+    protected $baseurl = 'https://api.clerk.io/v2/';
     protected $logger;
 
     /**
