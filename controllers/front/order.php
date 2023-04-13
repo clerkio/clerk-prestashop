@@ -109,7 +109,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             $fields = array_flip($this->fieldMap);
 
             foreach ($orders as $order) {
-                if($order['id_lang'] != $this->getLanguageId() && $order['id_shop'] != $this->getShopId()){
+                if($order['id_lang'] != $this->getLanguageId() || $order['id_shop'] != $this->getShopId()){
                     continue;
                 }
                 $item = array();
