@@ -1806,14 +1806,18 @@ class Clerk extends Module
         );
         array_push($facet_input, $facet_enable);
 
-
-
-        if (Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->language_id, null, $this->shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id) !== "") {
+        $_shop_id = (!empty(Shop::getContextShopID())) ? Shop::getContextShopID() : $this->shop_id;
+        $_lang_id = (!empty(Language::getLanguages(true, $_shop_id, true))) ? Language::getLanguages(true, $_shop_id, true)[0] : $this->language_id;
+        if (Tools::getValue('clerk_language_select')) {
+            $_lang_id = (int) Tools::getValue('clerk_language_select');
+        }
+        
+        if (Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $_lang_id, null, $_shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $_lang_id, null, $_shop_id) !== "") {
 
             $facetHTML = '<table style="margin-top:7px" id="facet_table"><tbody id="facets_content">';
-            $positions = json_decode(Configuration::get('CLERK_FACETS_POSITION', $this->language_id, null, $this->shop_id), true);
-            $titles = json_decode(Configuration::get('CLERK_FACETS_TITLE', $this->language_id, null, $this->shop_id), true);
-            $attributes = json_decode(Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->language_id, null, $this->shop_id), true);
+            $positions = json_decode(Configuration::get('CLERK_FACETS_POSITION', $_lang_id, null, $_shop_id), true);
+            $titles = json_decode(Configuration::get('CLERK_FACETS_TITLE', $_lang_id, null, $_shop_id), true);
+            $attributes = json_decode(Configuration::get('CLERK_FACETS_ATTRIBUTES', $_lang_id, null, $_shop_id), true);
 
             if (is_array($attributes) && count($attributes) > 0) {
                 $facetHTML .= '<tr><th>Attribute</th>' .
