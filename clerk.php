@@ -229,6 +229,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_CONTEXTUAL_VAT', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
@@ -436,6 +437,7 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK');
         Configuration::deleteByName('CLERK_DATASYNC_QUERY_BY_STOCK');
+        Configuration::deleteByName('CLERK_DATASYNC_CONTEXTUAL_VAT');
         Configuration::deleteByName('CLERK_INCLUDE_VARIANT_REFERENCES');
         Configuration::deleteByName('CLERK_DATASYNC_PRODUCT_FEATURES');
         Configuration::deleteByName('CLERK_IMAGE_SIZE');
@@ -654,6 +656,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', array(
                     $this->language_id => Tools::getValue('clerk_datasync_query_by_stock', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_DATASYNC_CONTEXTUAL_VAT', array(
+                    $this->language_id => Tools::getValue('clerk_datasync_contextual_vat', 0)
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', array(
@@ -1239,6 +1245,25 @@ class Clerk extends Module
                             ),
                             array(
                                 'id' => 'clerk_datasync_include_only_local_stock_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Get Product Vat by Country'),
+                        'name' => 'clerk_datasync_contextual_vat',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_datasync_contextual_vat_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_datasync_contextual_vat_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
@@ -2661,6 +2686,7 @@ CLERKJS;
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $_lang_id, null, $_shop_id),
+            'clerk_datasync_contextual_vat' => Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $_lang_id, null, $_shop_id),
             'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $_lang_id, null, $_shop_id),
             'clerk_datasync_disable_order_synchronization' => Configuration::get('CLERK_DISABLE_ORDER_SYNC', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_variant_references' => Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $_lang_id, null, $_shop_id),
@@ -3205,6 +3231,7 @@ CLERKJS;
                 'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_contextual_vat' => Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $this->context->language->id, null, $this->context->shop->id),

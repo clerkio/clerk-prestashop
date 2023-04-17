@@ -205,39 +205,51 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $this->addFieldHandler('price', function ($product) use ($context) {
 
-            if ($context === null) {
-                $context = Context::getContext();
+            if (Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->language_id, null, $this->shop_id) == '1') {
+                if ($context === null) {
+                    $context = Context::getContext();
+                }
+    
+                $address = new Address();
+                $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+                $address->id_state = 0;
+                $address->postcode = 0;
+                $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
+                $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+                $tax_rate = ($tax_rate / 100) + 1;
+                $price_exc_tax = Product::getPriceStatic($product['id_product'], false);
+    
+                return $price_exc_tax * $tax_rate;
+            } else {
+                return Product::getPriceStatic($product['id_product'], true);
             }
 
-            $address = new Address();
-            $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
-            $address->id_state = 0;
-            $address->postcode = 0;
-            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
-            $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
-            $tax_rate = ($tax_rate / 100) + 1;
-            $price_exc_tax = Product::getPriceStatic($product['id_product'], false);
 
-            return $price_exc_tax * $tax_rate;
+
         });
 
         $this->addFieldHandler('list_price', function ($product) use ($context) {
             //Get price without reduction
-
-            if ($context === null) {
-                $context = Context::getContext();
+            if (Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->language_id, null, $this->shop_id) == '1') {
+                if ($context === null) {
+                    $context = Context::getContext();
+                }
+    
+                $address = new Address();
+                $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+                $address->id_state = 0;
+                $address->postcode = 0;
+                $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
+                $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+                $tax_rate = ($tax_rate / 100) + 1;
+                $price_exc_tax = Product::getPriceStatic($product['id_product'], false, null, 6, null, false, false);
+    
+                return $price_exc_tax * $tax_rate;
+            } else {
+                return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
             }
 
-            $address = new Address();
-            $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
-            $address->id_state = 0;
-            $address->postcode = 0;
-            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
-            $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
-            $tax_rate = ($tax_rate / 100) + 1;
-            $price_exc_tax = Product::getPriceStatic($product['id_product'], false, null, 6, null, false, false);
 
-            return $price_exc_tax * $tax_rate;
         });
 
         $this->addFieldHandler('date_add', function ($product) {
