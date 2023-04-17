@@ -3516,7 +3516,7 @@ CLERKJS;
                 $_product_id = $product['id_product'];
                 $_product = new Product($_product_id, $this->context->language->id);
                 // group product get and update parent
-                if (Pack::isPacked($_product_id)) {
+                if (Pack::isPacked($_product_id) && method_exists(Pack::class, 'getPacksContainingItem')) {
                     $PackParents = Pack::getPacksContainingItem($_product_id, $_product->id_pack_product_attribute, $this->context->language->id);
                     foreach ($PackParents as $PackParent) {
                         $productRaw = new Product($PackParent->id, $this->context->language->id);
@@ -3638,7 +3638,7 @@ CLERKJS;
         $product = $params['product'];
 
         // group product get and update parent
-        if (Pack::isPacked($product_id)) {
+        if (Pack::isPacked($product_id) && method_exists(Pack::class, 'getPacksContainingItem')) {
             $PackParents = Pack::getPacksContainingItem($product_id, $product->id_pack_product_attribute, $this->language_id);
             foreach ($PackParents as $PackParent) {
                 $productRaw = new Product($PackParent->id, $this->language_id);
