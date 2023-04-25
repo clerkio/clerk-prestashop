@@ -62,8 +62,15 @@ class Clerk_Api
                 $categories = array();
                 $categoriesFull = Product::getProductCategoriesFull($product_id);
 
+                $category_names = array();
+
                 foreach ($categoriesFull as $category) {
-                    $categories[] = (int)$category['id_category'];
+                    if(array_key_exists('id_category', $category)){
+                        $categories[] = (int)$category['id_category'];
+                    }
+                    if(array_key_exists('name', $category)){
+                        $category_names[] = $category['name'];
+                    }
                 }
 
                 $image = Image::getCover($product_id);
@@ -102,6 +109,7 @@ class Clerk_Api
                     'description' => $product_description,
                     'url' => $context->link->getProductLink($product_id),
                     'categories' => $categories,
+                    'category_names' => $category_names,
                     'sku' => $product->reference,
                     'brand' => (Validate::isLoadedObject($manufacturer)) ? $manufacturer->name : '',
                     'in_stock' => $this->getStockForProduct($product) > 0,

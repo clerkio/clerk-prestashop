@@ -328,6 +328,19 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return $product_name;
         });
 
+        $this->addFieldHandler('category_names', function ($product) {
+            $category_names = array();
+            $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
+
+            foreach ($categoriesFull as $category) {
+                if(array_key_exists('name', $category)){
+                    $category_names[] = $category['name'];
+                }
+            }
+
+            return $category_names;
+        });
+
         $this->addFieldHandler('categories', function ($product) {
             $categories = array();
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
@@ -632,6 +645,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $default = array(
                 'brand',
                 'categories',
+                'category_names',
                 'date_add',
                 'description',
                 'id',
