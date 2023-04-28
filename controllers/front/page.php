@@ -156,6 +156,25 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
                 }
 
+                if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+
+                    $manufacturers = $this->getBrandPages($this->getLanguageId());
+
+                    if( ! empty($manufacturers)) {
+                        foreach($manufacturers as $brand) {
+                            $brand = (array) $brand;
+                            $response[] = [
+                                'id' => 'BRAND_' . (string) $brand['id'],
+                                'type' => 'cms page',
+                                'url' => $brand['link'],
+                                'title' => $brand['name'],
+                                'text' => $brand['desc']
+                            ];
+                        }
+                    }
+
+                }
+
                 $this->logger->log('Fetched Pages', ['response' => $response]);
 
                 return $response;
@@ -172,6 +191,28 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
         }
 
+    }
+
+    private function getBrandPages($lang_id = null) {
+
+        $brands_array = array();
+
+        if( null === $lang_id ) {
+            return $brands_array;
+        }
+        try {
+
+            $brands_array = Manufacturer::getLiteManufacturersList($lang_id);
+
+            return $brands_array;
+
+        } catch (Exception $e) {
+
+            $this->logger->error('ERROR getBrandPages', ['error' => $e->getMessage()]);
+
+            return array();
+
+        }
     }
 
     /**
