@@ -131,7 +131,8 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
                         'type' => 'cms page',
                         'url' => $this->context->link->getCMSLink($page['id_cms']),
                         'title' => $page['meta_title'],
-                        'text' => $page['content']
+                        'text' => $page['content'],
+                        'source' => 'page'
                     ];
 
                     if (!$this->ValidatePage($item)) {
@@ -168,7 +169,8 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
                                 'type' => 'cms page',
                                 'url' => $brand['link'],
                                 'title' => $brand['name'],
-                                'text' => $brand['desc']
+                                'text' => $brand['desc'],
+                                'source' => 'brand'
                             ];
                         }
                     }
