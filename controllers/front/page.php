@@ -161,7 +161,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
                     $manufacturers = $this->getBrandPages($this->getLanguageId());
 
-                    if( ! empty($manufacturers)) {
+                    if( ! empty($manufacturers) ) {
                         foreach($manufacturers as $brand) {
                             $brand = (array) $brand;
                             $response[] = [
@@ -169,7 +169,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
                                 'type' => 'cms page',
                                 'url' => $brand['link'],
                                 'title' => $brand['name'],
-                                'text' => $brand['desc'],
+                                'text' => empty($brand['desc']) ? $brand['name'] : $brand['desc'],
                                 'source' => 'brand'
                             ];
                         }
