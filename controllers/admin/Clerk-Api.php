@@ -94,19 +94,44 @@ class Clerk_Api
 
                 $product_description = '';
 
-                if(isset($product->description)){
-                    if(is_array($product->description)){
-                        $product_description = $product->description[$this->language_id];
+                $product_description_long = '';
+
+                $product_data_sync_fields = Configuration::get('CLERK_DATASYNC_FIELDS', $this->language_id, null, $this->shop_id);
+
+                $product_fields_array = explode(',', $product_data_sync_fields);
+
+                if(isset($product->description_short)){
+                    if(is_array($product->description_short)){
+                        if(array_key_exists($this->language_id, $product->description_short)){
+                            $product_description = $product->description_short[$this->language_id];
+                        }
                     }
-                    if(is_string($product->description)){
-                        $product_description = $product->description;
+                    if(is_string($product->description_short)){
+                        $product_description = $product->description_short;
                     }
                 }
+
+                if($product_description == ''){
+                    if(isset($product->description)){
+                        if(is_array($product->description)){
+                            if(array_key_exists($this->language_id, $product->description)){
+                                $product_description = $product->description[$this->language_id];
+                                $product_description_long = $product->description[$this->language_id];
+                            }
+                        }
+                        if(is_string($product->description)){
+                            $product_description = $product->description;
+                            $product_description_long = $product->description;
+                        }
+                    }
+                }
+
+
 
                 $Product_params = [
                     'id' => $product_id,
                     'name' => $product_name,
-                    'description' => $product_description,
+                    'description' => trim(strip_tags($product_description)),
                     'url' => $context->link->getProductLink($product_id),
                     'categories' => $categories,
                     'category_names' => $category_names,
@@ -115,6 +140,10 @@ class Clerk_Api
                     'in_stock' => $this->getStockForProduct($product) > 0,
                     'qty' => $qty
                 ];
+
+                if(in_array('description_long', $product_fields_array)){
+                    $Product_params['description_long'] = trim(strip_tags($product_description_long));
+                }
 
                 if (Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->language_id, null, $this->shop_id) == '1') {
                     $address = new Address();

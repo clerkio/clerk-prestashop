@@ -308,6 +308,22 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             return trim(strip_tags($product_desc));
         });
 
+        $this->addFieldHandler('description_long', function ($product) {
+            $productRaw = new Product ($product['id_product'], $this->language_id);
+
+            if($product_desc === ''){
+                $product_desc = $productRaw->description;
+            }
+
+            if(is_array($product_desc)){
+                if(array_key_exists($this->language_id, $product_desc)){
+                    $product_desc = $product_desc[$this->language_id];
+                }
+            }
+
+            return trim(strip_tags($product_desc));
+        });
+
         $this->addFieldHandler('in_stock', function ($product) {
             if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
                 return $product['quantity'] > 0;
