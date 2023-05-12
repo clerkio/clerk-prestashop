@@ -311,9 +311,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         $this->addFieldHandler('description_long', function ($product) {
             $productRaw = new Product ($product['id_product'], $this->language_id);
 
-            if($product_desc === ''){
-                $product_desc = $productRaw->description;
-            }
+            $product_desc = $productRaw->description;
 
             if(is_array($product_desc)){
                 if(array_key_exists($this->language_id, $product_desc)){
