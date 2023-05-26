@@ -77,6 +77,7 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
                 'product' => $product,
                 'category' => $category,
                 'image' => $image,
+                'base_template_path' => $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/page.tpl',
                 'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
                 'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
                 'popup' => (int)Tools::getValue('popup'),

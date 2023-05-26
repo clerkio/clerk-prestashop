@@ -23,7 +23,7 @@
 * SOFTWARE.
 *}
 
-{extends file='page.tpl'}
+{extends file=$base_template_path}
 
 {block name='page_content'}
     {if $popup != 0}
