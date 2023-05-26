@@ -38,6 +38,7 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
             'search_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_SEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'search_query' => $query,
             'lang_iso' => $this->context->language->iso_code,
+            'base_template_path' => $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/page.tpl',
             'faceted_navigation' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $this->context->language->id, null, $this->context->shop->id))),
             'facets_enabled' => Configuration::get('CLERK_FACETS_ATTRIBUTES', $this->context->language->id, null, $this->context->shop->id),
             'facets_title' => Configuration::get('CLERK_FACETS_TITLE', $this->context->language->id, null, $this->context->shop->id),
