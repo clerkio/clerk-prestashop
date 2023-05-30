@@ -72,12 +72,17 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
             $categories = $product->getCategories();
             $category = reset($categories);
 
+            $base_template_path = $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/page.tpl';
+            if( ! file_exists( $base_template_path ) ){
+                $base_template_path = $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/index.tpl';
+            }
+
             $this->context->smarty->assign(array(
                 'templates' => $templates,
                 'product' => $product,
                 'category' => $category,
                 'image' => $image,
-                'base_template_path' => $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/page.tpl',
+                'base_template_path' => $base_template_path,
                 'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
                 'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
                 'popup' => (int)Tools::getValue('popup'),
