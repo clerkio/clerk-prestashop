@@ -164,7 +164,14 @@ class Clerk_Api
                 }
 
 
+                global $cookie;
+                $default_currency = Currency::getDefaultCurrency();
+                $current_currency = new CurrencyCore($cookie->id_currency);
 
+                if($current_currency->iso_code !== $default_currency->iso_code){
+                    $Product_params['price'] = (float) $Product_params['price'] / (float) $current_currency->conversion_rate;
+                    $Product_params['list_price'] = (float) $Product_params['list_price'] / (float) $current_currency->conversion_rate;
+                }
 
 
                 $Product_params['on_sale'] = $Product_params['price'] < $Product_params['list_price'];
