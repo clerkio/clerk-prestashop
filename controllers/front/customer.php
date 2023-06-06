@@ -122,8 +122,9 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
                     $dbquery->where('e.id_shop = ' . $this->getShopId() . ' AND e.id_lang = ' . $this->getLanguageId());
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
-                } else {
-                    // Default newletter table for ^1.6.0 is ps_newsletter
+                } 
+                if(version_compare(_PS_VERSION_, '1.6.2', '>=')) {
+                    // Default newletter table for ^1.6.2 is ps_newsletter
                     $dbquery = new DbQuery();
                     $dbquery->select('CONCAT(\'N\', n.`id`) AS `id`, n.`email`, n.`active` AS `subscribed`');
                     $dbquery->from('newsletter', 'n');
@@ -131,10 +132,12 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->where('n.id_shop = ' . $this->getShopId());
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
                 }
-                foreach ($non_customers as $index => $subscriber){
-                    $non_customers[$index]['subscribed'] = ($non_customers[$index]['subscribed'] == 1) ? true : false;
+                if(isset($non_customers) && !empty($non_customers)){
+                    foreach ($non_customers as $index => $subscriber){
+                        $non_customers[$index]['subscribed'] = ($non_customers[$index]['subscribed'] == 1) ? true : false;
+                    }
+                    $customers = array_merge($customers, $non_customers);
                 }
-                $customers = array_merge($customers, $non_customers);
             }
 
             $this->logger->log('Fetched Customers', ['response' => $customers]);

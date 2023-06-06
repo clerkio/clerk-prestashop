@@ -109,9 +109,6 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             $fields = array_flip($this->fieldMap);
 
             foreach ($orders as $order) {
-                if($order['id_lang'] != $this->getLanguageId() || $order['id_shop'] != $this->getShopId()){
-                    continue;
-                }
                 $item = array();
                 foreach ($this->fields as $field) {
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
@@ -165,21 +162,21 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             }
 
             $sql = 'SELECT *, (
-					SELECT osl.`name`
-					FROM `' . _DB_PREFIX_ . 'order_state_lang` osl
-					WHERE osl.`id_order_state` = o.`current_state`
-					AND osl.`id_lang` = ' . (int)$this->getLanguageId() . '
-					LIMIT 1
-				) AS `state_name`, o.`date_add` AS `date_add`, o.`date_upd` AS `date_upd`,
+                    SELECT osl.`name`
+                    FROM `' . _DB_PREFIX_ . 'order_state_lang` osl
+                    WHERE osl.`id_order_state` = o.`current_state`
+                    AND osl.`id_lang` = ' . (int)$this->getLanguageId() . '
+                    LIMIT 1
+                ) AS `state_name`, o.`date_add` AS `date_add`, o.`date_upd` AS `date_upd`,
                 o.`id_shop` AS `id_shop`, o.`id_lang` AS `id_lang`
-				FROM `' . _DB_PREFIX_ . 'orders` o
-				LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON (c.`id_customer` = o.`id_customer`)
-				WHERE 1
-					' . Shop::addSqlRestriction(false, 'o') . '
-					AND
-					o.`date_add` BETWEEN CAST("'.$start_date.'" AS DATE) AND CAST("'.$end_date.'" AS DATE)
-				ORDER BY o.`date_add` DESC
-				' . ($limit != '' ? $limit : '');
+                FROM `' . _DB_PREFIX_ . 'orders` o
+                LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON (c.`id_customer` = o.`id_customer`)
+                WHERE 1
+                    ' . Shop::addSqlRestriction(false, 'o') . '
+                    AND o.`id_lang` = ' . (int)$this->getLanguageId() . '
+                    AND o.`date_add` BETWEEN CAST("'.$start_date.'" AS DATE) AND CAST("'.$end_date.'" AS DATE)
+                ORDER BY o.`date_add` DESC
+                ' . ($limit != '' ? $limit : '');
 
             $this->logger->log('Fetched Orders with informations', ['response' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql)]);
 

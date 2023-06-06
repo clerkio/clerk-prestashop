@@ -204,6 +204,9 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
 
         $this->addFieldHandler('price', function ($product) use ($context) {
+            global $cookie;
+            $default_currency = Currency::getDefaultCurrency();
+            $current_currency = new CurrencyCore($cookie->id_currency);
 
             if (Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->language_id, null, $this->shop_id) == '1') {
                 if ($context === null) {
@@ -219,17 +222,23 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $tax_rate = ($tax_rate / 100) + 1;
                 $price_exc_tax = Product::getPriceStatic($product['id_product'], false);
     
-                return $price_exc_tax * $tax_rate;
+                $price = $price_exc_tax * $tax_rate;
             } else {
-                return Product::getPriceStatic($product['id_product'], true);
+                $price = Product::getPriceStatic($product['id_product'], true);
             }
 
+            if($current_currency->iso_code !== $default_currency->iso_code){
+                $price = ($price / (float) $current_currency->conversion_rate);
+            }
 
-
+            return $price;
         });
 
         $this->addFieldHandler('list_price', function ($product) use ($context) {
-            //Get price without reduction
+            global $cookie;
+            $default_currency = Currency::getDefaultCurrency();
+            $current_currency = new CurrencyCore($cookie->id_currency);
+
             if (Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->language_id, null, $this->shop_id) == '1') {
                 if ($context === null) {
                     $context = Context::getContext();
@@ -244,12 +253,16 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $tax_rate = ($tax_rate / 100) + 1;
                 $price_exc_tax = Product::getPriceStatic($product['id_product'], false, null, 6, null, false, false);
     
-                return $price_exc_tax * $tax_rate;
+                $price = $price_exc_tax * $tax_rate;
             } else {
-                return Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
+                $price = Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
             }
 
+            if($current_currency->iso_code !== $default_currency->iso_code){
+                $price = ($price / (float) $current_currency->conversion_rate);
+            }
 
+            return $price;
         });
 
         $this->addFieldHandler('date_add', function ($product) {
