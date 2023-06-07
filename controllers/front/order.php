@@ -50,30 +50,61 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
         parent::__construct();
         require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
         $this->logger = new ClerkLogger();
+
         $this->addFieldHandler('time', function ($order) {
-            return strtotime($order['date_add']);
+            try {
+                if(is_array($order) && array_key_exists('date_add', $order)){
+                    return strtotime($order['date_add']);
+                } else {
+                    return strtotime("now");
+                }
+            } catch (Exception $e) {
+
+                $this->logger->error('ERROR Order addFieldHandlerTime', ['error' => $e->getMessage()]);
+                return strtotime("now");
+
+            }
+
         });
 
         $this->addFieldHandler('products', function ($order) {
             //Get products for order
             /** @var OrderCore $orderObj */
-            $orderObj = new Order($order['id_order']);
-            $products = $orderObj->getProducts();
+            try {
+                if(is_array($order) && array_key_exists('id_order', $order)){
+                    $orderObj = new Order($order['id_order']);
+                    $products = $orderObj->getProducts();
+                    if(is_array($products) && count($products) > 0){
+                        $discounts = $orderObj->total_discounts_tax_incl;
+                        $discount_per_product = $discounts / count($products);
 
-            $discounts = $orderObj->total_discounts_tax_incl;
-            $discount_per_product = $discounts / count($products);
+                        $response = array();
 
-            $response = array();
+                        foreach ($products as $product) {
+                            if(is_array($product)
+                            && array_key_exists('product_id', $product)
+                            && array_key_exists('product_quantity', $product)
+                            && array_key_exists('product_price_wt', $product)){
+                                $response[] = array(
+                                    'id' => $product['product_id'],
+                                    'quantity' => $product['product_quantity'],
+                                    'price' => $product['product_price_wt'] - $discount_per_product,
+                                );
+                            } else {
+                                continue;
+                            }
 
-            foreach ($products as $product) {
-                $response[] = array(
-                    'id' => $product['product_id'],
-                    'quantity' => $product['product_quantity'],
-                    'price' => $product['product_price_wt'] - $discount_per_product,
-                );
+                        }
+
+                        return $response;
+                    }
+                }
+            } catch (Exception $e) {
+
+                $this->logger->error('ERROR Order addFieldHandlerProducts', ['error' => $e->getMessage()]);
+
             }
 
-            return $response;
         });
     }
 
