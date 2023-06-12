@@ -72,6 +72,17 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             /** @var OrderCore $orderObj */
             try {
                 if(is_array($order) && array_key_exists('id_order', $order)){
+                    
+                    global $cookie;
+                    $default_currency = Currency::getDefaultCurrency();
+                    $current_currency = new CurrencyCore($cookie->id_currency);
+
+                    if($current_currency->iso_code !== $default_currency->iso_code){
+                        $rate = (float) $current_currency->conversion_rate;
+                    } else {
+                        $rate = 1;
+                    }
+
                     $orderObj = new Order($order['id_order']);
                     $products = $orderObj->getProducts();
                     if(is_array($products) && count($products) > 0){
@@ -88,7 +99,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
                                 $response[] = array(
                                     'id' => $product['product_id'],
                                     'quantity' => $product['product_quantity'],
-                                    'price' => $product['product_price_wt'] - $discount_per_product,
+                                    'price' => ($product['product_price_wt'] - $discount_per_product) / $rate,
                                 );
                             } else {
                                 continue;
