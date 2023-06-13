@@ -212,16 +212,15 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 if ($context === null) {
                     $context = Context::getContext();
                 }
-    
+
                 $address = new Address();
                 $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
                 $address->id_state = 0;
                 $address->postcode = 0;
-                $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
-                $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+                $tax_rate = Tax::getProductTaxRate((int) $product['id_product'], $address);
                 $tax_rate = ($tax_rate / 100) + 1;
                 $price_exc_tax = Product::getPriceStatic($product['id_product'], false);
-    
+
                 $price = $price_exc_tax * $tax_rate;
             } else {
                 $price = Product::getPriceStatic($product['id_product'], true);
@@ -243,16 +242,15 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 if ($context === null) {
                     $context = Context::getContext();
                 }
-    
+
                 $address = new Address();
                 $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
                 $address->id_state = 0;
                 $address->postcode = 0;
-                $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $product['id_product'], $context));
-                $tax_rate = $tax_manager->getTaxCalculator()->getTotalRate();
+                $tax_rate = Tax::getProductTaxRate((int) $product['id_product'], $address);
                 $tax_rate = ($tax_rate / 100) + 1;
                 $price_exc_tax = Product::getPriceStatic($product['id_product'], false, null, 6, null, false, false);
-    
+
                 $price = $price_exc_tax * $tax_rate;
             } else {
                 $price = Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
@@ -351,7 +349,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     $product_name = $product_name[$this->language_id];
                 }
             }
-            
+
             return $product_name;
         });
 
@@ -417,7 +415,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 /* Heavier quantity sorted query ensures no intermitent empty pages are returned */
 
                 $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
-                pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity', 
+                pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity',
                 ps.active as 'shop_active', p.active as 'product_active',
                 ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
                 FROM "._DB_PREFIX_."product p
@@ -439,7 +437,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 /* Lighter query sorted by id_product is Default */
 
                 $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
-                pl.description, pl.description_short, pl.name, p.visibility, 
+                pl.description, pl.description_short, pl.name, p.visibility,
                 ps.active as 'shop_active', p.active as 'product_active',
                 ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
                 FROM "._DB_PREFIX_."product p
