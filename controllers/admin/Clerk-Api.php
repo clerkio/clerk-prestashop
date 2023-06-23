@@ -195,6 +195,7 @@ class Clerk_Api
                 $combinations = $product->getAttributeCombinations((int)$this->language_id, true);
 
                 $attributes = [];
+                $attribute_ids = [];
                 $variants = [];
 
                 if (count($combinations) > 0) {
@@ -208,9 +209,11 @@ class Clerk_Api
                         $setGroupfield = str_replace(' ', '', $combination['group_name']);
 
                         if (!isset($attributes[$setGroupfield])) {
+                            $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
                             $attributes[$setGroupfield][] = $combination['attribute_name'];
                         } else {
                             if (!in_array($combination['attribute_name'], $attributes[$setGroupfield])) {
+                                $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
                                 $attributes[$setGroupfield][] = $combination['attribute_name'];
                             }
                         }
@@ -229,6 +232,7 @@ class Clerk_Api
                 foreach ($fields as $field) {
                     $field = str_replace(' ', '', $field);
                     if ($attributes && array_key_exists($field, $attributes)) {
+                        $Product_params[$field . "_ids"] = $attribute_ids[$field];
                         $Product_params[$field] = $attributes[$field];
                     }
 

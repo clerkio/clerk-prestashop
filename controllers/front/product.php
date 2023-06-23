@@ -468,6 +468,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $combinations = $productRaw->getAttributeCombinations((int)$context->language->id, true);
 
                 $attributes = [];
+                $attribute_ids = [];
                 $variants = [];
 
                 if (count($combinations) > 0) {
@@ -486,12 +487,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                         if(!isset($attributes[$setGroupfield])) {
 
+                            $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
                             $attributes[$setGroupfield][] = $combination['attribute_name'];
 
                         } else {
 
                             if (!in_array($combination['attribute_name'], $attributes[$setGroupfield])) {
 
+                                $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
                                 $attributes[$setGroupfield][] = $combination['attribute_name'];
 
                             }
@@ -505,6 +508,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 foreach ($this->fields as $field) {
                     $field = str_replace(' ','',$field);
                     if ($attributes && array_key_exists($field, $attributes)){
+                        $item[$field . "_ids"] = $attribute_ids[$field];
                         $item[$field] = $attributes[$field];
                     }
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
