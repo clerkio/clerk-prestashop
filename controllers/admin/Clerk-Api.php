@@ -318,6 +318,17 @@ class Clerk_Api
                     }
                 }
 
+                $productRaw = new Product ($product_id, $this->language_id);
+
+                if(!empty($productRaw) && isset($productRaw->unity) && ! empty($productRaw->unity)){
+                    $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float) $productRaw->number_of_units : 1;
+                    $unit_price_unit =  $productRaw->unity;
+                    $Product_params['unit_price'] = (float) $Product_params['price'] / $number_of_units;
+                    $Product_params['unit_list_price'] = (float) $Product_params['list_price'] / $number_of_units;
+                    $Product_params['unit_price_label'] = $unit_price_unit;
+                    $Product_params['base_unit'] = strval(number_format( (float) $number_of_units, 2 ) ) . " / " . $unit_price_unit;
+                }
+
                 $params = [
                     'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
                     'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),

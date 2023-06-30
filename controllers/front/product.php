@@ -644,6 +644,15 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                if(isset($productRaw->unity) && ! empty($productRaw->unity)){
+                    $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float) $productRaw->number_of_units : 1;
+                    $unit_price_unit =  $productRaw->unity;
+                    $item['unit_price'] = (float) $item['price'] / $number_of_units;
+                    $item['unit_list_price'] = (float) $item['list_price'] / $number_of_units;
+                    $item['unit_price_label'] = $unit_price_unit;
+                    $item['base_unit'] = strval(number_format( (float) $number_of_units, 2 ) ) . " / " . $unit_price_unit;
+                }
+
                 $response[] = $item;
             }
 
