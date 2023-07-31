@@ -400,7 +400,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
 
-            $active = ' AND ((ps.active IS NULL AND p.active = 1) OR (p.active IS NULL AND ps.active = 1) OR (p.active = 1 AND ps.active = 1))';
+            //$active = ' AND ((ps.active IS NULL AND p.active = 1) OR (p.active IS NULL AND ps.active = 1) OR (p.active = 1 AND ps.active = 1))';
+            $active = ' AND p.active = 1';
 
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1') {
                 $active .= ' AND ((ps.available_for_order IS NULL AND p.available_for_order = 1) OR (p.available_for_order IS NULL AND ps.available_for_order = 1) OR (p.available_for_order = 1 AND ps.available_for_order = 1))';
@@ -692,7 +693,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 'qty',
                 'sku',
                 'stock',
-                'url'
+                'url',
+                'shop_active',
+                'product_active',
+                'shop_available',
+                'product_available'
             );
 
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
