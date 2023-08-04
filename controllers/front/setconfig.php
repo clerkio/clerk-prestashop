@@ -86,6 +86,9 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             if ($key == "clerk_datasync_include_only_local_stock") {
                 Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', array($this->language_id => $value), false, null, $this->shop_id);
             }
+            if ($key == "clerk_datasync_status_scope_shop") {
+                Configuration::updateValue('CLERK_DATASYNC_STATUS_SCOPE_SHOP', array($this->language_id => $value), false, null, $this->shop_id);
+            }
             if ($key == "clerk_datasync_collect_emails") {
                 Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', array($this->language_id => $value), false, null, $this->shop_id);
             }
