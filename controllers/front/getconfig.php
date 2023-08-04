@@ -142,6 +142,10 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_product_exclude_duplicates' => Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
             'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
 
+
+            'clerk_additional_scripts_enabled' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->language_id, null, $this->shop_id),
+            'clerk_additional_scripts_js' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->language_id, null, $this->shop_id),
+
         );
 
         return $clerk_configuration;

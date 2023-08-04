@@ -255,6 +255,12 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
             if ($key == "clerk_category_exclude_duplicates") {
                 Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
+            if ($key == "clerk_additional_scripts_enabled") {
+                Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', array($this->language_id => $value), false, null, $this->shop_id);
+            }
+            if ($key == "clerk_additional_scripts_js") {
+                Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_JS', array($this->language_id => $value), false, null, $this->shop_id);
+            }
         }
 
         // return array of all updates (succesfull or not )

@@ -58,6 +58,10 @@
         }
     });
 
+    {if isset($clerk_additional_scripts)}
+        {$clerk_additional_scripts}
+    {/if}
+
 </script>
 
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->

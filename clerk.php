@@ -262,6 +262,9 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+
+            Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_JS', $emptyValues, false, null, $shop['id_shop']);
         }
 
         return parent::install() &&
@@ -460,6 +463,8 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_POWERSTEP_EXCLUDE_DUPLICATES');
         Configuration::deleteByName('CLERK_PRODUCT_EXCLUDE_DUPLICATES');
         Configuration::deleteByName('CLERK_CATEGORY_EXCLUDE_DUPLICATES');
+        Configuration::deleteByName('CLERK_ADDITIONAL_SCRIPTS_ENABLED');
+        Configuration::deleteByName('CLERK_ADDITIONAL_SCRIPTS_JS');
 
         return parent::uninstall();
     }
@@ -745,6 +750,15 @@ class Clerk extends Module
                 Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', array(
                     $this->language_id => Tools::getValue('clerk_category_exclude_duplicates', 0)
                 ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', array(
+                    $this->language_id => Tools::getValue('clerk_additional_scripts_enabled', 0)
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_JS', array(
+                    $this->language_id => Tools::getValue('clerk_additional_scripts_js', '')
+                ), false, null, $this->shop_id);
+
             }
             $this->InitializeSearchPowerstep();
             $this->settings_updated = true;
@@ -2544,6 +2558,47 @@ CLERKJS;
             }
         }
 
+        //Additional Scripts
+        $this->fields_form[] = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Additional Scripts'),
+                    'icon' => 'icon-code'
+                ),
+                'input' => array(
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Enabled'),
+                        'name' => 'clerk_additional_scripts_enabled',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_additional_scripts_enabled_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_additional_scripts_enabled_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        )
+                    ),
+                    'textarea' => array(
+                        'type' => 'textarea',
+                        'label' => $this->l('Custom JS'),
+                        'rows' => 5,
+                        'cols' => 50,
+                        'name' => 'clerk_additional_scripts_js'
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                )
+            ),
+        );
+
         //Logging settings
         $this->fields_form[] = array(
             'form' => array(
@@ -2734,6 +2789,8 @@ CLERKJS;
             'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
             'clerk_product_exclude_duplicates' => Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
             'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
+            'clerk_additional_scripts_enabled' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $_lang_id, null, $_shop_id),
+            'clerk_additional_scripts_js' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $_lang_id, null, $_shop_id),
         );
     }
 
@@ -2798,6 +2855,12 @@ CLERKJS;
             $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
         }
 
+        if (Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+            $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id);
+        } else {
+            $additional_scripts = '';
+        }
+
         $this->context->smarty->assign(
             array(
                 'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -2808,6 +2871,7 @@ CLERKJS;
                 'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                 'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
+                'clerk_additional_scripts' => $additional_scripts
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -2936,8 +3000,13 @@ CLERKJS;
         }
 
         if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
-
             $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+        }
+
+        if (Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+            $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id);
+        } else {
+            $additional_scripts = '';
         }
 
         $this->context->smarty->assign(
@@ -2950,6 +3019,7 @@ CLERKJS;
                 'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                 'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
+                'clerk_additional_scripts' => $additional_scripts
                 )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
@@ -3086,6 +3156,12 @@ CLERKJS;
                 $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
             }
 
+            if (Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+                $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id);
+            } else {
+                $additional_scripts = '';
+            }
+
             $this->context->smarty->assign(
                 array(
                     'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -3096,6 +3172,7 @@ CLERKJS;
                     'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
                     'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                     'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
+                    'clerk_additional_scripts' => $additional_scripts
                     )
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
