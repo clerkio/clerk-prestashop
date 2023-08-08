@@ -74,6 +74,11 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     protected $fieldMap = array();
 
     /**
+     * @var class
+     */
+    protected $api;
+
+    /**
      * ClerkAbstractFrontController constructor.
      */
     public function __construct()
@@ -82,6 +87,8 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         $this->ajax = true;
         require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/ClerkLogger.php');
         $this->logger = new ClerkLogger();
+        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/Clerk-Api.php');
+        $this->api = new Clerk_Api();
     }
 
     /**
@@ -111,6 +118,92 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     }
 
     /**
+     * Validate token from request.
+	 * @param string|null $token_string Request.
+     * @return boolean
+     */
+    private function validateJwt( $token_string = null )
+    {
+
+        if( ! $token_string || ! is_string( $token_string ) ) {
+            return false;
+        }
+
+        $body_params = array(
+            'token' => $token_string
+        );
+
+        $response = $this->api->verifyToken($body_params);
+
+        if( ! $response ) {
+            return false;
+        }
+
+        try {
+
+            $rsp_array = json_decode($response, true);
+
+            if( isset($rsp_array['status']) && $rsp_array['status'] == 'ok') {
+                return true;
+            }
+
+            return false;
+
+        } catch ( Exception $e ) {
+
+            $this->logger->error( 'validateJwt ERROR', [ 'error' => $e->getMessage() ] );
+
+        }
+
+    }
+
+    /**
+     * Get Token from Request Header
+     * @return string
+     */
+    protected function getHeaderToken() {
+        try {
+
+            $token = '';
+            $auth_header = null;
+            $headers = $this->getRequestHeaders();
+            if( array_key_exists('Authorized', $headers) ) {
+                $auth_header = $headers['Authorized'];
+            }
+
+            if( null !== $auth_header && is_string( $auth_header ) ) {
+                $token = count( explode( ' ', $auth_header ) ) > 1 ? explode( ' ', $auth_header )[1] : $token;
+            }
+
+            return $token;
+
+        } catch ( Exception $e ) {
+
+            $this->logger->error( 'ERROR getHeaderToken', array( 'error' => $e->getMessage() ) );
+
+        }
+    }
+
+    /**
+     * Get All Headers
+     * @return array
+     */
+    function getRequestHeaders() {
+
+        $headers = array();
+
+        foreach($_SERVER as $key => $value) {
+            if (substr($key, 0, 5) <> 'HTTP_') {
+                continue;
+            }
+            $header = str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))));
+            $headers[$header] = $value;
+        }
+
+        return $headers;
+    }
+
+    /**
      * Validate request
      *
      * @return bool
@@ -132,18 +225,18 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             }
 
             $request_public_key = array_key_exists('key', $request_body) ? $request_body['key'] : '';
-            $request_private_key = array_key_exists('private_key', $request_body) ? $request_body['private_key'] : '';
             $scope_public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId());
-            $scope_private_key = Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId());
 
-            if ($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->timingSafeEquals($scope_private_key, $request_private_key)) {
+            $request_token = $this->getHeaderToken();
+
+            if ($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->validateJwt($request_token) ) {
                 return true;
             }
 
             $this->logger->warn('API key was not validated', ['response' => false]);
             return false;
 
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
 
             $this->logger->error('ERROR validateRequest', ['error' => $e->getMessage()]);
 
