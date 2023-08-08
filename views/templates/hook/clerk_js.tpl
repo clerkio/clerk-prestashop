@@ -59,7 +59,7 @@
     });
 
     {if isset($clerk_additional_scripts)}
-        {$clerk_additional_scripts}
+        {$clerk_additional_scripts nofilter}
     {/if}
 
 </script>
