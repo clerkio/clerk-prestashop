@@ -276,7 +276,7 @@ class Clerk_Api
                         }
 
                         if (!empty($childatributes)) {
-                            $Product_params['child_'.$_field.'s'] = $childatributes;
+                            $Product_params['child_'.$_field.'s'] = array_values($childatributes);
                         }
                     }
                 }

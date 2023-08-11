@@ -570,7 +570,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                         }
 
                         if(!empty($childatributes)){
-                            $item['child_'.$_field.'s'] = $childatributes;
+                            $item['child_'.$_field.'s'] = array_values($childatributes);
                         }
 
                     }
