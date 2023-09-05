@@ -150,7 +150,7 @@ class Clerk_Api
                     $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
                     $address->id_state = 0;
                     $address->postcode = 0;
-                    $tax_rate = Tax::getProductTaxRate((int) $product['id_product'], $address);
+                    $tax_rate = Tax::getProductTaxRate((int) $product_id, $address);
                     $tax_rate = ($tax_rate / 100) + 1;
                     $price_exc_tax = Product::getPriceStatic($product_id, false);
                     $list_price_exc_tax = Product::getPriceStatic($product_id, false, null, 6, null, false, false);
