@@ -126,8 +126,6 @@ class Clerk_Api
                     }
                 }
 
-
-
                 $Product_params = [
                     'id' => $product_id,
                     'name' => $product_name,
@@ -320,13 +318,46 @@ class Clerk_Api
 
                 $productRaw = new Product ($product_id, $this->language_id);
 
-                if(!empty($productRaw) && isset($productRaw->unity) && ! empty($productRaw->unity)){
-                    $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float) $productRaw->number_of_units : 1;
-                    $unit_price_unit =  $productRaw->unity;
-                    $Product_params['unit_price'] = (float) $Product_params['price'] / $number_of_units;
-                    $Product_params['unit_list_price'] = (float) $Product_params['list_price'] / $number_of_units;
-                    $Product_params['unit_price_label'] = $unit_price_unit;
-                    $Product_params['base_unit'] = strval(number_format( (float) $number_of_units, 2 ) ) . " / " . $unit_price_unit;
+                if(!empty($productRaw)){
+
+                    if(isset($productRaw->unity) && ! empty($productRaw->unity)){
+                        $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float) $productRaw->number_of_units : 1;
+                        $unit_price_unit =  $productRaw->unity;
+                        $Product_params['unit_price'] = (float) $Product_params['price'] / $number_of_units;
+                        $Product_params['unit_list_price'] = (float) $Product_params['list_price'] / $number_of_units;
+                        $Product_params['unit_price_label'] = $unit_price_unit;
+                        $Product_params['base_unit'] = strval(number_format( (float) $number_of_units, 2 ) ) . " / " . $unit_price_unit;
+                    }
+
+                    if(!empty($fields) && in_array('atc_enabled', $fields)) {
+                        $atc_enabled = true;
+                        // If the product is disabled, we disable add to cart button
+                        if ( property_exists( $productRaw, 'active' ) && $productRaw->active != 1 ) {
+                            $atc_enabled = false;
+                        }
+
+                        // Disable because of catalog mode enabled in Prestashop settings
+                        if ( property_exists( $productRaw, 'catalog_mode' ) && $productRaw->catalog_mode ) {
+                            $atc_enabled = false;
+                        }
+
+                        // Disable because of "Available for order" checkbox unchecked in product settings
+                        if ( property_exists( $productRaw, 'available_for_order') && (bool) $productRaw->available_for_order === false) {
+                            $atc_enabled = false;
+                        }
+                        $stock = StockAvailable::getQuantityAvailableByProduct($product_id, null);
+
+                        // Disable because of stock management
+                        if ( Configuration::get('PS_STOCK_MANAGEMENT')
+                            && ! StockAvailable::outOfStock($product_id)
+                            && ( $stock <= 0
+                            || ( property_exists( $productRaw, 'minimal_quantity') && $stock - $productRaw->minimal_quantity < 0 ) )
+                        ) {
+                            $atc_enabled = false;
+                        }
+                        $Product_params['atc_enabled'] = $atc_enabled;
+                    }
+
                 }
 
                 $params = [

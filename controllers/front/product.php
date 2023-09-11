@@ -61,12 +61,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     {
         parent::__construct();
 
-        require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
+        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/ClerkLogger.php');
 
         $context = Context::getContext();
 
-        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->getShopId();
-        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $this->getLanguageId();
+        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int) Tools::getValue('clerk_shop_select') : $this->getShopId();
+        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int) Tools::getValue('clerk_language_select') : $this->getLanguageId();
 
         $this->logger = new ClerkLogger();
 
@@ -85,11 +85,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             $this->addFieldHandler('image', function ($product) use ($context) {
 
-                $productRaw = new Product ($product['id_product'], $this->language_id);
+                $productRaw = new Product($product['id_product'], $this->language_id);
 
                 $product_link_rewrite = $productRaw->link_rewrite;
-                if(is_array($product_link_rewrite)){
-                    if(array_key_exists($this->language_id, $product_link_rewrite)){
+                if (is_array($product_link_rewrite)) {
+                    if (array_key_exists($this->language_id, $product_link_rewrite)) {
                         $product_link_rewrite = $product_link_rewrite[$this->language_id];
                     }
                 }
@@ -101,7 +101,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
                 if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-'.$image_type.'_default.jpg';
+                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-' . $image_type . '_default.jpg';
                 }
                 return $image_path;
             });
@@ -110,11 +110,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
 
-                    $productRaw = new Product ($product['id_product'], $this->language_id);
+                    $productRaw = new Product($product['id_product'], $this->language_id);
 
                     $product_link_rewrite = $productRaw->link_rewrite;
-                    if(is_array($product_link_rewrite)){
-                        if(array_key_exists($this->language_id, $product_link_rewrite)){
+                    if (is_array($product_link_rewrite)) {
+                        if (array_key_exists($this->language_id, $product_link_rewrite)) {
                             $product_link_rewrite = $product_link_rewrite[$this->language_id];
                         }
                     }
@@ -133,7 +133,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                             array_push($id_list, $value);
                         }
                     }
-                    foreach($id_list as $id){
+                    foreach ($id_list as $id) {
                         $variant_image = $context->link->getImageLink($product_link_rewrite, $id, ImageType::getFormattedName($image_type));
                         array_push($variant_images, $variant_image);
                     }
@@ -144,11 +144,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         } else {
 
             $this->addFieldHandler('image', function ($product) use ($context) {
-                $productRaw = new Product ($product['id_product'], $this->language_id);
+                $productRaw = new Product($product['id_product'], $this->language_id);
 
                 $product_link_rewrite = $productRaw->link_rewrite;
-                if(is_array($product_link_rewrite)){
-                    if(array_key_exists($this->language_id, $product_link_rewrite)){
+                if (is_array($product_link_rewrite)) {
+                    if (array_key_exists($this->language_id, $product_link_rewrite)) {
                         $product_link_rewrite = $product_link_rewrite[$this->language_id];
                     }
                 }
@@ -160,7 +160,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $image_check = substr(explode($base_domain, $image_path)[1], 0, 2);
                 if ('/-' === $image_check) {
                     $iso = Context::getContext()->language->iso_code;
-                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-'.$image_type.'.jpg';
+                    $image_path = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-' . $image_type . '.jpg';
                 }
                 return $image_path;
             });
@@ -169,11 +169,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 $this->addFieldHandler('variant_images', function ($product) use ($context) {
 
-                    $productRaw = new Product ($product['id_product'], $this->language_id);
+                    $productRaw = new Product($product['id_product'], $this->language_id);
 
                     $product_link_rewrite = $productRaw->link_rewrite;
-                    if(is_array($product_link_rewrite)){
-                        if(array_key_exists($this->language_id, $product_link_rewrite)){
+                    if (is_array($product_link_rewrite)) {
+                        if (array_key_exists($this->language_id, $product_link_rewrite)) {
                             $product_link_rewrite = $product_link_rewrite[$this->language_id];
                         }
                     }
@@ -192,7 +192,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                             array_push($id_list, $value);
                         }
                     }
-                    foreach($id_list as $id){
+                    foreach ($id_list as $id) {
                         $variant_image = $context->link->getImageLink($product_link_rewrite, $id, $image_type);
                         array_push($variant_images, $variant_image);
                     }
@@ -226,7 +226,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $price = Product::getPriceStatic($product['id_product'], true);
             }
 
-            if($current_currency->iso_code !== $default_currency->iso_code){
+            if ($current_currency->iso_code !== $default_currency->iso_code) {
                 $price = ($price / (float) $current_currency->conversion_rate);
             }
 
@@ -256,7 +256,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $price = Product::getPriceStatic($product['id_product'], true, null, 6, null, false, false);
             }
 
-            if($current_currency->iso_code !== $default_currency->iso_code){
+            if ($current_currency->iso_code !== $default_currency->iso_code) {
                 $price = ($price / (float) $current_currency->conversion_rate);
             }
 
@@ -269,7 +269,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $this->addFieldHandler('qty', function ($product) {
             if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
-                return (int)$product['quantity'];
+                return (int) $product['quantity'];
             } else {
                 return $this->getStockForProduct($product);
             }
@@ -277,7 +277,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $this->addFieldHandler('stock', function ($product) {
             if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
-                return (int)$product['quantity'];
+                return (int) $product['quantity'];
             } else {
                 return $this->getStockForProduct($product);
             }
@@ -288,30 +288,30 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             $suppliers = $product_all_suppliers->getResults();
             $supplier_names = array();
-            foreach($suppliers as $s){
-                    $s_name = Supplier::getNameById($s->id_supplier);
-                    array_push($supplier_names, $s_name);
+            foreach ($suppliers as $s) {
+                $s_name = Supplier::getNameById($s->id_supplier);
+                array_push($supplier_names, $s_name);
             }
             return $supplier_names;
         });
 
         $this->addFieldHandler('description', function ($product) {
-            $productRaw = new Product ($product['id_product'], $this->language_id);
+            $productRaw = new Product($product['id_product'], $this->language_id);
 
             $product_desc = $productRaw->description_short;
 
-            if(is_array($product_desc)){
-                if(array_key_exists($this->language_id, $product_desc)){
+            if (is_array($product_desc)) {
+                if (array_key_exists($this->language_id, $product_desc)) {
                     $product_desc = $product_desc[$this->language_id];
                 }
             }
 
-            if($product_desc === ''){
+            if ($product_desc === '') {
                 $product_desc = $productRaw->description;
             }
 
-            if(is_array($product_desc)){
-                if(array_key_exists($this->language_id, $product_desc)){
+            if (is_array($product_desc)) {
+                if (array_key_exists($this->language_id, $product_desc)) {
                     $product_desc = $product_desc[$this->language_id];
                 }
             }
@@ -320,12 +320,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('description_long', function ($product) {
-            $productRaw = new Product ($product['id_product'], $this->language_id);
+            $productRaw = new Product($product['id_product'], $this->language_id);
 
             $product_desc = $productRaw->description;
 
-            if(is_array($product_desc)){
-                if(array_key_exists($this->language_id, $product_desc)){
+            if (is_array($product_desc)) {
+                if (array_key_exists($this->language_id, $product_desc)) {
                     $product_desc = $product_desc[$this->language_id];
                 }
             }
@@ -342,10 +342,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('name', function ($product) {
-            $productRaw = new Product ($product['id_product'], $this->language_id);
+            $productRaw = new Product($product['id_product'], $this->language_id);
             $product_name = $productRaw->name;
-            if(is_array($product_name)){
-                if(array_key_exists($this->language_id, $product_name)){
+            if (is_array($product_name)) {
+                if (array_key_exists($this->language_id, $product_name)) {
                     $product_name = $product_name[$this->language_id];
                 }
             }
@@ -358,7 +358,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
 
             foreach ($categoriesFull as $category) {
-                if(array_key_exists('name', $category)){
+                if (array_key_exists('name', $category)) {
                     $category_names[] = $category['name'];
                 }
             }
@@ -371,10 +371,45 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
 
             foreach ($categoriesFull as $category) {
-                $categories[] = (int)$category['id_category'];
+                $categories[] = (int) $category['id_category'];
             }
 
             return $categories;
+        });
+
+        $this->addFieldHandler('atc_enabled', function ($product) {
+            // Get raw product
+            $pr = new Product($product['id_product']);
+
+            // If the product is disabled, we disable add to cart button
+            if (property_exists($pr, 'active') && $pr->active != 1) {
+                return false;
+            }
+
+            // Disable because of catalog mode enabled in Prestashop settings
+            if (property_exists($pr, 'catalog_mode') && $pr->catalog_mode) {
+                return false;
+            }
+
+            // Disable because of "Available for order" checkbox unchecked in product settings
+            if (property_exists($pr, 'available_for_order') && (bool) $pr->available_for_order === false) {
+                return false;
+            }
+
+            $stock = StockAvailable::getQuantityAvailableByProduct($product['id_product'], null);
+
+            // Disable because of stock management
+            if (
+                Configuration::get('PS_STOCK_MANAGEMENT')
+                && !StockAvailable::outOfStock($product['id_product'])
+                && ($stock <= 0
+                    || (property_exists($pr, 'minimal_quantity') && $stock - $pr->minimal_quantity < 0))
+            ) {
+                return false;
+            }
+
+            // Enable ATC
+            return true;
         });
     }
 
@@ -386,7 +421,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
     public function getJsonResponse()
     {
         try {
-            header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
+            header('User-Agent: ClerkExtensionBot Prestashop/v' . _PS_VERSION_ . ' Clerk/v' . Module::getInstanceByName('clerk')->version . ' PHP/v' . phpversion());
             /** @var ProductCore $product */
             $product = new Product();
             $language_id = $this->getLanguageId();
@@ -418,19 +453,19 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity',
                 ps.active as 'shop_active', p.active as 'product_active',
                 ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
-                FROM "._DB_PREFIX_."product p
-                LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
-                LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
-                LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
-                LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
-                LEFT JOIN "._DB_PREFIX_."stock_available psa ON (p.id_product = psa.id_product)
-                LEFT JOIN "._DB_PREFIX_."product_shop ps ON (p.id_product = ps.id_product)
-                WHERE pl.id_lang = ". $language_id ." AND cl.id_lang = ". $language_id ."
-                AND pl.id_shop = " . $shop_id . " AND cl.id_shop = ". $shop_id ."
+                FROM " . _DB_PREFIX_ . "product p
+                LEFT JOIN " . _DB_PREFIX_ . "product_lang pl ON (p.id_product = pl.id_product)
+                LEFT JOIN " . _DB_PREFIX_ . "category_product cp ON (p.id_product = cp.id_product)
+                LEFT JOIN " . _DB_PREFIX_ . "category_lang cl ON (cp.id_category = cl.id_category)
+                LEFT JOIN " . _DB_PREFIX_ . "manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
+                LEFT JOIN " . _DB_PREFIX_ . "stock_available psa ON (p.id_product = psa.id_product)
+                LEFT JOIN " . _DB_PREFIX_ . "product_shop ps ON (p.id_product = ps.id_product)
+                WHERE pl.id_lang = " . $language_id . " AND cl.id_lang = " . $language_id . "
+                AND pl.id_shop = " . $shop_id . " AND cl.id_shop = " . $shop_id . "
                 AND ps.id_shop = " . $shop_id . $active . "
                 GROUP BY p.id_product
                 ORDER BY quantity desc
-                LIMIT ".$offset.",".$limit;
+                LIMIT " . $offset . "," . $limit;
 
             } else {
 
@@ -440,18 +475,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 pl.description, pl.description_short, pl.name, p.visibility,
                 ps.active as 'shop_active', p.active as 'product_active',
                 ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
-                FROM "._DB_PREFIX_."product p
-                LEFT JOIN "._DB_PREFIX_."product_lang pl ON (p.id_product = pl.id_product)
-                LEFT JOIN "._DB_PREFIX_."category_product cp ON (p.id_product = cp.id_product)
-                LEFT JOIN "._DB_PREFIX_."category_lang cl ON (cp.id_category = cl.id_category)
-                LEFT JOIN "._DB_PREFIX_."manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
-                LEFT JOIN "._DB_PREFIX_."product_shop ps ON (p.id_product = ps.id_product)
-                WHERE pl.id_lang = ". $language_id ." AND cl.id_lang = ". $language_id ."
-                AND pl.id_shop = " . $shop_id . " AND cl.id_shop = ". $shop_id ."
+                FROM " . _DB_PREFIX_ . "product p
+                LEFT JOIN " . _DB_PREFIX_ . "product_lang pl ON (p.id_product = pl.id_product)
+                LEFT JOIN " . _DB_PREFIX_ . "category_product cp ON (p.id_product = cp.id_product)
+                LEFT JOIN " . _DB_PREFIX_ . "category_lang cl ON (cp.id_category = cl.id_category)
+                LEFT JOIN " . _DB_PREFIX_ . "manufacturer m ON (p.id_manufacturer = m.id_manufacturer)
+                LEFT JOIN " . _DB_PREFIX_ . "product_shop ps ON (p.id_product = ps.id_product)
+                WHERE pl.id_lang = " . $language_id . " AND cl.id_lang = " . $language_id . "
+                AND pl.id_shop = " . $shop_id . " AND cl.id_shop = " . $shop_id . "
                 AND ps.id_shop = " . $shop_id . $active . "
                 GROUP BY p.id_product
                 ORDER BY p.id_product asc
-                LIMIT ".$offset.",".$limit;
+                LIMIT " . $offset . "," . $limit;
 
             }
 
@@ -467,9 +502,9 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             foreach ($products as $product) {
 
-                $productRaw = new Product ($product['id_product'], $context->language->id);
+                $productRaw = new Product($product['id_product'], $context->language->id);
 
-                $combinations = $productRaw->getAttributeCombinations((int)$context->language->id, true);
+                $combinations = $productRaw->getAttributeCombinations((int) $context->language->id, true);
 
                 $attributes = [];
                 $attribute_ids = [];
@@ -479,17 +514,17 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                     foreach ($combinations as $combination) {
 
-                        if(isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
+                        if (isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
 
                             array_push($variants, $combination['reference']);
 
-                        } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants))  {
+                        } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants)) {
                             array_push($variants, $combination['id_product_attribute']);
                         }
 
-                        $setGroupfield = str_replace(' ','',$combination['group_name']);
+                        $setGroupfield = str_replace(' ', '', $combination['group_name']);
 
-                        if(!isset($attributes[$setGroupfield])) {
+                        if (!isset($attributes[$setGroupfield])) {
 
                             $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
                             $attributes[$setGroupfield][] = $combination['attribute_name'];
@@ -510,8 +545,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 $item = array();
                 foreach ($this->fields as $field) {
-                    $field = str_replace(' ','',$field);
-                    if ($attributes && array_key_exists($field, $attributes)){
+                    $field = str_replace(' ', '', $field);
+                    if ($attributes && array_key_exists($field, $attributes)) {
                         $item[$field . "_ids"] = $attribute_ids[$field];
                         $item[$field] = $attributes[$field];
                     }
@@ -525,19 +560,18 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     if (isset($this->fieldHandlers[$field])) {
                         if ($field == 'date_add') {
                             $item['created_at'] = $this->fieldHandlers[$field]($product);
-                        }
-                        else {
+                        } else {
                             $item[$field] = $this->fieldHandlers[$field]($product);
                         }
                     }
                 }
 
-                if(Pack::isPack($product['id_product'])){
-                    foreach($customFields as $_field){
+                if (Pack::isPack($product['id_product'])) {
+                    foreach ($customFields as $_field) {
 
                         if (empty($attriarr)) {
                             $attriarr = Attribute::getAttributes($this->language_id, true);
-                        };
+                        }
 
                         $childatributes = [];
                         $children = Pack::getItems($product['id_product'], $this->language_id);
@@ -549,8 +583,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                                 foreach ($combarr as $comb) {
                                     foreach ($attriarr as $attri) {
-                                        if ($attri['id_attribute'] === $comb['id_attribute'] ){
-                                            if(str_replace(' ','',$attri['public_name']) == str_replace(' ','',$_field)){
+                                        if ($attri['id_attribute'] === $comb['id_attribute']) {
+                                            if (str_replace(' ', '', $attri['public_name']) == str_replace(' ', '', $_field)) {
                                                 $childatributes[] = $attri['name'];
                                             }
 
@@ -559,7 +593,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                                 }
                             }
 
-                            if ($attributes && array_key_exists($_field, $attributes)){
+                            if ($attributes && array_key_exists($_field, $attributes)) {
                                 $childatributes[$_field] = $attributes[$_field];
                             }
 
@@ -569,8 +603,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                         }
 
-                        if(!empty($childatributes)){
-                            $item['child_'.$_field.'s'] = array_values($childatributes);
+                        if (!empty($childatributes)) {
+                            $item['child_' . $_field . 's'] = array_values($childatributes);
                         }
 
                     }
@@ -588,13 +622,13 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                     $frontfeatures = Product::getFrontFeaturesStatic($this->language_id, $product['id_product']);
 
-                    if( !empty( $frontfeatures ) ){
-                        if( count($frontfeatures) > 0 ){
+                    if (!empty($frontfeatures)) {
+                        if (count($frontfeatures) > 0) {
                             $features_object = array();
-                            foreach($frontfeatures as $feature){
-                                if( isset($feature['name']) ){
-                                    $feature['name'] = str_replace( array(' ', '-'), '_', $feature['name'] );
-                                    if( ! array_key_exists( $feature['name'], $features_object) ){
+                            foreach ($frontfeatures as $feature) {
+                                if (isset($feature['name'])) {
+                                    $feature['name'] = str_replace(array(' ', '-'), '_', $feature['name']);
+                                    if (!array_key_exists($feature['name'], $features_object)) {
                                         $features_object[$feature['name']] = array();
                                         array_push($features_object[$feature['name']], $feature['value']);
                                     } else {
@@ -602,11 +636,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                                     }
                                 }
                             }
-                            foreach($features_object as $key => $value){
-                                if(count($value) === 0){
+                            foreach ($features_object as $key => $value) {
+                                if (count($value) === 0) {
                                     $value = "";
                                 }
-                                if(count($value) === 1){
+                                if (count($value) === 1) {
                                     $value = $value[0];
                                 }
                                 $item[preg_replace('/([^0-9a-zA-Z_]+)/', '', $key)] = $value;
@@ -616,45 +650,45 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
-                    if($item['stock'] <= 0){
+                    if ($item['stock'] <= 0) {
                         continue;
                     }
                 }
 
-                if(Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1'){
-                    if($productRaw->out_of_stock != '1' && $item['stock'] <= 0){
+                if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1') {
+                    if ($productRaw->out_of_stock != '1' && $item['stock'] <= 0) {
                         continue;
                     }
                 }
 
                 // Add Specific price to product data if present
                 $specific_prices = SpecificPrice::getByProductId($product['id_product']);
-                if( ! empty($specific_prices) && $productRaw->base_price ){
-                    foreach($specific_prices as $sp_price){
-                        if($sp_price['reduction_type'] == 'percentage'){
+                if (!empty($specific_prices) && $productRaw->base_price) {
+                    foreach ($specific_prices as $sp_price) {
+                        if ($sp_price['reduction_type'] == 'percentage') {
                             $tmp_tax = ($productRaw->tax_rate / 100 + 1);
                             $tmp_price = ($productRaw->base_price * $tmp_tax);
                             $reduction = 1 - $sp_price['reduction'];
                             $tmp_price = $tmp_price * $reduction;
                         }
-                        if($sp_price['reduction_type'] == 'amount'){
+                        if ($sp_price['reduction_type'] == 'amount') {
                             $tmp_tax = ($sp_price['reduction_tax'] * ($productRaw->tax_rate / 100)) + 1;
                             $tmp_price = ($productRaw->base_price * $tmp_tax);
                             $tmp_price = $tmp_price - $sp_price['reduction'];
                         }
-                        if(is_numeric($tmp_price)){
+                        if (is_numeric($tmp_price)) {
                             $item['customer_group_price_' . $sp_price['id_group']] = $tmp_price;
                         }
                     }
                 }
 
-                if(isset($productRaw->unity) && ! empty($productRaw->unity)){
+                if (isset($productRaw->unity) && !empty($productRaw->unity)) {
                     $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float) $productRaw->number_of_units : 1;
-                    $unit_price_unit =  $productRaw->unity;
+                    $unit_price_unit = $productRaw->unity;
                     $item['unit_price'] = (float) $item['price'] / $number_of_units;
                     $item['unit_list_price'] = (float) $item['list_price'] / $number_of_units;
                     $item['unit_price_label'] = $unit_price_unit;
-                    $item['base_unit'] = strval(number_format( (float) $number_of_units, 2 ) ) . " / " . $unit_price_unit;
+                    $item['base_unit'] = strval(number_format((float) $number_of_units, 2)) . " / " . $unit_price_unit;
                 }
 
                 $response[] = $item;
