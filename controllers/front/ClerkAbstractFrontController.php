@@ -101,7 +101,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
 
             $response = $this->getJsonResponse();
 
-            $this->ajaxDie(Tools::jsonEncode($response));
+            $this->ajaxDie(json_encode($response));
 
         } catch (Exception $e) {
 
@@ -193,7 +193,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             );
 
             $this->logger->warn('Invalid API keys supplied', ['response' => $response]);
-            $this->ajaxDie(Tools::jsonEncode($response));
+            $this->ajaxDie(json_encode($response));
 
             return;
 
