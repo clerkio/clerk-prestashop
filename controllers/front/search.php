@@ -34,9 +34,10 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
 
         $query = Tools::getValue('search_query', '');
 
-        $base_template_path = $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/page.tpl';
+        $base_template_path = _PS_THEME_DIR_ . 'templates/page.tpl';
+
         if( ! file_exists( $base_template_path ) ){
-            $base_template_path = $_SERVER['DOCUMENT_ROOT'] . _THEME_DIR_ . 'templates/index.tpl';
+            $base_template_path = _PS_THEME_DIR_ . 'templates/index.tpl';
         }
 
         $this->context->smarty->assign(array(
