@@ -40,6 +40,10 @@ class ClerkSearchModuleFrontController extends ModuleFrontController
             $base_template_path = _PS_THEME_DIR_ . 'templates/index.tpl';
         }
 
+        if( ! file_exists( $base_template_path ) ){
+            $base_template_path = 'page.tpl';
+        }
+
         $this->context->smarty->assign(array(
             'search_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_SEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
             'search_query' => $query,
