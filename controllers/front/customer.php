@@ -122,8 +122,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     $dbquery->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
                     $dbquery->where('e.id_shop = ' . $this->getShopId() . ' AND e.id_lang = ' . $this->getLanguageId());
                     $non_customers = Db::getInstance()->executeS($dbquery->build());
-                } 
-                if(version_compare(_PS_VERSION_, '1.6.2', '>=')) {
+                }elseif(version_compare(_PS_VERSION_, '1.6.2', '>=')) {
                     // Default newletter table for ^1.6.2 is ps_newsletter
                     $dbquery = new DbQuery();
                     $dbquery->select('CONCAT(\'N\', n.`id`) AS `id`, n.`email`, n.`active` AS `subscribed`');
