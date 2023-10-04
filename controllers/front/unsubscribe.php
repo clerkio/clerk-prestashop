@@ -49,9 +49,8 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                 'message' => 'Subscriber SYNC is disabled, enalbe it to handle unsubscribers with Clerk.io'
             );
         }
-        $email = Tools::getValue('email');
-        // strip and lowercase email
-        $email = strtolower(trim($email));
+
+        $email = strtolower(trim(pSQL(Tools::getValue('email')))); // sanitize email
         if (empty($email)) {
             // return error
             return array(
@@ -59,27 +58,29 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                 'message' => 'No email provided'
             );
         }
-        
-        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
 
-            // query database to see if email exisista and/or is subscribed
-            $dbquery = new DbQuery();
-            $dbquery->select('*');
-            $dbquery->from('emailsubscription','e');
-            $dbquery->where('e.email = \'' . pSQL($email) . '\'');
-            $dbquery->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
-            $dbquery->where('e.id_shop = ' . $this->getShopId() . ' AND e.id_lang = ' . $this->getLanguageId());
-            $result = Db::getInstance()->executeS($dbquery);
+        $id_shop = (int) $this->getShopId();
+        $id_lang = (int) $this->getLanguageId();
+
+        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+            $query = "SELECT * 
+                  FROM `" . _DB_PREFIX_ . "emailsubscription` e 
+                  LEFT JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang 
+                  WHERE e.email = '$email' 
+                  AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
+            $get_result = Db::getInstance()->executeS($query);
+
         }elseif (version_compare(_PS_VERSION_, '1.6.2', '>=')) {
-            $dbquery = new DbQuery();
-            $dbquery->select('*');
-            $dbquery->from('newsletter');
-            $dbquery->where('email = \'' . pSQL($email) . '\'');
-            $dbquery->where('n.id_shop = ' . $this->getShopId());
-            $result = Db::getInstance()->executeS($dbquery);
+            // not tested
+            $query = "SELECT * 
+                  FROM `" . _DB_PREFIX_ . "newsletter`
+                  WHERE email = '$email' AND id_shop = $id_shop";
+            $get_result = Db::getInstance()->executeS($query);
+
         }
+
         // return if no result
-        if (empty($result)) {
+        if (empty($get_result)) {
             // return error
             http_response_code(404);
             return array(
@@ -87,8 +88,15 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                 'message' => 'Email not found'
             );
         }
+        if (Tools::getValue('get') == '1') {
+            return array(
+                'success' => true,
+                'message' => 'Email found',
+                'get_result' => $get_result
+            );
+        }
         // check if email is subscribed
-        if ($result[0]['active'] == '0') {
+        if ($get_result[0]['active'] == '0') {
             // return error
             return array(
                 'success' => false,
@@ -98,20 +106,29 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
 
         // unsubscribe email
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-            $dbquery = new DbQuery();
-            $dbquery->update('emailsubscription');
-            $dbquery->set('active = 0');
-            $dbquery->where('email = \'' . pSQL($email) . '\'');
-            $dbquery->where('id_shop = ' . $this->getShopId() . ' AND id_lang = ' . $this->getLanguageId());
-            $result = Db::getInstance()->execute($dbquery);
+            $query = "UPDATE `" . _DB_PREFIX_ . "emailsubscription` e 
+                  INNER JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang 
+                  SET e.active = 0 
+                  WHERE e.email = '$email' AND e.id_shop = '$id_shop' AND e.id_lang = '$id_lang'";
+
+            $set_result = Db::getInstance()->execute($query);
+ 
         }elseif (version_compare(_PS_VERSION_,'1.6.2','>=')){
-            $dbquery = new DbQuery();
-            $dbquery->update('newsletter');
-            $dbquery->set('active = 0');
-            $dbquery->where('email = \'' . pSQL($email) . '\'');
-            $dbquery->where('id_shop = ' . $this->getShopId());
-            $result = Db::getInstance()->execute($dbquery);
+            // not tested
+            $query = "UPDATE `" . _DB_PREFIX_ . "newsletter`
+                  SET active = 0 
+                  WHERE email = '$email' AND id_shop = $id_shop";
+
+            $set_result = Db::getInstance()->execute($query);
+
         }
+        return array(
+            'success' => true,
+            'message' => 'Unsubscribed',
+            'set_result'=> $set_result,
+            'id_shop' => $id_shop,
+            'id_lang' => $id_lang
+        );
 
         // send unsubscribe request to clerk https://api.clerk.io/v2/subscriber/unsubscribe
         $url = 'https://api.clerk.io/v2/subscriber/unsubscribe';
