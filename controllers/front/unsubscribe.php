@@ -58,8 +58,8 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             );
         }
 
-        $id_shop = (int) $this->getShopId();
-        $id_lang = (int) $this->getLanguageId();
+        $id_shop = (string)  $this->getShopId();
+        $id_lang = (string) $this->getLanguageId();
 
         // unsubscribe email
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
@@ -67,7 +67,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                   LEFT JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang
                   LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
                   SET e.active = '0'
-                  WHERE e.email = '$email' AND e.id_shop = '$id_shop' AND e.id_lang = '$id_lang'";
+                  WHERE e.email = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
 
             $set_result = Db::getInstance()->execute($set_query);
 
@@ -76,7 +76,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
                 LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
                 SET active = '0'
-                WHERE e.email = '$email' AND id_shop = '$id_shop'";
+                WHERE e.email = '$email' AND id_shop = $id_shop";
 
             $set_result = Db::getInstance()->execute($set_query);
         }
