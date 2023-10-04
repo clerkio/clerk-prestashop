@@ -110,7 +110,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
         // check if clerk unsub request was successful
         $clerk_response = json_decode($clerk_unsub_result, true);
         if ($clerk_response["status"] != "ok") {
-            http_response_code(500);
+            http_response_code(422);
             return array(
                 'success' => false,
                 'message' => 'Failed to unsubscribe from Clerk.io, did unsubscribe from Prestashop',
