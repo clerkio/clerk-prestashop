@@ -58,7 +58,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             );
         }
 
-        $id_shop = (string)  $this->getShopId();
+        $id_shop = (string) $this->getShopId();
         $id_lang = (string) $this->getLanguageId();
 
         // unsubscribe email
@@ -67,7 +67,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                   LEFT JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang
                   LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
                   SET e.active = '0'
-                  WHERE e.email = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
+                  WHERE LOWER(e.email) = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
 
             $set_result = Db::getInstance()->execute($set_query);
 
@@ -76,7 +76,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
                 LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
                 SET active = '0'
-                WHERE e.email = '$email' AND id_shop = $id_shop";
+                WHERE LOWER(e.email) = '$email' AND id_shop = $id_shop";
 
             $set_result = Db::getInstance()->execute($set_query);
         }
@@ -88,11 +88,15 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                 'message' => 'Failed to unsubscribe from Prestashop, did not unsubscribe from Clerk.io'
             );
         }
+
         // send unsubscribe request to clerk https://api.clerk.io/v2/subscriber/unsubscribe
         $url = 'https://api.clerk.io/v2/subscriber/unsubscribe';
-        $key = Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId());
+        $data = array(
+            'email' => $email,
+            'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId())
+        );
 
-        $url_with_params = $url . "?email=" . urlencode($email) . "&key=" . urlencode($key);
+        $url_with_params = $url . '?' . http_build_query($data);
 
         // ? Which headers do we want to use
         $options = array(
@@ -105,12 +109,13 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
         $clerk_unsub_result = file_get_contents($url_with_params, false, $context);
 
         // check if clerk unsub request was successful
-        $clerk_status = json_decode($clerk_unsub_result, true);
-        if ($clerk_status["status"] != "ok") {
+        $clerk_response = json_decode($clerk_unsub_result, true);
+        if ($clerk_response["status"] != "ok") {
             http_response_code(500);
             return array(
                 'success' => false,
-                'message' => 'Failed to unsubscribe from Clerk.io, did unsubscribe from Prestashop'
+                'message' => 'Failed to unsubscribe from Clerk.io, did unsubscribe from Prestashop',
+                'clerk_response' => $clerk_response
             );
         }
 
