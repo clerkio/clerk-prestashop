@@ -51,7 +51,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
 
         $email = strtolower(trim(pSQL(Tools::getValue('email'))));
         if (empty($email)) {
-            http_response_code(400);
+            http_response_code(422);
             return array(
                 'success' => false,
                 'message' => 'No email provided'
@@ -70,7 +70,6 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
                   WHERE LOWER(e.email) = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
 
             $set_result = Db::getInstance()->execute($set_query);
-
         } elseif (version_compare(_PS_VERSION_, '1.6.2', '>=')) {
             // ! not tested
             $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
