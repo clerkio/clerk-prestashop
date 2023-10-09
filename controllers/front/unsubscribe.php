@@ -135,7 +135,7 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
         } elseif (version_compare(_PS_VERSION_, '1.6.2', '>=')) {
             $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
                 LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
-                SET active = '0'
+                SET active = `$status`
                 WHERE LOWER(e.email) = '$email' AND id_shop = $id_shop";
 
             $set_result = Db::getInstance()->execute($set_query);
