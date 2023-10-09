@@ -1,4 +1,5 @@
 <?php
+
 /**
  *  @author Clerk.io
  *  @copyright Copyright (c) 2017 Clerk.io
@@ -29,7 +30,6 @@ require "ClerkAbstractFrontController.php";
 class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
 {
 
-
     /**
      * Get response
      *
@@ -58,28 +58,9 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             );
         }
 
-        $id_shop = (string) $this->getShopId();
-        $id_lang = (string) $this->getLanguageId();
+        // unsubscribe email in Prestashop
+        $set_result = $this->setActiveStatus('0', $email);
 
-        // unsubscribe email
-        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-            $set_query = "UPDATE `" . _DB_PREFIX_ . "emailsubscription` e 
-                  LEFT JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang
-                  LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
-                  SET e.active = '0'
-                  WHERE LOWER(e.email) = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
-
-            $set_result = Db::getInstance()->execute($set_query);
-        } elseif (version_compare(_PS_VERSION_, '1.6.2', '>=')) {
-            // ! not tested
-            $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
-                LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
-                SET active = '0'
-                WHERE LOWER(e.email) = '$email' AND id_shop = $id_shop";
-
-            $set_result = Db::getInstance()->execute($set_query);
-        }
-        // if the query fails
         if (!$set_result) {
             http_response_code(500);
             return array(
@@ -88,32 +69,16 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             );
         }
 
-        // send unsubscribe request to clerk https://api.clerk.io/v2/subscriber/unsubscribe
-        $url = 'https://api.clerk.io/v2/subscriber/unsubscribe';
-        $data = array(
-            'email' => $email,
-            'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId())
-        );
-
-        $url_with_params = $url . '?' . http_build_query($data);
-
-        // ? Which headers do we want to use
-        $options = array(
-            'http' => array(
-                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method' => 'GET'
-            )
-        );
-        $context = stream_context_create($options);
-        $clerk_unsub_result = file_get_contents($url_with_params, false, $context);
-
-        // check if clerk unsub request was successful
-        $clerk_response = json_decode($clerk_unsub_result, true);
+        $clerk_response = $this->unsubscribeClerk($email);
         if ($clerk_response["status"] != "ok") {
+
+            // resubscribe email in Prestashop
+            $set_result = $this->setActiveStatus('1', $email);
+
             http_response_code(422);
             return array(
                 'success' => false,
-                'message' => 'Failed to unsubscribe from Clerk.io, did unsubscribe from Prestashop',
+                'message' => 'Failed to unsubscribe from Clerk.io, reverted the unsubscribe from Prestashop',
                 'clerk_response' => $clerk_response
             );
         }
@@ -122,5 +87,59 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             'success' => true,
             'message' => 'Suceessfully unsubscribed from Prestashop and Clerk.io',
         );
+    }
+
+    private function unsubscribeClerk($email)
+    {
+        try{
+            // send unsubscribe request to clerk https://api.clerk.io/v2/subscriber/unsubscribe
+            $url = 'https://api.clerk.io/v2/subscriber/unsubscribe';
+            $data = array(
+                'email' => $email,
+                'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId())
+            );
+    
+            $url_with_params = $url . '?' . http_build_query($data);
+    
+            $options = array(
+                'http' => array(
+                    'method' => 'GET'
+                )
+            );
+            $context = stream_context_create($options);
+            $clerk_unsub_result = file_get_contents($url_with_params, false, $context);
+            $clerk_response = json_decode($clerk_unsub_result, true);
+            return $clerk_response;
+
+        }catch(Exception $e){
+            return array(
+                'status' => 'Clerk Unsubscribe Failed',
+                'message' => $e->getMessage()
+            );
+        }
+    }
+
+    private function setActiveStatus($status, $email)
+    {
+        $id_shop = (string) $this->getShopId();
+        $id_lang = (string) $this->getLanguageId();
+        // unsubscribe email
+        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+            $set_query = "UPDATE `" . _DB_PREFIX_ . "emailsubscription` e 
+                  LEFT JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang
+                  LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
+                  SET e.active = `$status`
+                  WHERE LOWER(e.email) = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
+
+            $set_result = Db::getInstance()->execute($set_query);
+        } elseif (version_compare(_PS_VERSION_, '1.6.2', '>=')) {
+            $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
+                LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
+                SET active = '0'
+                WHERE LOWER(e.email) = '$email' AND id_shop = $id_shop";
+
+            $set_result = Db::getInstance()->execute($set_query);
+        }
+        return $set_result;
     }
 }
