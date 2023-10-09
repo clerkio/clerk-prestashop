@@ -29,7 +29,13 @@ require "ClerkAbstractFrontController.php";
 
 class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
 {
+    protected $api;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->api = new Clerk_Api();
+    }
     /**
      * Get response
      *
@@ -49,12 +55,21 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             );
         }
 
-        $email = strtolower(trim(pSQL(Tools::getValue('email'))));
-        if (empty($email)) {
+        $email = Tools::getValue('email');
+        if (!is_string($email)) {
             http_response_code(422);
             return array(
                 'success' => false,
                 'message' => 'No email provided'
+            );
+        }
+
+        $email = strtolower(trim(Db::getInstance()->escape($email, false)));
+        if (empty($email)) {
+            http_response_code(422);
+            return array(
+                'success' => false,
+                'message' => 'No valid email provided'
             );
         }
 
@@ -69,9 +84,9 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
             );
         }
 
-        $clerk_response = $this->unsubscribeClerk($email);
-        if ($clerk_response["status"] != "ok") {
+        $clerk_response = $this->api->get('subscriber/unsubscribe', array('email' => $email, 'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId())));
 
+        if (empty($clerk_response) || $clerk_response->status != 'ok') {
             // resubscribe email in Prestashop
             $set_result = $this->setActiveStatus('1', $email);
 
@@ -85,57 +100,30 @@ class ClerkUnsubscribeModuleFrontController extends ClerkAbstractFrontController
 
         return array(
             'success' => true,
-            'message' => 'Suceessfully unsubscribed from Prestashop and Clerk.io',
+            'message' => 'Successfully unsubscribed from Prestashop and Clerk.io',
         );
-    }
-
-    private function unsubscribeClerk($email)
-    {
-        try{
-            // send unsubscribe request to clerk https://api.clerk.io/v2/subscriber/unsubscribe
-            $url = 'https://api.clerk.io/v2/subscriber/unsubscribe';
-            $data = array(
-                'email' => $email,
-                'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId())
-            );
-    
-            $url_with_params = $url . '?' . http_build_query($data);
-    
-            $options = array(
-                'http' => array(
-                    'method' => 'GET'
-                )
-            );
-            $context = stream_context_create($options);
-            $clerk_unsub_result = file_get_contents($url_with_params, false, $context);
-            $clerk_response = json_decode($clerk_unsub_result, true);
-            return $clerk_response;
-
-        }catch(Exception $e){
-            return array(
-                'status' => 'Clerk Unsubscribe Failed',
-                'message' => $e->getMessage()
-            );
-        }
     }
 
     private function setActiveStatus($status, $email)
     {
+        $set_result = false;
+
         $id_shop = (string) $this->getShopId();
         $id_lang = (string) $this->getLanguageId();
+
         // unsubscribe email
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
             $set_query = "UPDATE `" . _DB_PREFIX_ . "emailsubscription` e 
                   LEFT JOIN `" . _DB_PREFIX_ . "lang` l ON l.id_lang = e.id_lang
                   LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
-                  SET e.active = `$status`
+                  SET e.active = '$status'
                   WHERE LOWER(e.email) = '$email' AND e.id_shop = $id_shop AND e.id_lang = $id_lang";
 
             $set_result = Db::getInstance()->execute($set_query);
         } elseif (version_compare(_PS_VERSION_, '1.6.2', '>=')) {
             $set_query = "UPDATE `" . _DB_PREFIX_ . "newsletter` e
                 LEFT JOIN `" . _DB_PREFIX_ . "shop` s ON s.id_shop = e.id_shop
-                SET active = `$status`
+                SET active = '$status'
                 WHERE LOWER(e.email) = '$email' AND id_shop = $id_shop";
 
             $set_result = Db::getInstance()->execute($set_query);
