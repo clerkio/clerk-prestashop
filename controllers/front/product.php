@@ -570,7 +570,11 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     foreach ($customFields as $_field) {
 
                         if (empty($attriarr)) {
-                            $attriarr = Attribute::getAttributes($this->language_id, true);
+                            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+                                $attriarr = ProductAttribute::getAttributes($this->language_id, true);
+                            } else {
+                                $attriarr = Attribute::getAttributes($this->language_id, true);
+                            }
                         }
 
                         $childatributes = [];
