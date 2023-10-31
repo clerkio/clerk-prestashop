@@ -56,6 +56,8 @@ class ClerkRotateKeyModuleFrontController extends ClerkAbstractFrontController
     {
         $update = [];
 
+        $value = $settings['clerk_private_key'];
+
         if( array_key_exists('clerk_private_key', $settings ) ) {
             $update['clerk_private_key'] = $settings['clerk_private_key'];
         }
