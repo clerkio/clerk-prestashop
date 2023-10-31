@@ -129,20 +129,17 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             return false;
         }
 
-        $body_params = array(
+        $query_params = array(
             'token' => $token_string
         );
 
-        $response = $this->api->verifyToken($body_params);
+        $rsp_array = $this->api->verifyToken($query_params);
 
-        if( ! $response ) {
+        if( ! $rsp_array ) {
             return false;
         }
 
         try {
-
-            $rsp_array = json_decode($response, true);
-
             if( isset($rsp_array['status']) && $rsp_array['status'] == 'ok') {
                 return true;
             }
@@ -152,7 +149,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         } catch ( Exception $e ) {
 
             $this->logger->error( 'validateJwt ERROR', [ 'error' => $e->getMessage() ] );
-
+            return false;
         }
 
     }

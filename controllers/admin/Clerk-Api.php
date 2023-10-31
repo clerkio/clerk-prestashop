@@ -366,27 +366,31 @@ class Clerk_Api
 	 * Post Received Token for Verification
 	 *
 	 * @param array|void $data
+     * @return array
 	 */
 	public function verifyToken( $data = null ) {
 
         if( ! $data ) {
-            return false;
+            return array();
         }
 
 		try {
 
 			$endpoint = 'token/verify';
 
-			$response = $this->post($endpoint, $data);
+            $data['key'] = Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id);
+
+			$response = $this->get($endpoint, $data);
 
 			if( ! $response ) {
 				return array();
 			} else {
-				return $response;
+				return (array)$response;
 			}
 
 		} catch ( Exception $e ) {
 			$this->logger->error( 'ERROR verify_token', array( 'error' => $e->getMessage() ) );
+            return array();
 		}
 
 	}
@@ -442,7 +446,7 @@ class Clerk_Api
     /**
      * @param string $endpoint
      * @param array $params
-     * @return object|string
+     * @return object
      */
     public function get($endpoint, $params = [])
     {
@@ -463,6 +467,7 @@ class Clerk_Api
             return $response;
         } catch (Exception $e) {
             $this->logger->error('GET request failed', ['error' => $e->getMessage()]);
+            return (object)[];
         }
     }
 }
