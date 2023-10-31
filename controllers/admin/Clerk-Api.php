@@ -446,7 +446,7 @@ class Clerk_Api
     /**
      * @param string $endpoint
      * @param array $params
-     * @return object
+     * @return object|void
      */
     public function get($endpoint, $params = [])
     {
@@ -467,7 +467,6 @@ class Clerk_Api
             return $response;
         } catch (Exception $e) {
             $this->logger->error('GET request failed', ['error' => $e->getMessage()]);
-            return (object)[];
         }
     }
 }
