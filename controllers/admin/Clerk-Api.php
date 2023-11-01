@@ -368,6 +368,9 @@ class Clerk_Api
                         }
                         $Product_params['atc_enabled'] = $atc_enabled;
                     }
+                    if( !empty($fields) && in_array('minimal_quantity', $fields) && property_exists( $productRaw, 'minimal_quantity') ){
+                        $Product_params['minimal_quantity'] = $productRaw->minimal_quantity;
+                    }
 
                 }
 
