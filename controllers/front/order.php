@@ -72,7 +72,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             /** @var OrderCore $orderObj */
             try {
                 if(is_array($order) && array_key_exists('id_order', $order)){
-                    
+
                     global $cookie;
                     $default_currency = Currency::getDefaultCurrency();
                     $current_currency = new CurrencyCore($cookie->id_currency);
