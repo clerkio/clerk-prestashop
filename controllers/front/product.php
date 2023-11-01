@@ -653,6 +653,13 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
+                if (Configuration::get('CLERK_DATASYNC_PRODUCT_TAGS', $this->language_id, null, $this->shop_id) == '1') {
+                    $productTags = Tag::getProductTags($product['id_product']);
+                    if(!empty($productTags) && is_array($productTags) && array_key_exists($this->language_id, $productTags)){
+                        $item['tags'] = $productTags[$this->language_id];
+                    }
+                }
+
                 if (Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) == '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1') {
                     if ($item['stock'] <= 0) {
                         continue;

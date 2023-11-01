@@ -320,6 +320,13 @@ class Clerk_Api
                     }
                 }
 
+                if (Configuration::get('CLERK_DATASYNC_PRODUCT_TAGS', $this->language_id, null, $this->shop_id) == '1') {
+                    $productTags = Tag::getProductTags($product_id);
+                    if(!empty($productTags) && is_array($productTags) && array_key_exists($this->language_id, $productTags)){
+                        $Product_params['tags'] = $productTags[$this->language_id];
+                    }
+                }
+
                 $productRaw = new Product ($product_id, $this->language_id);
 
                 if(!empty($productRaw)){
