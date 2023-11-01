@@ -452,7 +452,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
                 pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity',
                 ps.active as 'shop_active', p.active as 'product_active',
-                ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
+                ps.available_for_order as 'shop_available', p.available_for_order as 'product_available',
+                ps.show_price as 'shop_show_price', p.show_price as 'product_show_price'
                 FROM " . _DB_PREFIX_ . "product p
                 LEFT JOIN " . _DB_PREFIX_ . "product_lang pl ON (p.id_product = pl.id_product)
                 LEFT JOIN " . _DB_PREFIX_ . "category_product cp ON (p.id_product = cp.id_product)
@@ -474,7 +475,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $sql = "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
                 pl.description, pl.description_short, pl.name, p.visibility,
                 ps.active as 'shop_active', p.active as 'product_active',
-                ps.available_for_order as 'shop_available', p.available_for_order as 'product_available'
+                ps.available_for_order as 'shop_available', p.available_for_order as 'product_available',
+                ps.show_price as 'shop_show_price', p.show_price as 'product_show_price'
                 FROM " . _DB_PREFIX_ . "product p
                 LEFT JOIN " . _DB_PREFIX_ . "product_lang pl ON (p.id_product = pl.id_product)
                 LEFT JOIN " . _DB_PREFIX_ . "category_product cp ON (p.id_product = cp.id_product)
