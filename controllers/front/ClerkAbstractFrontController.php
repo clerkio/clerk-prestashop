@@ -169,7 +169,15 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             }
 
             if( null !== $auth_header && is_string( $auth_header ) ) {
-                $token = count( explode( ' ', $auth_header ) ) > 1 ? explode( ' ', $auth_header )[1] : $token;
+                $auth_header_array = explode(' ', $auth_header );
+                if (count( $auth_header_array ) > 1) {
+                    $token_prefix= $auth_header_array[0];
+                    $token = $auth_header_array[1];
+
+                    if ($token_prefix !='Bearer'){
+                        return "";
+                    }
+                }
             }
 
             return $token;
