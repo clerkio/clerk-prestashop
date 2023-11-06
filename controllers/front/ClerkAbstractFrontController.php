@@ -178,7 +178,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
                     $token = $auth_header_array[1];
 
                     if ($token_prefix !='Bearer'){
-                        throw new Exception('Invalid Token Prefix');
+                        return "";
                     }
                 }
             }
