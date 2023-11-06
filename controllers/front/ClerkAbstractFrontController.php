@@ -164,8 +164,8 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             $token = '';
             $auth_header = null;
             $headers = $this->getRequestHeaders();
-            if( array_key_exists('Authorized', $headers) ) {
-                $auth_header = $headers['Authorized'];
+            if( array_key_exists('X-Clerk-Authorization', $headers) ) {
+                $auth_header = $headers['X-Clerk-Authorization'];
             }
 
             if( null !== $auth_header && is_string( $auth_header ) ) {
