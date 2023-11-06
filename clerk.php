@@ -69,7 +69,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.8.4';
+        $this->version = '6.8.5';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
