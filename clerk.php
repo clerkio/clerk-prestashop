@@ -2618,9 +2618,6 @@ CLERKJS;
                         'name' => 'clerk_additional_scripts_js'
                     ),
                 ),
-                'submit' => array(
-                    'title' => $this->l('Save'),
-                )
             ),
         );
 

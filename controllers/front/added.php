@@ -51,6 +51,16 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
 
         parent::initContent();
 
+        $base_template_path = _PS_THEME_DIR_ . 'templates/page.tpl';
+
+        if( ! file_exists( $base_template_path ) ){
+            $base_template_path = _PS_THEME_DIR_ . 'templates/index.tpl';
+        }
+
+        if( ! file_exists( $base_template_path ) ){
+            $base_template_path = 'page.tpl';
+        }
+
         if ($id_product = (int)Tools::getValue('id_product')) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
         }
@@ -74,6 +84,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
             'product' => $product,
             'category' => $category,
             'image' => $image,
+            'base_template_path' => $base_template_path,
             'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order',
             'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
             'unix' => time(),
