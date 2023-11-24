@@ -26,7 +26,7 @@
 
 require "ClerkAbstractFrontController.php";
 
-class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
+class ClerkCustomersyncModuleFrontController extends ClerkAbstractFrontController
 {
 
     protected $logger;

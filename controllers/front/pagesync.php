@@ -26,7 +26,7 @@
 
 require "ClerkAbstractFrontController.php";
 
-class ClerkPageModuleFrontController extends ClerkAbstractFrontController
+class ClerkPagesyncModuleFrontController extends ClerkAbstractFrontController
 {
     /**
      * @var int
