@@ -2911,7 +2911,7 @@ CLERKJS;
         }
 
         $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
-        $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
+        $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
         $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
         if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
@@ -3070,7 +3070,7 @@ CLERKJS;
         }
 
         $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
-        $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
+        $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
         $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
         if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
@@ -3234,7 +3234,7 @@ CLERKJS;
             }
 
             $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
-            $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
+            $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
             $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
             if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
