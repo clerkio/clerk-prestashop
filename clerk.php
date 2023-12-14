@@ -2912,7 +2912,7 @@ CLERKJS;
 
         $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
         $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
-        $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
+        $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
 
         if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
             $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
@@ -3071,7 +3071,7 @@ CLERKJS;
 
         $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
         $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
-        $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
+        $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
 
         if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
             $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
@@ -3235,7 +3235,7 @@ CLERKJS;
 
             $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
             $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
-            $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
+            $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
 
             if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
                 $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
