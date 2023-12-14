@@ -28,7 +28,7 @@
     (function(){
         (function(w,d){
             var e=d.createElement('script');e.type='text/javascript';e.async=true;
-            e.src=(d.location.protocol=='https:'?'https':'http')+'://cdn.clerk.io/clerk.js';
+            e.src=(d.location.protocol=='https:'?'https':'http')+{if isset($custom_clerk_js)}{$custom_clerk_js}{else}'://cdn.clerk.io/clerk.js'{/if};
             var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(e,s);
             w.__clerk_q=w.__clerk_q||[];w.Clerk=w.Clerk|| function(){ w.__clerk_q.push(arguments) };
         })(window,document);

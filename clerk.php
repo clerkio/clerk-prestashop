@@ -2888,6 +2888,7 @@ CLERKJS;
             array(
                 'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'custom_clerk_js' => $custom_clerk_js_path,
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
@@ -3036,6 +3037,7 @@ CLERKJS;
             array(
                 'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'custom_clerk_js' => $custom_clerk_js_path,
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
@@ -3188,6 +3190,7 @@ CLERKJS;
             $this->context->smarty->assign(
                 array(
                     'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                    'custom_clerk_js' => $custom_clerk_js_path,
                     'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                     'clerk_language' => $this->language,
                     'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
