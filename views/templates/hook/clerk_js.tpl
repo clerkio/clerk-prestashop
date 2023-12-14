@@ -35,33 +35,26 @@
     })();
 
     Clerk('config', {
-        {if isset($clerk_public_key)}
-        key: '{$clerk_public_key}',
-        {/if}
-        {if isset($clerk_datasync_collect_emails)}
-        collect_email: {$clerk_datasync_collect_emails},
-        {/if}
-        {if isset($clerk_language)}
-        language: '{$clerk_language}',
-        {/if}
-        globals: {
-            {if isset($customer_logged_in)}customer_logged_in: '{$customer_logged_in}',{/if}
-            {if isset($customer_group_id)}customer_group_id: '{$customer_group_id}',{/if}
-            {if isset($currency_symbol)}currency_symbol: '{$currency_symbol}',{/if}
-            {if isset($currency_iso)}currency_iso: '{$currency_iso}',{/if}
-        },
-        formatters: {
-            currency_converter: function(price) {
-                let conversion_rate = parseFloat({$currency_conversion_rate});
-                return price * conversion_rate;
-            }
-        }
-    });
+{if isset($clerk_public_key)}key: '{$clerk_public_key}',{/if}
+{if isset($clerk_datasync_collect_emails)}collect_email: {$clerk_datasync_collect_emails},{/if}
+{if isset($clerk_language)}language: '{$clerk_language}',{/if}
+globals: {
+{if isset($customer_logged_in)}customer_logged_in: '{$customer_logged_in}',{/if}
+{if isset($customer_group_id)}customer_group_id: '{$customer_group_id}',{/if}
+{if isset($currency_symbol)}currency_symbol: '{$currency_symbol}',{/if}
+{if isset($currency_iso)}currency_iso: '{$currency_iso}',{/if}
+},
+formatters: {
+  currency_converter: function(price) {
+    let conversion_rate = parseFloat({$currency_conversion_rate});
+    return price * conversion_rate;
+   }
+}
+});
 
-    {if isset($clerk_additional_scripts)}
-        {$clerk_additional_scripts nofilter}
-    {/if}
-
+{if isset($clerk_additional_scripts)}
+  {$clerk_additional_scripts nofilter}
+{/if}
 </script>
 
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
