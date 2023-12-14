@@ -2914,6 +2914,11 @@ CLERKJS;
         $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
         $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
+        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
+            $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
+        } else {
+            $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
+        }
 
         $this->context->smarty->assign(
             array(
@@ -2923,7 +2928,7 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
+                'currency_conversion_rate' => $currency_conversion_rate,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                 'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
                 'clerk_additional_scripts' => $additional_scripts
@@ -3068,6 +3073,12 @@ CLERKJS;
         $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
         $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
+        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
+            $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
+        } else {
+            $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
+        }
+
         $this->context->smarty->assign(
             array(
                 'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -3076,7 +3087,7 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
+                'currency_conversion_rate' => $currency_conversion_rate,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                 'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
                 'clerk_additional_scripts' => $additional_scripts
@@ -3226,6 +3237,12 @@ CLERKJS;
             $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
             $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
+            if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
+                $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
+            } else {
+                $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
+            }
+
             $this->context->smarty->assign(
                 array(
                     'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -3234,7 +3251,7 @@ CLERKJS;
                     'clerk_language' => $this->language,
                     'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                     'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                    'currency_conversion_rate' => Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1,
+                    'currency_conversion_rate' => $currency_conversion_rate,
                     'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                     'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
                     'clerk_additional_scripts' => $additional_scripts
