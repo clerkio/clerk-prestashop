@@ -222,7 +222,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
                 return false;
             }
 
-            $use_legacy_auth = (Configuration::get('CLERK_LEGACY_AUTH', $this->language_id, null, $this->shop_id) == '1') ? true : false;
+            $use_legacy_auth = (Configuration::get('CLERK_LEGACY_AUTH', $this->getLanguageId(), null, $this->getShopId()) == '1') ? true : false;
 
             $request_body = json_decode(file_get_contents('php://input'), true);
 
