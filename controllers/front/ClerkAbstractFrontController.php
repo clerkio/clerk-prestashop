@@ -222,6 +222,8 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
                 return false;
             }
 
+            $use_legacy_auth = (Configuration::get('CLERK_LEGACY_AUTH', $this->language_id, null, $this->shop_id) == '1') ? true : false;
+
             $request_body = json_decode(file_get_contents('php://input'), true);
 
             // Exit if Auth cannot be parsed
@@ -230,13 +232,22 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
             }
 
             $request_public_key = array_key_exists('key', $request_body) ? $request_body['key'] : '';
+            $request_private_key = array_key_exists('private_key', $request_body) ? $request_body['private_key'] : '';
             $scope_public_key = Configuration::get('CLERK_PUBLIC_KEY', $this->getLanguageId(), null, $this->getShopId());
+            $scope_private_key = Configuration::get('CLERK_PRIVATE_KEY', $this->getLanguageId(), null, $this->getShopId());
 
             $request_token = $this->getHeaderToken();
 
-            if ($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->validateJwt($request_token) ) {
+            if(!$use_legacy_auth){
+              if ($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->validateJwt($request_token) ) {
                 return true;
+              }
+            } else {
+              if ($this->timingSafeEquals($scope_public_key, $request_public_key) && $this->timingSafeEquals($scope_private_key, $request_private_key)){
+                return true;
+              }
             }
+
 
             $this->logger->warn('API key was not validated', ['response' => false]);
             return false;

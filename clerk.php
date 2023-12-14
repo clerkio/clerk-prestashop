@@ -191,6 +191,7 @@ class Clerk extends Module
 
             Configuration::updateValue('CLERK_PUBLIC_KEY', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_PRIVATE_KEY', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LEGACY_AUTH', $falseValues, false, null, $shop['id_shop']);
 
             // Adding option to switch header hook due to people removing hooks form their themes files. :)
             Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', $defaultHookPositions, false, null, $shop['id_shop']);
@@ -406,6 +407,7 @@ class Clerk extends Module
 
         Configuration::deleteByName('CLERK_PUBLIC_KEY');
         Configuration::deleteByName('CLERK_PRIVATE_KEY');
+        Configuration::deleteByName('CLERK_LEGACY_AUTH');
         Configuration::deleteByName('CLERK_TRACKING_HOOK_POSITION');
         Configuration::deleteByName('CLERK_LANGUAGE');
         Configuration::deleteByName('CLERK_SEARCH_ENABLED');
@@ -509,6 +511,10 @@ class Clerk extends Module
 
                 Configuration::updateValue('CLERK_PRIVATE_KEY', array(
                     $this->language_id => trim(Tools::getValue('clerk_private_key', ''))
+                ), false, null, $this->shop_id);
+
+                Configuration::updateValue('CLERK_LEGACY_AUTH', array(
+                    $this->language_id => trim(Tools::getValue('clerk_legacy_auth', 0))
                 ), false, null, $this->shop_id);
 
                 Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', array(
@@ -1043,6 +1049,25 @@ class Clerk extends Module
                             ),
                             'id' => 'value',
                             'name' => 'name',
+                        )
+                    ),
+                    array(
+                        'type' => $booleanType,
+                        'label' => $this->l('Legacy Auth'),
+                        'name' => 'clerk_legacy_auth',
+                        'is_bool' => true,
+                        'class' => 't',
+                        'values' => array(
+                            array(
+                                'id' => 'clerk_legacy_auth_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'clerk_legacy_auth_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
                         )
                     ),
                 ),
@@ -2752,6 +2777,7 @@ CLERKJS;
         return array(
             'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $_lang_id, null, $_shop_id),
             'clerk_private_key' => Configuration::get('CLERK_PRIVATE_KEY', $_lang_id, null, $_shop_id),
+            'clerk_legacy_auth' => Configuration::get('CLERK_LEGACY_AUTH', $_lang_id, null, $_shop_id),
             'clerk_language' => Configuration::get('CLERK_LANGUAGE', $_lang_id, null, $_shop_id),
             'clerk_tracking_hook_position' => Configuration::get('CLERK_TRACKING_HOOK_POSITION', $_lang_id, null, $_shop_id),
             'clerk_import_url' => $sync_url,
@@ -2883,6 +2909,11 @@ CLERKJS;
         } else {
             $additional_scripts = '';
         }
+
+        $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
+        $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
+        $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
+
 
         $this->context->smarty->assign(
             array(
@@ -3032,6 +3063,10 @@ CLERKJS;
         } else {
             $additional_scripts = '';
         }
+
+        $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
+        $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
+        $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
         $this->context->smarty->assign(
             array(
@@ -3186,6 +3221,10 @@ CLERKJS;
             } else {
                 $additional_scripts = '';
             }
+
+            $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
+            $site_slug = preg_replace('/[^a-zA-Z]/gi', '', $site_slug);
+            $custom_clerk_js_path = '://cdn.clerk.io/' . $site_slug . '.js';
 
             $this->context->smarty->assign(
                 array(
