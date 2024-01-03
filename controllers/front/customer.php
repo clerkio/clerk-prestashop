@@ -30,6 +30,8 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 {
 
     protected $logger;
+    protected object|null $context;
+    protected object $module;
 
     public function __construct()
     {
@@ -37,12 +39,8 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
         require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
 
-        $context = Context::getContext();
-
+        $this->context = ContextCore::getContext();
         $this->logger = new ClerkLogger();
-
-        //Needed for PHP 5.3 support
-        $context = $this->context;
 
     }
     /**
@@ -50,29 +48,29 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
      *
      * @return array
      */
-    public function getJsonResponse()
+    public function getJsonResponse(): array
     {
         try {
             header('User-Agent: ClerkExtensionBot Prestashop/v' . _PS_VERSION_ . ' Clerk/v' . Module::getInstanceByName('clerk')->version . ' PHP/v' . phpversion());
 
-            if (Configuration::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
+            if (ConfigurationCore::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
                 return array();
             }
 
             $get_sub_status = false;
-            if (Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
+            if (ConfigurationCore::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
                 $get_sub_status = true;
             }
 
             $get_email = false;
-            if (Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
+            if (ConfigurationCore::get('CLERK_DATASYNC_COLLECT_EMAILS',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
                 $get_email = true;
             }
 
             $end_date = date('Y-m-d',strtotime(Tools::getValue('end_date') ? Tools::getValue('end_date') : 'today + 1 day'));
             $start_date = date('Y-m-d',strtotime(Tools::getValue('start_date') ? Tools::getValue('start_date') : 'today - 200 years'));
 
-            $language_iso = Language::getIsoById($this->getLanguageId()) ? strtoupper(Language::getIsoById($this->getLanguageId())) : null;
+            $language_iso = LanguageCore::getIsoById($this->getLanguageId()) ? strtoupper(LanguageCore::getIsoById($this->getLanguageId())) : null;
 
             $sql = "SELECT c.`id_customer` AS `id`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`
             FROM " . _DB_PREFIX_ . "customer c

@@ -5,18 +5,22 @@ class Clerk_Api
     /**
      * @var string
      */
-    protected $baseurl = 'https://api.clerk.io/v2/';
-    protected $logger;
+    protected string $baseurl = 'https://api.clerk.io/v2/';
+
+    /**
+     * @var ClerkLogger
+     */
+    protected ClerkLogger $logger;
 
     /**
      * @var int
      */
-    private $language_id;
+    private int $language_id;
 
     /**
      * @var int
      */
-    private $shop_id;
+    private int $shop_id;
 
     public function __construct()
     {
@@ -24,6 +28,7 @@ class Clerk_Api
 
         $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
         $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
+        $this->context = Context::getContext();
 
         $this->logger = new ClerkLogger();
     }
@@ -31,8 +36,9 @@ class Clerk_Api
     /**
      * @param $product
      * @param $product_id
+     * @param int $qty
      */
-    public function addProduct($product, $product_id, $qty = 0)
+    public function addProduct($product, $product_id, int $qty = 0): void
     {
         try {
             $continue = true;
@@ -73,7 +79,6 @@ class Clerk_Api
                     }
                 }
 
-                $image = Image::getCover($product_id);
 
                 if ($product->id_manufacturer) {
                     $manufacturer = new Manufacturer($product->id_manufacturer, $this->language_id);
@@ -173,13 +178,15 @@ class Clerk_Api
 
                 $product_data['on_sale'] = $product_data['price'] < $product_data['list_price'];
 
-
-                if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
-                    $product_data['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName($image_type));
-                } else {
-                    $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
-                    $product_data['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], $image_type);
+                $image = Image::getCover($product_id);
+                if(is_array($image) && array_key_exists('id_image', $image)){
+                    if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+                        $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id);
+                        $product_data['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], ImageType::getFormattedName($image_type));
+                    } else {
+                        $image_type = Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id) . '_default';
+                        $product_data['image'] = $context->link->getImageLink($product->link_rewrite[$this->language_id], $image['id_image'], $image_type);
+                    }
                 }
 
                 $base_domain = explode('//', _PS_BASE_URL_)[1];
@@ -190,7 +197,7 @@ class Clerk_Api
                     $product_data['image'] = _PS_BASE_URL_ . '/img/p/' . $iso . '-default-' . $image_type . '.jpg';
                 }
 
-                $combinations = $product->getAttributeCombinations((int)$this->language_id, true);
+                $combinations = $product->getAttributeCombinations($this->language_id, true);
 
                 $attributes = [];
                 $attribute_ids = [];
@@ -281,7 +288,7 @@ class Clerk_Api
                             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
                                 $attribute_array = ProductAttribute::getAttributes($this->language_id, true);
                             } else {
-                                $attribute_array = Attribute::getAttributes($this->language_id, true);
+                                $attribute_array = AttributeCore::getAttributes($this->language_id, true);
                             }
                         }
 
@@ -358,49 +365,45 @@ class Clerk_Api
 
                 $productRaw = new Product ($product_id, $this->language_id);
 
-                if (!empty($productRaw)) {
+                if (!empty($productRaw->unity)) {
+                    $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float)$productRaw->number_of_units : 1;
+                    $unit_price_unit = $productRaw->unity;
+                    $product_data['unit_price'] = (float)$product_data['price'] / $number_of_units;
+                    $product_data['unit_list_price'] = (float)$product_data['list_price'] / $number_of_units;
+                    $product_data['unit_price_label'] = $unit_price_unit;
+                    $product_data['base_unit'] = strval(number_format((float)$number_of_units, 2)) . " / " . $unit_price_unit;
+                }
 
-                    if (isset($productRaw->unity) && !empty($productRaw->unity)) {
-                        $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float)$productRaw->number_of_units : 1;
-                        $unit_price_unit = $productRaw->unity;
-                        $product_data['unit_price'] = (float)$product_data['price'] / $number_of_units;
-                        $product_data['unit_list_price'] = (float)$product_data['list_price'] / $number_of_units;
-                        $product_data['unit_price_label'] = $unit_price_unit;
-                        $product_data['base_unit'] = strval(number_format((float)$number_of_units, 2)) . " / " . $unit_price_unit;
+                if (!empty($fields) && in_array('atc_enabled', $fields)) {
+                    $atc_enabled = true;
+                    // If the product is disabled, we disable add to cart button
+                    if (property_exists($productRaw, 'active') && $productRaw->active != 1) {
+                        $atc_enabled = false;
                     }
 
-                    if (!empty($fields) && in_array('atc_enabled', $fields)) {
-                        $atc_enabled = true;
-                        // If the product is disabled, we disable add to cart button
-                        if (property_exists($productRaw, 'active') && $productRaw->active != 1) {
-                            $atc_enabled = false;
-                        }
-
-                        // Disable because of catalog mode enabled in Prestashop settings
-                        if (property_exists($productRaw, 'catalog_mode') && $productRaw->catalog_mode) {
-                            $atc_enabled = false;
-                        }
-
-                        // Disable because of "Available for order" checkbox unchecked in product settings
-                        if (property_exists($productRaw, 'available_for_order') && (bool)$productRaw->available_for_order === false) {
-                            $atc_enabled = false;
-                        }
-                        $stock = StockAvailable::getQuantityAvailableByProduct($product_id, null);
-
-                        // Disable because of stock management
-                        if (Configuration::get('PS_STOCK_MANAGEMENT')
-                            && !StockAvailable::outOfStock($product_id)
-                            && ($stock <= 0
-                                || (property_exists($productRaw, 'minimal_quantity') && $stock - $productRaw->minimal_quantity < 0))
-                        ) {
-                            $atc_enabled = false;
-                        }
-                        $product_data['atc_enabled'] = $atc_enabled;
-                    }
-                    if (!empty($fields) && in_array('minimal_quantity', $fields) && property_exists($productRaw, 'minimal_quantity')) {
-                        $product_data['minimal_quantity'] = $productRaw->minimal_quantity;
+                    // Disable because of catalog mode enabled in Prestashop settings
+                    if (property_exists($productRaw, 'catalog_mode') && $productRaw->catalog_mode) {
+                        $atc_enabled = false;
                     }
 
+                    // Disable because of "Available for order" checkbox unchecked in product settings
+                    if (property_exists($productRaw, 'available_for_order') && (bool)$productRaw->available_for_order === false) {
+                        $atc_enabled = false;
+                    }
+                    $stock = StockAvailable::getQuantityAvailableByProduct($product_id, null);
+
+                    // Disable because of stock management
+                    if (Configuration::get('PS_STOCK_MANAGEMENT')
+                        && !StockAvailable::outOfStock($product_id)
+                        && ($stock <= 0
+                            || (property_exists($productRaw, 'minimal_quantity') && $stock - $productRaw->minimal_quantity < 0))
+                    ) {
+                        $atc_enabled = false;
+                    }
+                    $product_data['atc_enabled'] = $atc_enabled;
+                }
+                if (!empty($fields) && in_array('minimal_quantity', $fields) && property_exists($productRaw, 'minimal_quantity')) {
+                    $product_data['minimal_quantity'] = $productRaw->minimal_quantity;
                 }
 
                 $params = [
@@ -468,7 +471,7 @@ class Clerk_Api
     private function getStockForProduct($product)
     {
         try {
-            $id_product_attribute = isset($product->id_product_attribute) ? $product->id_product_attribute : null;
+            $id_product_attribute = $product->id_product_attribute ?? null;
 
             if (isset($this->stock[$product->id][$id_product_attribute])) {
                 return $this->stock[$product->id][$id_product_attribute];
@@ -482,6 +485,8 @@ class Clerk_Api
         } catch (Exception $e) {
             $this->logger->error('ERROR getStockForProduct', ['error' => $e->getMessage()]);
         }
+
+        return 0;
     }
 
     /**

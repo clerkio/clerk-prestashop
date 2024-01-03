@@ -121,7 +121,7 @@ class Clerk extends Module
             $tab->name[$lang['id_lang']] = 'Clerk';
         }
 
-        $tab->id_parent = (int) Tab::getIdFromClassName('DEFAULT');
+        $tab->id_parent = (int) TabCore::getIdFromClassName('DEFAULT');
         $tab->module = $this->name;
         $tab->icon = 1;
 
