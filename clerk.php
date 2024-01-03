@@ -25,6 +25,9 @@
  * SOFTWARE.
  */
 
+use PrestaShop\PrestaShop\Core\Exception\DatabaseException;
+use PrestaShop\PrestaShop\Core\Exception\CoreException;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -42,21 +45,76 @@ class Clerk extends Module
     const LOGGING_TO_FILE = 'file';
     const LOGGING_TO_COLLECT = 'collect';
     const DROPDOWN_POSITIONING = 'left';
+    const DEFAULT_VALUES = array(
+        'HOOK_POS' => 'displayTop',
+        'EMPTY_STR' => '',
+        'TRUE' => 1,
+        'FALSE' => 0,
+        'IMAGE_TYPE' => 'home',
+        'CONTENT' => array(
+            'SEARCH' => 'search-page',
+            'LIVE_SEARCH' => 'live-search',
+            'PRODUCT' => 'product-page-others-also-bought,product-page-alternatives',
+            'POWERSTEP' => 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular',
+            'CATEGORY' => 'category-page-popular',
+            'CART' => 'cart-others-also-bought',
+            'EXIT' => 'exit-intent'
+        ),
+        'SELECTORS' => array(
+            'INPUT' => '.search_query',
+            'FORM' => '#search_widget > form'
+        ),
+        'FACET' => array(
+            'POS' => array(
+                'price' => array('1'),
+                'brand' => array('2'),
+                'categories' => array('3'),
+                'on_sale' => array('4'),
+            ),
+            'TTL' => array(
+                'price' => 'Price',
+                'brand' => 'Brand',
+                'categories' => 'Categories',
+                'on_sale' => 'On Sale',
+            ),
+            'STR' => array(
+                0 => "price",
+                1 => "categories",
+                2 => "on_sale",
+                3 => "brand"
+            )
+        )
+    );
+
     /**
      * @var bool
      */
-    protected $settings_updated = false;
+    protected bool $settings_updated = false;
     /**
      * @var int
      */
-    protected $language_id;
+    protected int $language_id;
     /**
      * @var int
      */
-    protected $shop_id;
-    protected $api;
-    private $logger;
-    protected $language;
+    protected int $shop_id;
+
+    /**
+     * @var Clerk_Api
+     */
+    protected Clerk_Api $api;
+    /**
+     * @var ClerkLogger
+     */
+    private ClerkLogger $logger;
+    /**
+     * @var ClerkContextHelper
+     */
+    protected ClerkContextHelper $context_h;
+    /**
+     * @var ClerkConfigHelper
+     */
+    protected ClerkConfigHelper $config_h;
 
     /**
      * Clerk constructor.
@@ -64,15 +122,23 @@ class Clerk extends Module
     public function __construct()
     {
         require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/ClerkLogger.php');
-        require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/Clerk-Api.php');
         $this->logger = new ClerkLogger();
+
+        require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/Clerk-Api.php');
         $this->api = new Clerk_Api();
+
+        require_once(_PS_MODULE_DIR_ . '/clerk/helpers/context.php');
+        $this->context_h = new ClerkContextHelper();
+
+        require_once(_PS_MODULE_DIR_ . '/clerk/helpers/context.php');
+        $this->config_h = new ClerkConfigHelper();
+
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
         $this->version = '6.8.7';
         $this->author = 'Clerk';
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
         $this->bootstrap = true;
         $this->controllers = array('added', 'search');
 
@@ -80,44 +146,29 @@ class Clerk extends Module
         $this->displayName = $this->l('Clerk');
         $this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
 
-
-        //Set shop id
-        if (!isset($_SESSION["shop_id"])) {
-
-            $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int) Tools::getValue('clerk_shop_select') : $this->context->shop->id;
-        } else {
-
-            $this->shop_id = $_SESSION["shop_id"];
-        }
-
-        //Set language id
-        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int) Tools::getValue('clerk_language_select') : $this->context->language->id;
+        $this->shop_id = $this->context_h->setShopId($this->context);
+        $this->language_id = $this->context_h->setLanguageId($this->context);
     }
 
     /**
      * @return bool
-     * @throws PrestaShopDatabaseException
-     * @throws PrestaShopException
+     * @throws DatabaseException
+     * @throws CoreException
      */
-    public function install()
+    public function install(): bool
     {
         if (Shop::isFeatureActive()) {
-            Shop::setContext(Shop::CONTEXT_ALL);
+            Shop::setContext(ShopCore::CONTEXT_ALL);
         }
 
         //Install tab
-
-        $tabId = (int) Tab::getIdFromClassName('AdminClerkDashboard');
-        if (!$tabId) {
-            $tabId = null;
-        }
-
-        $tab = new Tab($tabId);
+        $tabId = (int) TabCore::getIdFromClassName('AdminClerkDashboard') ?? null;
+        $tab = new TabCore($tabId);
         $tab->active = 1;
-        $tab->name = array();
+        $tab->name = [];
         $tab->class_name = 'AdminClerkDashboard';
 
-        foreach (Language::getLanguages(true) as $lang) {
+        foreach (LanguageCore::getLanguages(true) as $lang) {
             $tab->name[$lang['id_lang']] = 'Clerk';
         }
 
@@ -127,146 +178,138 @@ class Clerk extends Module
 
         //Initialize empty settings for all shops and languages
         foreach ($this->getAllShops() as $shop) {
-            $emptyValues = array();
-            $trueValues = array();
-            $falseValues = array();
-            $searchTemplateValues = array();
-            $standardFacetAttributes = array();
-            $liveSearchTemplateValues = array();
-            $productTemplateValues = array();
-            $powerstepTemplateValues = array();
-            $powerstepTypeValues = array();
-            $categoryTemplateValues = array();
-            $cartTemplateValues = array();
-            $exitIntentTemplateValues = array();
-            $dropdownNumberValues = array();
-            $facetPositionValues = array();
-            $facetTitleValues = array();
-
-
-            $defaultFacetString = [
-                0 => "price",
-                1 => "categories",
-                2 => "on_sale",
-                3 => "brand"
+            $sds = [
+                'false' => [],
+                'true' => [],
+                'empty' => [],
+                'hook_pos' => [],
+                'img_type' => [],
+                'dropdown_value' => [],
+                'search_content' =>  [],
+                'live_search_content' => [],
+                'product_content' => [],
+                'powerstep_content' => [],
+                'category_content' => [],
+                'cart_content' => [],
+                'exit_content' => [],
+                'powerstep_type' => [],
+                'pages_type' => [],
+                'dropdown_pos' => [],
+                'livesearch_selector' => [],
+                'livesearch_form' => [],
+                'facet_slugs' => [],
+                'facet_pos' => [],
+                'facet_titles' => [],
+                'logging_level' => [],
+                'logging_location' => []
             ];
-            $defaultClerkFacetsTitle = [
-                'price' => 'Price',
-                'brand' => 'Brand',
-                'categories' => 'Categories',
-                'on_sale' => 'On Sale',
-            ];
-            $defaultClerkFacetsPosition = [
-                'price' => ['1'],
-                'brand' => ['2'],
-                'categories' => ['3'],
-                'on_sale' => ['4'],
-            ];
-
-            foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
-                $defaultHookPositions[$language['id_lang']] = 'displayTop';
-                $emptyValues[$language['id_lang']] = '';
-                $trueValues[$language['id_lang']] = 1;
-                $falseValues[$language['id_lang']] = 0;
-                $imageValue[$language['id_lang']] = 'home';
-                $dropdownNumberValues[$language['id_lang']] = 1;
-                $searchTemplateValues[$language['id_lang']] = 'search-page';
-                $standardFacetAttributes[$language['id_lang']] = json_encode($defaultFacetString);
-                $liveSearchTemplateValues[$language['id_lang']] = 'live-search';
-                $liveSearchSelector[$language['id_lang']] = '.search_query';
-                $liveSearchFormSelector[$language['id_lang']] = '#search_widget > form';
-                $productTemplateValues[$language['id_lang']] = 'product-page-others-also-bought,product-page-alternatives';
-                $powerstepTemplateValues[$language['id_lang']] = 'power-step-others-also-bought,power-step-visitor-complementary,power-step-popular';
-                $powerstepTypeValues[$language['id_lang']] = self::TYPE_PAGE;
-                $categoryTemplateValues[$language['id_lang']] = 'category-page-popular';
-                $cartTemplateValues[$language['id_lang']] = 'cart-others-also-bought';
-                $pagesTypeValues[$language['id_lang']] = self::TYPE_CMS;
-                $dropdownPositioningValues[$language['id_lang']] = self::DROPDOWN_POSITIONING;
-                $loggingLevelValues[$language['id_lang']] = self::LEVEL_ERROR;
-                $loggingToValues[$language['id_lang']] = self::LOGGING_TO_FILE;
-                $exitIntentTemplateValues[$language['id_lang']] = 'exit-intent';
-                $facetPositionValues[$language['id_lang']] = json_encode($defaultClerkFacetsPosition);
-                $facetTitleValues[$language['id_lang']] = json_encode($defaultClerkFacetsTitle);
+            $shop_id = $shop['id_shop'];
+            foreach ($this->getAllLanguages($shop_id) as $language) {
+                $lang_id = $language['id_lang'];
+                $sds['false'][$lang_id] = self::DEFAULT_VALUES['FALSE'];
+                $sds['true'][$lang_id] = self::DEFAULT_VALUES['TRUE'];
+                $sds['empty'][$lang_id] = self::DEFAULT_VALUES['EMPTY_STR'];
+                $sds['hook_pos'][$lang_id] = self::DEFAULT_VALUES['HOOK_POS'];
+                $sds['img_type'][$lang_id] = self::DEFAULT_VALUES['IMAGE_TYPE'];
+                $sds['dropdown_value'][$lang_id] = self::DEFAULT_VALUES['TRUE'];
+                $sds['search_content'][$lang_id] =  self::DEFAULT_VALUES['CONTENT']['SEARCH'];
+                $sds['live_search_content'][$lang_id] = self::DEFAULT_VALUES['CONTENT']['LIVE_SEARCH'];
+                $sds['product_content'][$lang_id] = self::DEFAULT_VALUES['CONTENT']['PRODUCT'];
+                $sds['powerstep_content'][$lang_id] = self::DEFAULT_VALUES['CONTENT']['POWERSTEP'];
+                $sds['category_content'][$lang_id] = self::DEFAULT_VALUES['CONTENT']['CATEGORY'];
+                $sds['cart_content'][$lang_id] = self::DEFAULT_VALUES['CONTENT']['CART'];
+                $sds['exit_content'][$lang_id] = self::DEFAULT_VALUES['CONTENT']['EXIT'];
+                $sds['powerstep_type'][$lang_id] = self::TYPE_PAGE;
+                $sds['pages_type'][$lang_id] = self::TYPE_CMS;
+                $sds['dropdown_pos'][$lang_id] = self::DROPDOWN_POSITIONING;
+                $sds['livesearch_selector'][$lang_id] = self::DEFAULT_VALUES['SELECTORS']['INPUT'];
+                $sds['livesearch_form'][$lang_id] = self::DEFAULT_VALUES['SELECTORS']['FORM'];
+                $sds['facet_slugs'][$lang_id] = json_encode(self::DEFAULT_VALUES['FACET']['STR']);
+                $sds['facet_pos'][$lang_id] = json_encode(self::DEFAULT_VALUES['FACET']['POS']);
+                $sds['facet_titles'][$lang_id] = json_encode(self::DEFAULT_VALUES['FACET']['TTL']);
+                $sds['logging_level'][$lang_id] = self::LEVEL_ERROR;
+                $sds['logging_location'][$lang_id] = self::LOGGING_TO_FILE;
             }
 
-            Configuration::updateValue('CLERK_PUBLIC_KEY', $emptyValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_PRIVATE_KEY', $emptyValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LEGACY_AUTH', $falseValues, false, null, $shop['id_shop']);
+            $this->config_h->default('CLERK_PUBLIC_KEY', $sds['empty'], $shop_id);
+            $this->config_h->default('CLERK_PRIVATE_KEY', $sds['empty'], $shop_id);
+            $this->config_h->default('CLERK_LEGACY_AUTH', $sds['false'], $shop_id);
+            Configuration::updateValue('CLERK_LEGACY_AUTH', $falseValues, false, null, $shop_id);
 
             // Adding option to switch header hook due to people removing hooks form their themes files. :)
-            Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', $defaultHookPositions, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', $defaultHookPositions, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_SEARCH_CATEGORIES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_SEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_SEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_SEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_SEARCH_TEMPLATE', $searchTemplateValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_FACETS_ATTRIBUTES', $standardFacetAttributes, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_FACETS_POSITION', $facetPositionValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_FACETS_TITLE', $facetTitleValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_FACETS_DESIGN', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_FACETED_NAVIGATION_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_FACETS_ATTRIBUTES', $standardFacetAttributes, false, null, $shop_id);
+            Configuration::updateValue('CLERK_FACETS_POSITION', $facetPositionValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_FACETS_TITLE', $facetTitleValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_FACETS_DESIGN', $emptyValues, false, null, $shop_id);
 
 
-            Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', $liveSearchSelector, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', $liveSearchFormSelector, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $dropdownNumberValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', $dropdownPositioningValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LIVESEARCH_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_CATEGORIES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', $liveSearchSelector, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', $liveSearchFormSelector, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $dropdownNumberValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', $dropdownPositioningValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_STATUS_SCOPE_SHOP', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_CONTEXTUAL_VAT', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_PRODUCT_TAGS', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_IMAGE_SIZE', $imageValue, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_STATUS_SCOPE_SHOP', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_CONTEXTUAL_VAT', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_COLLECT_EMAILS', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_COLLECT_BASKETS', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_FIELDS', $emptyValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DISABLE_ORDER_SYNC', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_INCLUDE_VARIANT_REFERENCES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_PRODUCT_TAGS', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_IMAGE_SIZE', $imageValue, false, null, $shop_id);
+            Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $falseValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_PRODUCT_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_PRODUCT_TEMPLATE', $productTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_PRODUCT_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_PRODUCT_TEMPLATE', $productTemplateValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_CATEGORY_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_CATEGORY_TEMPLATE', $categoryTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_CATEGORY_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_CATEGORY_TEMPLATE', $categoryTemplateValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_CART_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_CART_TEMPLATE', $cartTemplateValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_CART_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_CART_TEMPLATE', $cartTemplateValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_LOGGING_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LOGGING_LEVEL', $loggingLevelValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LOGGING_TO', $loggingToValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LOGGING_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LOGGING_LEVEL', $loggingLevelValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_LOGGING_TO', $loggingToValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop_id);
 
-            Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_JS', $emptyValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $falseValues, false, null, $shop_id);
+            Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_JS', $emptyValues, false, null, $shop_id);
         }
 
         return parent::install() &&
@@ -296,7 +339,7 @@ class Clerk extends Module
      */
     private function getAllShops()
     {
-        $shops = array();
+        $shops = [];
         $allShops = Shop::getShops();
 
         foreach ($allShops as $shop) {
@@ -323,7 +366,7 @@ class Clerk extends Module
             $shop_id = $this->shop_id;
         }
 
-        $languages = array();
+        $languages = [];
         $allLanguages = Language::getLanguages(false, $shop_id);
 
         foreach ($allLanguages as $lang) {
@@ -1846,7 +1889,7 @@ class Clerk extends Module
         );
 
         //Faceted navigation settings
-        $facet_input = array();
+        $facet_input = [];
         $facet_enable = array(
             'type' => $booleanType,
             'label' => $this->l('Enabled'),
@@ -3628,7 +3671,7 @@ CLERKJS;
 
                 $cart_products = $this->context->cart->getProducts();
 
-                $cart_product_ids = array();
+                $cart_product_ids = [];
 
                 foreach ($cart_products as $product)
                     $cart_product_ids[] = (int) $product['id_product'];
@@ -3681,7 +3724,7 @@ CLERKJS;
         if ($order) {
             $products = $order->getProducts();
 
-            $productArray = array();
+            $productArray = [];
 
             $discounts = $order->total_discounts_tax_incl;
 
