@@ -510,36 +510,49 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 $attributes = [];
                 $attribute_ids = [];
-                $variants = [];
 
-                if (count($combinations) > 0) {
+                $variant_ids = [];
+                $variant_skus = [];
+                $variant_prices = [];
+                $variant_stocks = [];
 
+
+                if (!empty($combinations)) {
                     foreach ($combinations as $combination) {
 
-                        if (isset($combination['reference']) && $combination['reference'] != '' && !in_array($combination['reference'], $variants)) {
-
-                            array_push($variants, $combination['reference']);
-
-                        } elseif (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variants)) {
-                            array_push($variants, $combination['id_product_attribute']);
+                        // BUILD SKUS
+                        if (isset($combination['reference']) && !in_array($combination['reference'], $variant_skus)) {
+                            $variant_skus[] = $combination['reference'];
                         }
 
-                        $setGroupfield = str_replace(' ', '', $combination['group_name']);
-
-                        if (!isset($attributes[$setGroupfield])) {
-
-                            $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
-                            $attributes[$setGroupfield][] = $combination['attribute_name'];
-
-                        } else {
-
-                            if (!in_array($combination['attribute_name'], $attributes[$setGroupfield])) {
-
-                                $attribute_ids[$setGroupfield][] = $combination['id_attribute'];
-                                $attributes[$setGroupfield][] = $combination['attribute_name'];
-
-                            }
+                        // BUILD VARIANT_IDS
+                        if (isset($combination['id_product_attribute']) && !in_array($combination['id_product_attribute'], $variant_ids)) {
+                            $variant_ids[] = $combination['id_product_attribute'];
                         }
+
+                        // BUILD VARIANT PRICES
+                        if (isset($combination['price'])) {
+                            $variant_prices[] = (float)$combination['price'];
+                        }
+
+                        // BUILD VARIANT STOCKS
+                        if (isset($combination['quantity'])) {
+                            $variant_stocks[] = (int)$combination['quantity'];
+                        }
+
+                        // CLEAN GROUP NAME
+                        $setGroupField = str_replace(' ', '', $combination['group_name']);
+
+                        // ATTRIBUTE VARIATION NAMES, NORMALLY COLORS AND SIZES
+                        if (!isset($attributes[$setGroupField])) {
+                            $attribute_ids[$setGroupField][] = $combination['id_attribute'];
+                            $attributes[$setGroupField][] = $combination['attribute_name'];
+                        }
+                        if (!in_array($combination['attribute_name'], $attributes[$setGroupField])) {
+                            $attribute_ids[$setGroupField][] = $combination['id_attribute'];
+                            $attributes[$setGroupField][] = $combination['attribute_name'];
+                        }
+
 
                     }
 
@@ -617,11 +630,21 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 }
 
-                if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
-                    if (!empty($variants)) {
-                        $item['variants'] = $variants;
+                if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id)) {
+                    if(!empty($variant_ids)){
+                        $item['variants'] = $variant_ids;
+                    }
+                    if(!empty($variant_skus)){
+                        $item['variant_skus'] = $variant_skus;
+                    }
+                    if(!empty($variant_prices)){
+                        $item['variant_prices'] = $variant_prices;
+                    }
+                    if(!empty($variant_stocks)){
+                        $item['variant_stocks'] = $variant_stocks;
                     }
                 }
+
 
                 // Adding Product Features
                 if (Configuration::get('CLERK_DATASYNC_PRODUCT_FEATURES', $this->language_id, null, $this->shop_id) == '1') {

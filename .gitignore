@@ -2,4 +2,4 @@
 composer.lock
 composer.json
 vendor/
-
+.idea/
