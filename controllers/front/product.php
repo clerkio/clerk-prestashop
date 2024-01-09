@@ -698,9 +698,9 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 // Add Specific price to product data if present
-                $specific_prices = SpecificPrice::getByProductId($product['id_product']);
-                if (!empty($specific_prices) && $productRaw->base_price) {
-                    foreach ($specific_prices as $sp_price) {
+                $specificPrices = SpecificPrice::getByProductId($product['id_product']);
+                if (!empty($specificPrices) && $productRaw->base_price) {
+                    foreach ($specificPrices as $sp_price) {
                         if ($sp_price['reduction_type'] == 'percentage') {
                             $tmp_tax = ($productRaw->tax_rate / 100 + 1);
                             $tmp_price = ($productRaw->base_price * $tmp_tax);
@@ -725,6 +725,43 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     $item['unit_list_price'] = (float) $item['list_price'] / $number_of_units;
                     $item['unit_price_label'] = $unit_price_unit;
                     $item['base_unit'] = strval(number_format((float) $number_of_units, 2)) . " / " . $unit_price_unit;
+                }
+
+                // GET PRODUCT SPECIFIC PRICE
+                $specificPrices = SpecificPriceCore::getSpecificPrice($product['id_product'], $this->shop_id, null, null, null, 1);
+                if (!empty($specificPrices)) {
+                    $specificPriceValues = [];
+                    foreach ($specificPrices as $spPrice) {
+                        if($spPrice['id_shop_group'] != 0
+                            && $spPrice['id_currency'] != 0
+                            && $spPrice['id_country'] != 0
+                            && $spPrice['id_group'] != 0
+                            && $spPrice['id_customer'] != 0
+                            && $spPrice['id_product_attribute'] != 0){
+                            continue;
+                        }
+                        $tmp_price = null;
+                        if ($spPrice['reduction_type'] == 'percentage') {
+                            $tmp_tax = ($productRaw->tax_rate / 100) + 1;
+                            $tmp_price = ($productRaw->base_price * $tmp_tax);
+                            $reduction = 1 - $spPrice['reduction'];
+                            $tmp_price = $tmp_price * $reduction;
+                        }
+                        if ($spPrice['reduction_type'] == 'amount') {
+                            if($spPrice['reduction_tax']){
+                                $reduction = (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'];
+                            } else {
+                                $reduction = $spPrice['reduction'];
+                            }
+                            $tmp_price = (float)$spPrice['price'] - (float)$reduction;
+                        }
+                        if (is_numeric($tmp_price)) {
+                            $specificPriceValues[] = $tmp_price;
+                        }
+                    }
+                    if(!empty($specificPriceValues)){
+                        $specificPrice = min($specificPriceValues);
+                    }
                 }
 
                 $response[] = $item;
