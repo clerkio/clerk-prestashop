@@ -401,6 +401,42 @@ class Clerk_Api
                         $product_data['minimal_quantity'] = $productRaw->minimal_quantity;
                     }
 
+                    // GET PRODUCT SPECIFIC PRICE
+                    $specificPrices = SpecificPriceCore::getSpecificPrice($product_id, $this->shop_id, null, null, null, 1);
+                    if (!empty($specificPrices)) {
+                        $specificPriceValues = [];
+                        foreach ($specificPrices as $spPrice) {
+                            if($spPrice['id_shop_group'] != 0
+                                && $spPrice['id_currency'] != 0
+                                && $spPrice['id_country'] != 0
+                                && $spPrice['id_group'] != 0
+                                && $spPrice['id_customer'] != 0
+                                && $spPrice['id_product_attribute'] != 0){
+                                continue;
+                            }
+                            $tmp_price = null;
+                            if ($spPrice['reduction_type'] == 'percentage') {
+                                $tmp_tax = ($productRaw->tax_rate / 100) + 1;
+                                $tmp_price = ($productRaw->base_price * $tmp_tax);
+                                $reduction = 1 - $spPrice['reduction'];
+                                $tmp_price = $tmp_price * $reduction;
+                            }
+                            if ($spPrice['reduction_type'] == 'amount') {
+                                if($spPrice['reduction_tax']){
+                                    $reduction = (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'];
+                                } else {
+                                    $reduction = $spPrice['reduction'];
+                                }
+                                $tmp_price = (float)$spPrice['price'] - (float)$reduction;
+                            }
+                            if (is_numeric($tmp_price)) {
+                                $specificPriceValues[] = $tmp_price;
+                            }
+                        }
+                        if(!empty($specificPriceValues)){
+                            $specificPrice = min($specificPriceValues);
+                            $product_data['price'] = (float)$specificPrice;
+                        }
                 }
 
                 $params = [

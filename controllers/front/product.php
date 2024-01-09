@@ -761,6 +761,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                     if(!empty($specificPriceValues)){
                         $specificPrice = min($specificPriceValues);
+                        $item['price'] = (float)$specificPrice;
                     }
                 }
 
