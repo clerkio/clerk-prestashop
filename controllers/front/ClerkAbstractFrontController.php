@@ -77,6 +77,10 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      * @var class
      */
     protected $api;
+    /**
+     * @var mixed
+     */
+    protected $context;
 
     /**
      * ClerkAbstractFrontController constructor.
@@ -410,7 +414,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      * @param string|null $value
      * @param string|null $controller
      * @param string|null $method
-     * @return
+     * @return void
      */
     protected function ajaxDie($value = null, $controller = null, $method = null)
     {
@@ -453,7 +457,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getLanguageId()
     {
-        if ($this->getLanguages() == false) {
+        if (!$this->getLanguages()) {
             return $this->context->language->id;
         } else {
             return $this->getLanguages();
@@ -528,6 +532,5 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         }
 
     }
-
 
 }
