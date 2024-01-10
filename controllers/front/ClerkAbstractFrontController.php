@@ -457,7 +457,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getLanguageId()
     {
-        if ($this->getLanguages() === false) {
+        if (!$this->getLanguages()) {
             return $this->context->language->id;
         } else {
             return $this->getLanguages();
