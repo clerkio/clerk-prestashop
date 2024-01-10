@@ -406,12 +406,12 @@ class Clerk_Api
                     if (!empty($specificPrices)) {
                         $specificPriceValues = [];
                         foreach ($specificPrices as $spPrice) {
-                            if($spPrice['id_shop_group'] != 0
+                            if ($spPrice['id_shop_group'] != 0
                                 && $spPrice['id_currency'] != 0
                                 && $spPrice['id_country'] != 0
                                 && $spPrice['id_group'] != 0
                                 && $spPrice['id_customer'] != 0
-                                && $spPrice['id_product_attribute'] != 0){
+                                && $spPrice['id_product_attribute'] != 0) {
                                 continue;
                             }
                             $tmp_price = null;
@@ -422,7 +422,7 @@ class Clerk_Api
                                 $tmp_price = $tmp_price * $reduction;
                             }
                             if ($spPrice['reduction_type'] == 'amount') {
-                                if($spPrice['reduction_tax']){
+                                if ($spPrice['reduction_tax']) {
                                     $reduction = (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'];
                                 } else {
                                     $reduction = $spPrice['reduction'];
@@ -433,10 +433,11 @@ class Clerk_Api
                                 $specificPriceValues[] = $tmp_price;
                             }
                         }
-                        if(!empty($specificPriceValues)){
+                        if (!empty($specificPriceValues)) {
                             $specificPrice = min($specificPriceValues);
                             $product_data['price'] = (float)$specificPrice;
                         }
+                    }
                 }
 
                 $params = [
