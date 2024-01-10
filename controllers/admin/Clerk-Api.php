@@ -444,7 +444,7 @@ class Clerk_Api
                         }
                         if (!empty($specificPriceValues)) {
                             $specificPrice = min($specificPriceValues);
-                            $item['price'] = (float)$specificPrice;
+                            $product_data['price'] = (float)$specificPrice;
                         }
                     }
 
