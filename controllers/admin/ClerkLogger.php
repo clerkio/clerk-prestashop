@@ -295,6 +295,8 @@ class ClerkLogger extends ModuleAdminController
             '-------------------------' . PHP_EOL;
         $path = _PS_MODULE_DIR_ . '/clerk/clerk_log.log';
 
+        $path = str_replace('//', '/', $path);
+
         fopen($path, "a+");
         file_put_contents($path, $log, FILE_APPEND);
 
