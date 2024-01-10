@@ -1,9 +1,9 @@
 <?php
 /**
- *  @author Clerk.io
- *  @copyright Copyright (c) 2017 Clerk.io
+ * @author Clerk.io
+ * @copyright Copyright (c) 2017 Clerk.io
  *
- *  @license MIT License
+ * @license MIT License
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,8 +65,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $context = Context::getContext();
 
-        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int) Tools::getValue('clerk_shop_select') : $this->getShopId();
-        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int) Tools::getValue('clerk_language_select') : $this->getLanguageId();
+        $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $this->getShopId();
+        $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $this->getLanguageId();
 
         $this->logger = new ClerkLogger();
 
@@ -126,7 +126,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     SELECT i.`id_image` as id
                     FROM `' . _DB_PREFIX_ . 'image` i
                     ' . Shop::addSqlAssociation('image', 'i') . '
-                    WHERE i.`id_product` = ' . (int) $product['id_product'] . '
+                    WHERE i.`id_product` = ' . (int)$product['id_product'] . '
                     ORDER BY i.`position`');
                     foreach ($varArray as $obj) {
                         foreach ($obj as $key => $value) {
@@ -185,7 +185,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     SELECT i.`id_image` as id
                     FROM `' . _DB_PREFIX_ . 'image` i
                     ' . Shop::addSqlAssociation('image', 'i') . '
-                    WHERE i.`id_product` = ' . (int) $product['id_product'] . '
+                    WHERE i.`id_product` = ' . (int)$product['id_product'] . '
                     ORDER BY i.`position`');
                     foreach ($varArray as $obj) {
                         foreach ($obj as $key => $value) {
@@ -214,10 +214,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 $address = new Address();
-                $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+                $address->id_country = (int)Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
                 $address->id_state = 0;
                 $address->postcode = 0;
-                $tax_rate = Tax::getProductTaxRate((int) $product['id_product'], $address);
+                $tax_rate = Tax::getProductTaxRate((int)$product['id_product'], $address);
                 $tax_rate = ($tax_rate / 100) + 1;
                 $price_exc_tax = Product::getPriceStatic($product['id_product'], false);
 
@@ -227,7 +227,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             }
 
             if ($current_currency->iso_code !== $default_currency->iso_code) {
-                $price = ($price / (float) $current_currency->conversion_rate);
+                $price = ($price / (float)$current_currency->conversion_rate);
             }
 
             return $price;
@@ -244,10 +244,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 $address = new Address();
-                $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
+                $address->id_country = (int)Configuration::get('PS_COUNTRY_DEFAULT', $this->language_id, 0, 0);
                 $address->id_state = 0;
                 $address->postcode = 0;
-                $tax_rate = Tax::getProductTaxRate((int) $product['id_product'], $address);
+                $tax_rate = Tax::getProductTaxRate((int)$product['id_product'], $address);
                 $tax_rate = ($tax_rate / 100) + 1;
                 $price_exc_tax = Product::getPriceStatic($product['id_product'], false, null, 6, null, false, false);
 
@@ -257,7 +257,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             }
 
             if ($current_currency->iso_code !== $default_currency->iso_code) {
-                $price = ($price / (float) $current_currency->conversion_rate);
+                $price = ($price / (float)$current_currency->conversion_rate);
             }
 
             return $price;
@@ -269,7 +269,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $this->addFieldHandler('qty', function ($product) {
             if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
-                return (int) $product['quantity'];
+                return (int)$product['quantity'];
             } else {
                 return $this->getStockForProduct($product);
             }
@@ -277,7 +277,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
         $this->addFieldHandler('stock', function ($product) {
             if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id) == '1') {
-                return (int) $product['quantity'];
+                return (int)$product['quantity'];
             } else {
                 return $this->getStockForProduct($product);
             }
@@ -371,7 +371,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
 
             foreach ($categoriesFull as $category) {
-                $categories[] = (int) $category['id_category'];
+                $categories[] = (int)$category['id_category'];
             }
 
             return $categories;
@@ -392,7 +392,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             }
 
             // Disable because of "Available for order" checkbox unchecked in product settings
-            if (property_exists($pr, 'available_for_order') && (bool) $pr->available_for_order === false) {
+            if (property_exists($pr, 'available_for_order') && (bool)$pr->available_for_order === false) {
                 return false;
             }
 
@@ -506,7 +506,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 $productRaw = new Product($product['id_product'], $context->language->id);
 
-                $combinations = $productRaw->getAttributeCombinations((int) $context->language->id, true);
+                $combinations = $productRaw->getAttributeCombinations((int)$context->language->id, true);
 
                 $attributes = [];
                 $attribute_ids = [];
@@ -631,16 +631,16 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id)) {
-                    if(!empty($variant_ids)){
+                    if (!empty($variant_ids)) {
                         $item['variants'] = $variant_ids;
                     }
-                    if(!empty($variant_skus)){
+                    if (!empty($variant_skus)) {
                         $item['variant_skus'] = $variant_skus;
                     }
-                    if(!empty($variant_prices)){
+                    if (!empty($variant_prices)) {
                         $item['variant_prices'] = $variant_prices;
                     }
-                    if(!empty($variant_stocks)){
+                    if (!empty($variant_stocks)) {
                         $item['variant_stocks'] = $variant_stocks;
                     }
                 }
@@ -680,7 +680,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 if (Configuration::get('CLERK_DATASYNC_PRODUCT_TAGS', $this->language_id, null, $this->shop_id) == '1') {
                     $productTags = Tag::getProductTags($product['id_product']);
-                    if(!empty($productTags) && is_array($productTags) && array_key_exists($this->language_id, $productTags)){
+                    if (!empty($productTags) && is_array($productTags) && array_key_exists($this->language_id, $productTags)) {
                         $item['tags'] = $productTags[$this->language_id];
                     }
                 }
@@ -719,25 +719,38 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 if (isset($productRaw->unity) && !empty($productRaw->unity)) {
-                    $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float) $productRaw->number_of_units : 1;
+                    $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float)$productRaw->number_of_units : 1;
                     $unit_price_unit = $productRaw->unity;
-                    $item['unit_price'] = (float) $item['price'] / $number_of_units;
-                    $item['unit_list_price'] = (float) $item['list_price'] / $number_of_units;
+                    $item['unit_price'] = (float)$item['price'] / $number_of_units;
+                    $item['unit_list_price'] = (float)$item['list_price'] / $number_of_units;
                     $item['unit_price_label'] = $unit_price_unit;
-                    $item['base_unit'] = strval(number_format((float) $number_of_units, 2)) . " / " . $unit_price_unit;
+                    $item['base_unit'] = strval(number_format((float)$number_of_units, 2)) . " / " . $unit_price_unit;
                 }
 
                 // GET PRODUCT SPECIFIC PRICE
-                $specificPrices = SpecificPriceCore::getSpecificPrice($product['id_product'], $this->shop_id, null, null, null, 1);
+                $specificPrices = SpecificPrice::getSpecificPrice($product['id_product'], $this->shop_id, null, null, null, 1);
                 if (!empty($specificPrices)) {
                     $specificPriceValues = [];
                     foreach ($specificPrices as $spPrice) {
-                        if($spPrice['id_shop_group'] != 0
-                            && $spPrice['id_currency'] != 0
-                            && $spPrice['id_country'] != 0
-                            && $spPrice['id_group'] != 0
-                            && $spPrice['id_customer'] != 0
-                            && $spPrice['id_product_attribute'] != 0){
+                        if (!is_array($spPrice)) {
+                            continue;
+                        }
+                        if (array_key_exists('id_shop_group', $spPrice) && $spPrice['id_shop_group'] != 0) {
+                            continue;
+                        }
+                        if (array_key_exists('id_currency', $spPrice) && $spPrice['id_currency'] != 0) {
+                            continue;
+                        }
+                        if (array_key_exists('id_country', $spPrice) && $spPrice['id_country'] != 0) {
+                            continue;
+                        }
+                        if (array_key_exists('id_group', $spPrice) && $spPrice['id_group'] != 0) {
+                            continue;
+                        }
+                        if (array_key_exists('id_customer', $spPrice) && $spPrice['id_customer'] != 0) {
+                            continue;
+                        }
+                        if (array_key_exists('id_product_attribute', $spPrice) && $spPrice['id_product_attribute'] != 0) {
                             continue;
                         }
                         $tmp_price = null;
@@ -748,18 +761,14 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                             $tmp_price = $tmp_price * $reduction;
                         }
                         if ($spPrice['reduction_type'] == 'amount') {
-                            if($spPrice['reduction_tax']){
-                                $reduction = (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'];
-                            } else {
-                                $reduction = $spPrice['reduction'];
-                            }
-                            $tmp_price = (float)$spPrice['price'] - (float)$reduction;
+                            $reduction = $spPrice['reduction_tax'] != 0 ? (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'] : $spPrice['reduction'];
+                            $tmp_price = $spPrice['price'] - $reduction;
                         }
                         if (is_numeric($tmp_price)) {
                             $specificPriceValues[] = $tmp_price;
                         }
                     }
-                    if(!empty($specificPriceValues)){
+                    if (!empty($specificPriceValues)) {
                         $specificPrice = min($specificPriceValues);
                         $item['price'] = (float)$specificPrice;
                     }
