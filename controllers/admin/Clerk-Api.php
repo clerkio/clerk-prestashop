@@ -402,16 +402,29 @@ class Clerk_Api
                     }
 
                     // GET PRODUCT SPECIFIC PRICE
-                    $specificPrices = SpecificPriceCore::getSpecificPrice($product_id, $this->shop_id, null, null, null, 1);
+                    $specificPrices = SpecificPrice::getSpecificPrice($product_id, $this->shop_id, null, null, null, 1);
                     if (!empty($specificPrices)) {
                         $specificPriceValues = [];
                         foreach ($specificPrices as $spPrice) {
-                            if ($spPrice['id_shop_group'] != 0
-                                && $spPrice['id_currency'] != 0
-                                && $spPrice['id_country'] != 0
-                                && $spPrice['id_group'] != 0
-                                && $spPrice['id_customer'] != 0
-                                && $spPrice['id_product_attribute'] != 0) {
+                            if (!is_array($spPrice)) {
+                                continue;
+                            }
+                            if (array_key_exists('id_shop_group', $spPrice) && $spPrice['id_shop_group'] != 0) {
+                                continue;
+                            }
+                            if (array_key_exists('id_currency', $spPrice) && $spPrice['id_currency'] != 0) {
+                                continue;
+                            }
+                            if (array_key_exists('id_country', $spPrice) && $spPrice['id_country'] != 0) {
+                                continue;
+                            }
+                            if (array_key_exists('id_group', $spPrice) && $spPrice['id_group'] != 0) {
+                                continue;
+                            }
+                            if (array_key_exists('id_customer', $spPrice) && $spPrice['id_customer'] != 0) {
+                                continue;
+                            }
+                            if (array_key_exists('id_product_attribute', $spPrice) && $spPrice['id_product_attribute'] != 0) {
                                 continue;
                             }
                             $tmp_price = null;
@@ -422,12 +435,8 @@ class Clerk_Api
                                 $tmp_price = $tmp_price * $reduction;
                             }
                             if ($spPrice['reduction_type'] == 'amount') {
-                                if ($spPrice['reduction_tax']) {
-                                    $reduction = (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'];
-                                } else {
-                                    $reduction = $spPrice['reduction'];
-                                }
-                                $tmp_price = (float)$spPrice['price'] - (float)$reduction;
+                                $reduction = $spPrice['reduction_tax'] != 0 ? (($productRaw->tax_rate / 100) + 1) * $spPrice['reduction'] : $spPrice['reduction'];
+                                $tmp_price = $spPrice['price'] - $reduction;
                             }
                             if (is_numeric($tmp_price)) {
                                 $specificPriceValues[] = $tmp_price;
@@ -435,9 +444,10 @@ class Clerk_Api
                         }
                         if (!empty($specificPriceValues)) {
                             $specificPrice = min($specificPriceValues);
-                            $product_data['price'] = (float)$specificPrice;
+                            $item['price'] = (float)$specificPrice;
                         }
                     }
+
                 }
 
                 $params = [
