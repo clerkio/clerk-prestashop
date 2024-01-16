@@ -6,6 +6,9 @@ class Clerk_Api
      * @var string
      */
     protected $baseurl = 'https://api.clerk.io/v2/';
+    /**
+     * @var ClerkLogger
+     */
     protected $logger;
 
     /**
@@ -31,6 +34,7 @@ class Clerk_Api
     /**
      * @param $product
      * @param $product_id
+     * @param int $qty
      */
     public function addProduct($product, $product_id, $qty = 0)
     {
@@ -454,7 +458,7 @@ class Clerk_Api
                     'products' => [$product_data],
                 ];
 
-                $this->post('product/add', $params);
+                $this->post('products', $params);
                 $this->logger->log('Created product ' . $product_data['name'], ['params' => $params['products']]);
             }
         } catch (Exception $e) {
@@ -473,47 +477,22 @@ class Clerk_Api
             $params = [
                 'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->language_id, null, $this->shop_id),
                 'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $this->language_id, null, $this->shop_id),
-                'products' => $product_id . ',',
+                'products' => [$product_id],
             ];
 
-            $this->get('product/remove', $params);
+            $this->delete('products', $params);
             $this->logger->log('Removed product ', ['params' => $params['products']]);
         } catch (Exception $e) {
             $this->logger->error('ERROR removeProduct', ['error' => $e->getMessage()]);
         }
     }
 
-    /**
-     * @param string $endpoint
-     * @param array $params
-     * @return object|void
-     */
-    public function get($endpoint, $params = [])
-    {
-        try {
-            $url = $this->baseurl . $endpoint . '?' . http_build_query($params);
-            $curl = curl_init();
 
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_POST, false);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-            $response = json_decode(curl_exec($curl));
-
-            curl_close($curl);
-
-            $this->logger->log('GET request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
-
-            return $response;
-        } catch (Exception $e) {
-            $this->logger->error('GET request failed', ['error' => $e->getMessage()]);
-        }
-    }
 
     private function getStockForProduct($product)
     {
         try {
-            $id_product_attribute = isset($product->id_product_attribute) ? $product->id_product_attribute : null;
+            $id_product_attribute = $product->id_product_attribute ?? null;
 
             if (isset($this->stock[$product->id][$id_product_attribute])) {
                 return $this->stock[$product->id][$id_product_attribute];
@@ -553,6 +532,93 @@ class Clerk_Api
             $this->logger->log('POST request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
         } catch (Exception $e) {
             $this->logger->error('POST request failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param string $endpoint
+     * @param array $params
+     * @return object|void
+     */
+    public function get($endpoint, $params = [])
+    {
+        try {
+            $url = $this->baseurl . $endpoint . '?' . http_build_query($params);
+            $curl = curl_init();
+
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_POST, false);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+            $response = json_decode(curl_exec($curl));
+
+            curl_close($curl);
+
+            $this->logger->log('GET request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
+
+            return $response;
+        } catch (Exception $e) {
+            $this->logger->error('GET request failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Perform a DELETE request
+     *
+     * @param string $endpoint
+     * @param array $params
+     */
+    private function delete($endpoint, $params = [])
+    {
+        try {
+            $url = $this->baseurl . $endpoint . '?' . http_build_query($params);
+            $curl = curl_init();
+
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+
+            $this->logger->log('DELETE request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
+            return $response;
+
+        } catch (Exception $e) {
+            $this->logger->error('DELETE request failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+
+    /**
+     * Perform a PATCH request
+     *
+     * @param string $endpoint
+     * @param array $params
+     * @return object|void
+     */
+    private function patch($endpoint, $params = [])
+    {
+        try {
+            $url = $this->baseurl . $endpoint;
+            $curl = curl_init();
+
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
+
+            $response = json_decode(curl_exec($curl));
+
+            curl_close($curl);
+
+            $this->logger->log('PATCH request', ['endpoint' => $endpoint, 'params' => $params, 'response' => $response]);
+
+            return $response;
+
+        } catch (Exception $e) {
+            $this->logger->error('PATCH request failed', ['error' => $e->getMessage()]);
         }
     }
 
