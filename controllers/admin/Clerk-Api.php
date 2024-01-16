@@ -331,10 +331,8 @@ class Clerk_Api
                                 $feature['name'] = str_replace(array(' ', '-'), '_', $feature['name']);
                                 if (!array_key_exists($feature['name'], $features_object)) {
                                     $features_object[$feature['name']] = array();
-                                    array_push($features_object[$feature['name']], $feature['value']);
-                                } else {
-                                    array_push($features_object[$feature['name']], $feature['value']);
                                 }
+                                $features_object[$feature['name']][] = $feature['value'];
                             }
                         }
                         foreach ($features_object as $key => $value) {
