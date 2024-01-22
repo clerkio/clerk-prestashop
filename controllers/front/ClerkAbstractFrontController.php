@@ -91,7 +91,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
         $this->ajax = true;
         require_once(sprintf("%s%s/controllers/admin/ClerkLogger.php", _PS_MODULE_DIR_, $this->module->name));
         $this->logger = new ClerkLogger();
-        require_once(sprintf("%s%s/controllers/admin/Clerk-Api.php", _PS_MODULE_DIR_, $this->module->name));
+        require_once(sprintf("%s%s/controllers/admin/ClerkApi.php", _PS_MODULE_DIR_, $this->module->name));
         $this->api = new Clerk_Api();
     }
 

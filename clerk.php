@@ -64,7 +64,7 @@ class Clerk extends Module
     public function __construct()
     {
         require_once(sprintf("%s/clerk/controllers/admin/ClerkLogger.php", _PS_MODULE_DIR_));
-        require_once(sprintf("%s/clerk/controllers/admin/Clerk-Api.php", _PS_MODULE_DIR_));
+        require_once(sprintf("%s/clerk/controllers/admin/ClerkApi.php", _PS_MODULE_DIR_));
         $this->logger = new ClerkLogger();
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
