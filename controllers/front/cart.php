@@ -33,7 +33,7 @@ class ClerkCartModuleFrontController extends ModuleFrontController
 
         $cart_products = $this->context->cart->getProducts();
 
-        $cart_product_ids = array();
+        $cart_product_ids = [];
 
         foreach ($cart_products as $product) 
             $cart_product_ids[] = (int)$product['id_product'];

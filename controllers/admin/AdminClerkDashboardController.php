@@ -125,7 +125,7 @@ class AdminClerkDashboardController extends ModuleAdminController
     {
         try {
 
-            $shops = array();
+            $shops = [];
             $allShops = Shop::getShops();
 
             foreach ($allShops as $shop) {
@@ -160,7 +160,7 @@ class AdminClerkDashboardController extends ModuleAdminController
                 $shop_id = $this->shop_id;
             }
 
-            $languages = array();
+            $languages = [];
             $allLanguages = Language::getLanguages(false, $shop_id);
 
             foreach ($allLanguages as $lang) {

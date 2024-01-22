@@ -30,7 +30,7 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_3_0_0($object)
 {
-    $shops = array();
+    $shops = [];
     $allShops = Shop::getShops();
 
     foreach ($allShops as $shop) {
@@ -41,7 +41,7 @@ function upgrade_module_3_0_0($object)
     }
 
     foreach ($allShops as $shop) {
-        $languages = array();
+        $languages = [];
         $allLanguages = Language::getLanguages(false, $shop['id_shop']);
 
         foreach ($allLanguages as $lang) {

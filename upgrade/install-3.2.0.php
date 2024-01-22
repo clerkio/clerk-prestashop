@@ -34,7 +34,7 @@ function upgrade_module_3_2_0($object)
 
     $tab = new Tab();
     $tab->active = 1;
-    $tab->name = array();
+    $tab->name = [];
     $tab->class_name = 'AdminClerkDashboard';
 
     foreach (Language::getLanguages(true) as $lang) {

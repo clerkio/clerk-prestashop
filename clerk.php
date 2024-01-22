@@ -63,8 +63,8 @@ class Clerk extends Module
      */
     public function __construct()
     {
-        require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/ClerkLogger.php');
-        require_once(_PS_MODULE_DIR_ . '/clerk/controllers/admin/Clerk-Api.php');
+        require_once(sprintf("%s/clerk/controllers/admin/ClerkLogger.php", _PS_MODULE_DIR_));
+        require_once(sprintf("%s/clerk/controllers/admin/Clerk-Api.php", _PS_MODULE_DIR_));
         $this->logger = new ClerkLogger();
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
@@ -114,7 +114,7 @@ class Clerk extends Module
 
         $tab = new Tab($tabId);
         $tab->active = 1;
-        $tab->name = array();
+        $tab->name = [];
         $tab->class_name = 'AdminClerkDashboard';
 
         foreach (Language::getLanguages(true) as $lang) {
@@ -127,21 +127,28 @@ class Clerk extends Module
 
         //Initialize empty settings for all shops and languages
         foreach ($this->getAllShops() as $shop) {
-            $emptyValues = array();
-            $trueValues = array();
-            $falseValues = array();
-            $searchTemplateValues = array();
-            $standardFacetAttributes = array();
-            $liveSearchTemplateValues = array();
-            $productTemplateValues = array();
-            $powerstepTemplateValues = array();
-            $powerstepTypeValues = array();
-            $categoryTemplateValues = array();
-            $cartTemplateValues = array();
-            $exitIntentTemplateValues = array();
-            $dropdownNumberValues = array();
-            $facetPositionValues = array();
-            $facetTitleValues = array();
+            $defaultHookPositions = [];
+            $pagesTypeValues = [];
+            $liveSearchSelector = [];
+            $liveSearchFormSelector = [];
+            $dropdownPositioningValues = [];
+            $imageValue = [];
+            $loggingLevelValues = [];
+            $loggingToValues = [];
+            $emptyValues = [];
+            $falseValues = [];
+            $searchTemplateValues = [];
+            $standardFacetAttributes = [];
+            $liveSearchTemplateValues = [];
+            $productTemplateValues = [];
+            $powerstepTemplateValues = [];
+            $powerstepTypeValues = [];
+            $categoryTemplateValues = [];
+            $cartTemplateValues = [];
+            $exitIntentTemplateValues = [];
+            $dropdownNumberValues = [];
+            $facetPositionValues = [];
+            $facetTitleValues = [];
 
 
             $defaultFacetString = [
@@ -166,7 +173,6 @@ class Clerk extends Module
             foreach ($this->getAllLanguages($shop['id_shop']) as $language) {
                 $defaultHookPositions[$language['id_lang']] = 'displayTop';
                 $emptyValues[$language['id_lang']] = '';
-                $trueValues[$language['id_lang']] = 1;
                 $falseValues[$language['id_lang']] = 0;
                 $imageValue[$language['id_lang']] = 'home';
                 $dropdownNumberValues[$language['id_lang']] = 1;
@@ -296,7 +302,7 @@ class Clerk extends Module
      */
     private function getAllShops()
     {
-        $shops = array();
+        $shops = [];
         $allShops = Shop::getShops();
 
         foreach ($allShops as $shop) {
@@ -323,7 +329,7 @@ class Clerk extends Module
             $shop_id = $this->shop_id;
         }
 
-        $languages = array();
+        $languages = [];
         $allLanguages = Language::getLanguages(false, $shop_id);
 
         foreach ($allLanguages as $lang) {
@@ -1846,7 +1852,7 @@ class Clerk extends Module
         );
 
         //Faceted navigation settings
-        $facet_input = array();
+        $facet_input = [];
         $facet_enable = array(
             'type' => $booleanType,
             'label' => $this->l('Enabled'),
@@ -3628,7 +3634,7 @@ CLERKJS;
 
                 $cart_products = $this->context->cart->getProducts();
 
-                $cart_product_ids = array();
+                $cart_product_ids = [];
 
                 foreach ($cart_products as $product)
                     $cart_product_ids[] = (int) $product['id_product'];
@@ -3681,7 +3687,7 @@ CLERKJS;
         if ($order) {
             $products = $order->getProducts();
 
-            $productArray = array();
+            $productArray = [];
 
             $discounts = $order->total_discounts_tax_incl;
 

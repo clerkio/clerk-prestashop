@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{clerk}prestashop>clerk_715102f7c5e27c5e4a213cc505bd2161'] = 'Clerk';
 $_MODULE['<{clerk}prestashop>clerk_88ba35375acab8eb7513f3f70d2e7b7b'] = 'Clerk.io Turns More Browsers Into Buyers';
 $_MODULE['<{clerk}prestashop>clerk_f38f5974cdc23279ffe6d203641a8bdf'] = 'Indstillinger opdateret.';

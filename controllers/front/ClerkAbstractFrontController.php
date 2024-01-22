@@ -66,12 +66,12 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     /**
      * @var array
      */
-    protected $fieldHandlers = array();
+    protected $fieldHandlers = [];
 
     /**
      * @var array
      */
-    protected $fieldMap = array();
+    protected $fieldMap = [];
 
     /**
      * @var class
@@ -89,9 +89,9 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         parent::__construct();
         $this->ajax = true;
-        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/ClerkLogger.php');
+        require_once(sprintf("%s%s/controllers/admin/ClerkLogger.php", _PS_MODULE_DIR_, $this->module->name));
         $this->logger = new ClerkLogger();
-        require_once(_PS_MODULE_DIR_ . $this->module->name . '/controllers/admin/Clerk-Api.php');
+        require_once(sprintf("%s%s/controllers/admin/Clerk-Api.php", _PS_MODULE_DIR_, $this->module->name));
         $this->api = new Clerk_Api();
     }
 
@@ -172,7 +172,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
                 $auth_header = $headers['X-Clerk-Authorization'];
             }
 
-            if( null !== $auth_header && is_string( $auth_header ) ) {
+            if(is_string( $auth_header )) {
                 $auth_header_array = explode(' ', $auth_header );
                 if (count( $auth_header_array ) > 1) {
                     $token_prefix= $auth_header_array[0];
@@ -199,7 +199,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     function getRequestHeaders() {
 
-        $headers = array();
+        $headers = [];
 
         foreach($_SERVER as $key => $value) {
             if (substr($key, 0, 5) <> 'HTTP_') {
@@ -405,7 +405,7 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
      */
     protected function getDefaultFields()
     {
-        return array();
+        return [];
     }
 
     /**

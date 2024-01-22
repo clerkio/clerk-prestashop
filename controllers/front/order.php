@@ -89,7 +89,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
                         $discounts = $orderObj->total_discounts_tax_incl;
                         $discount_per_product = $discounts / count($products);
 
-                        $response = array();
+                        $response = [];
 
                         foreach ($products as $product) {
                             if(is_array($product)
@@ -128,7 +128,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
     {
         try {
             header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
-            $response = array();
+            $response = [];
             $limit = '';
 
             if (Configuration::get('CLERK_DISABLE_ORDER_SYNC', $this->getLanguageId(), null, $this->getShopId())) {
@@ -151,7 +151,7 @@ class ClerkOrderModuleFrontController extends ClerkAbstractFrontController
             $fields = array_flip($this->fieldMap);
 
             foreach ($orders as $order) {
-                $item = array();
+                $item = [];
                 foreach ($this->fields as $field) {
                     if (array_key_exists($field, array_flip($this->fieldMap))) {
                         $item[$field] = $order[$fields[$field]];

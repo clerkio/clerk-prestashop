@@ -63,10 +63,10 @@ class Clerk_Api
             if ($continue) {
                 $context = Context::getContext();
 
-                $categories = array();
+                $categories = [];
                 $categoriesFull = Product::getProductCategoriesFull($product_id);
 
-                $category_names = array();
+                $category_names = [];
 
                 foreach ($categoriesFull as $category) {
                     if (array_key_exists('id_category', $category)) {
@@ -329,12 +329,12 @@ class Clerk_Api
                     $product_front_features = Product::getFrontFeaturesStatic($this->language_id, $product_id);
 
                     if (!empty($product_front_features)) {
-                        $features_object = array();
+                        $features_object = [];
                         foreach ($product_front_features as $feature) {
                             if (isset($feature['name'])) {
                                 $feature['name'] = str_replace(array(' ', '-'), '_', $feature['name']);
                                 if (!array_key_exists($feature['name'], $features_object)) {
-                                    $features_object[$feature['name']] = array();
+                                    $features_object[$feature['name']] = [];
                                 }
                                 $features_object[$feature['name']][] = $feature['value'];
                             }
@@ -632,7 +632,7 @@ class Clerk_Api
     {
 
         if (!$data) {
-            return array();
+            return [];
         }
 
         try {
@@ -644,14 +644,14 @@ class Clerk_Api
             $response = $this->get($endpoint, $data);
 
             if (!$response) {
-                return array();
+                return [];
             } else {
                 return (array)$response;
             }
 
         } catch (Exception $e) {
             $this->logger->error('ERROR verify_token', array('error' => $e->getMessage()));
-            return array();
+            return [];
         }
 
     }

@@ -287,7 +287,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $product_all_suppliers = ProductSupplier::getSupplierCollection($product['id_product'], true);
 
             $suppliers = $product_all_suppliers->getResults();
-            $supplier_names = array();
+            $supplier_names = [];
             foreach ($suppliers as $s) {
                 $s_name = Supplier::getNameById($s->id_supplier);
                 array_push($supplier_names, $s_name);
@@ -354,7 +354,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('category_names', function ($product) {
-            $category_names = array();
+            $category_names = [];
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
 
             foreach ($categoriesFull as $category) {
@@ -367,7 +367,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         });
 
         $this->addFieldHandler('categories', function ($product) {
-            $categories = array();
+            $categories = [];
             $categoriesFull = Product::getProductCategoriesFull($product['id_product']);
 
             foreach ($categoriesFull as $category) {
@@ -496,7 +496,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
             /* Get Products SQL in order to get the overselling parameter, in addition to the normal values. */
 
-            $response = array();
+            $response = [];
             $fields = array_flip($this->fieldMap);
             $fieldsConfig = Configuration::get('CLERK_DATASYNC_FIELDS', $this->getLanguageId(), null, $this->getShopId());
             $customFields = explode(',', $fieldsConfig);
@@ -558,7 +558,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                 }
 
-                $item = array();
+                $item = [];
                 foreach ($this->fields as $field) {
                     $field = str_replace(' ', '', $field);
                     if ($attributes && array_key_exists($field, $attributes)) {
@@ -653,12 +653,12 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
 
                     if (!empty($frontfeatures)) {
                         if (count($frontfeatures) > 0) {
-                            $features_object = array();
+                            $features_object = [];
                             foreach ($frontfeatures as $feature) {
                                 if (isset($feature['name'])) {
                                     $feature['name'] = str_replace(array(' ', '-'), '_', $feature['name']);
                                     if (!array_key_exists($feature['name'], $features_object)) {
-                                        $features_object[$feature['name']] = array();
+                                        $features_object[$feature['name']] = [];
                                         array_push($features_object[$feature['name']], $feature['value']);
                                     } else {
                                         array_push($features_object[$feature['name']], $feature['value']);
@@ -701,6 +701,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $specificPrices = SpecificPrice::getByProductId($product['id_product']);
                 if (!empty($specificPrices) && $productRaw->base_price) {
                     foreach ($specificPrices as $sp_price) {
+                        $tmp_price = null;
                         if ($sp_price['reduction_type'] == 'percentage') {
                             $tmp_tax = ($productRaw->tax_rate / 100 + 1);
                             $tmp_price = ($productRaw->base_price * $tmp_tax);
@@ -718,7 +719,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                     }
                 }
 
-                if (isset($productRaw->unity) && !empty($productRaw->unity)) {
+                if (!empty($productRaw->unity)) {
                     $number_of_units = isset($productRaw->number_of_units) && $productRaw->number_of_units > 0 ? (float)$productRaw->number_of_units : 1;
                     $unit_price_unit = $productRaw->unity;
                     $item['unit_price'] = (float)$item['price'] / $number_of_units;
@@ -817,7 +818,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             );
 
             if (Configuration::get('CLERK_INCLUDE_VARIANT_REFERENCES', $this->language_id, null, $this->shop_id) == '1') {
-                array_push($default, 'variant_images');
+                $default[] = 'variant_images';
             }
 
             //Get custom fields from configuration

@@ -53,7 +53,7 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
         try {
 
             header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
-            $response = array();
+            $response = [];
 
             $limit = '';
 
@@ -93,7 +93,7 @@ class ClerkCategoryModuleFrontController extends ClerkAbstractFrontController
                     $categoryObj = new Category($category['id_category']);
                     $subCategories = $categoryObj->getSubCategories($id_lang);
 
-                    $item['subcategories'] = array();
+                    $item['subcategories'] = [];
                     foreach ($subCategories as $subCategory) {
                         $item['subcategories'][] = (int)$subCategory['id_category'];
                     }

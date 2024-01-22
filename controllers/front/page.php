@@ -120,7 +120,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
                 $pages = CMS::getCMSPages($this->getLanguageId(), 1, true, $this->shop_id);
 
-                $response = array();
+                $response = [];
 
                 foreach ($pages as $page) {
 
@@ -197,7 +197,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
     private function getBrandPages($lang_id = null) {
 
-        $brands_array = array();
+        $brands_array = [];
 
         if( null === $lang_id ) {
             return $brands_array;
@@ -212,7 +212,7 @@ class ClerkPageModuleFrontController extends ClerkAbstractFrontController
 
             $this->logger->error('ERROR getBrandPages', ['error' => $e->getMessage()]);
 
-            return array();
+            return [];
 
         }
     }

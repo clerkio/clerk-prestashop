@@ -56,7 +56,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
             header('User-Agent: ClerkExtensionBot Prestashop/v' . _PS_VERSION_ . ' Clerk/v' . Module::getInstanceByName('clerk')->version . ' PHP/v' . phpversion());
 
             if (Configuration::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC',  $this->getLanguageId(), null, $this->getShopId()) == '1') {
-                return array();
+                return [];
             }
 
             $get_sub_status = false;

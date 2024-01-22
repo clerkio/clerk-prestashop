@@ -30,9 +30,9 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_4_1_0($object)
 {
-    $shops = array();
+    $shops = [];
     $allShops = Shop::getShops();
-    $powerstepTypeValues = array();
+    $powerstepTypeValues = [];
 
     foreach ($allShops as $shop) {
         $shops[] = array(
@@ -43,7 +43,7 @@ function upgrade_module_4_1_0($object)
 
     //Initialize empty settings for all shops and languages
     foreach ($shops as $shop) {
-        $languages = array();
+        $languages = [];
         $allLanguages = Language::getLanguages(false, $shop['id_shop']);
 
         foreach ($allLanguages as $lang) {

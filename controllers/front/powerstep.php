@@ -30,11 +30,10 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
     {
         parent::initContent();
 
-        $response = [];
-
         $popup = (int)Tools::getValue('popup');
-
-        if ($id_product = (int)Tools::getValue('id_product')) {
+        $product = null;
+        $id_product = (int)Tools::getValue('id_product');
+        if ($id_product) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
         }
 
@@ -87,7 +86,7 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
                 'continue' => $this->context->link->getProductLink($id_product, $product->link_rewrite),
                 'popup' => (int)Tools::getValue('popup'),
                 'unix' => time(),
-                'ExcludeDuplicates' => $exclude_duplicates_powerstep 
+                'ExcludeDuplicates' => $exclude_duplicates_powerstep
             ));
 
             if ($popup == 1) {

@@ -51,17 +51,18 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
 
         parent::initContent();
 
-        $base_template_path = _PS_THEME_DIR_ . 'templates/page.tpl';
-
+        // Assign template to extend with fallbacks.
+        $base_template_path = sprintf("%stemplates/page.tpl", _PS_THEME_DIR_);
         if( ! file_exists( $base_template_path ) ){
-            $base_template_path = _PS_THEME_DIR_ . 'templates/index.tpl';
+            $base_template_path = sprintf("%stemplates/index.tpl", _PS_THEME_DIR_);
         }
-
         if( ! file_exists( $base_template_path ) ){
             $base_template_path = 'page.tpl';
         }
 
-        if ($id_product = (int)Tools::getValue('id_product')) {
+        $product = null;
+        $id_product = (int)Tools::getValue('id_product');
+        if ($id_product) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
         }
 
