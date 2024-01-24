@@ -3516,28 +3516,15 @@ CLERKJS;
 
             $category_id = Tools::getValue("id_category");
 
-            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                $this->context->smarty->assign(
-                    array(
+            $this->context->smarty->assign(
+                array(
 
-                        'Contents' => $Contents,
-                        'CategoryId' => $category_id,
-                        'ExcludeDuplicates' => $exclude_duplicates_category
+                    'Contents' => $Contents,
+                    'CategoryId' => $category_id,
+                    'ExcludeDuplicates' => $exclude_duplicates_category
 
-                    )
-                );
-            } else {
-
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'CategoryId' => $category_id,
-                        'ExcludeDuplicates' => $exclude_duplicates_category
-
-                    )
-                );
-            }
+                )
+            );
 
 
             return $this->display(__FILE__, 'category_products.tpl');
@@ -3712,10 +3699,10 @@ CLERKJS;
                     $PackParents = Pack::getPacksContainingItem($_product_id, $_product->id_pack_product_attribute, $this->context->language->id);
                     foreach ($PackParents as $PackParent) {
                         $productRaw = new Product($PackParent->id, $this->context->language->id);
-                        $this->api->addProduct($productRaw, $productRaw->id);
+                        $this->api->updateProduct($productRaw, $productRaw->id);
                     }
                 }
-                $this->api->addProduct($_product, $_product_id);
+                $this->api->updateProduct($_product, $_product_id);
             }
 
             $this->context->smarty->assign(
@@ -3834,29 +3821,25 @@ CLERKJS;
             $PackParents = Pack::getPacksContainingItem($product_id, $product->id_pack_product_attribute, $this->language_id);
             foreach ($PackParents as $PackParent) {
                 $productRaw = new Product($PackParent->id, $this->language_id);
-                $this->api->addProduct($productRaw, $productRaw->id);
+                $this->api->updateProduct($productRaw, $productRaw->id);
             }
         }
 
-        $this->api->addProduct($product, $product_id);
+        $this->api->updateProduct($product, $product_id);
     }
 
     public function hookActionUpdateQuantity($params)
     {
+
         if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
 
             if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) != '0') {
                 if ($params['quantity'] <= 0) {
                     $this->api->removeProduct($params['id_product']);
                 } else {
-                    $this->api->addProduct(0, $params['id_product'], $params['quantity']);
+                    $this->api->updateProduct(0, $params['id_product'], $params['quantity']);
                 }
             }
         }
-    }
-
-    function isJSON($string)
-    {
-        return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
     }
 }

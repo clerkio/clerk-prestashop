@@ -20,15 +20,22 @@ class Clerk_Api
      * @var int
      */
     private $shop_id;
+    /**
+     * @var array[]|int[]
+     */
+    protected $all_contexts;
 
     public function __construct()
     {
+        require_once(sprintf("%s/clerk/helpers/Context.php", _PS_MODULE_DIR_));
         $context = Context::getContext();
 
         $this->shop_id = (!empty(Tools::getValue('clerk_shop_select'))) ? (int)Tools::getValue('clerk_shop_select') : $context->shop->id;
         $this->language_id = (!empty(Tools::getValue('clerk_language_select'))) ? (int)Tools::getValue('clerk_language_select') : $context->language->id;
 
         $this->logger = new ClerkLogger();
+
+        $this->all_contexts = ContextHelper::getAllContexts();
     }
 
     /**
@@ -36,7 +43,7 @@ class Clerk_Api
      * @param $product_id
      * @param int $qty
      */
-    public function addProduct($product, $product_id, $qty = 0)
+    public function updateProduct($product, $product_id, $qty = 0)
     {
         try {
             $continue = true;
@@ -492,7 +499,7 @@ class Clerk_Api
     private function getStockForProduct($product)
     {
         try {
-            $id_product_attribute = $product->id_product_attribute ?? null;
+            $id_product_attribute = $product->id_product_attribute ?: null;
 
             if (isset($this->stock[$product->id][$id_product_attribute])) {
                 return $this->stock[$product->id][$id_product_attribute];
