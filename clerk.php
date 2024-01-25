@@ -3488,7 +3488,6 @@ CLERKJS;
 
             $this->context->smarty->assign(
                 array(
-
                     'Contents' => $Contents,
                     'ProductId' => $ProductsIds,
                     'ExcludeDuplicates' => $exclude_duplicates_cart
@@ -3516,28 +3515,13 @@ CLERKJS;
 
             $category_id = Tools::getValue("id_category");
 
-            if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'CategoryId' => $category_id,
-                        'ExcludeDuplicates' => $exclude_duplicates_category
-
-                    )
-                );
-            } else {
-
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'CategoryId' => $category_id,
-                        'ExcludeDuplicates' => $exclude_duplicates_category
-
-                    )
-                );
-            }
+            $this->context->smarty->assign(
+                array(
+                    'Contents' => $Contents,
+                    'CategoryId' => $category_id,
+                    'ExcludeDuplicates' => $exclude_duplicates_category
+                )
+            );
 
 
             return $this->display(__FILE__, 'category_products.tpl');
@@ -3553,35 +3537,19 @@ CLERKJS;
         $context = Context::getContext();
 
         if (Configuration::get('CLERK_PRODUCT_ENABLED', $context->language->id, null, $this->context->shop->id)) {
-
-            $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
-
+            $contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
             $exclude_duplicates_product = (bool) Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $templateData = [
+                'Contents' => $contents,
+                'ExcludeDuplicates' => $exclude_duplicates_product
+            ];
 
             if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'ProductId' => $params['product']['id'],
-                        'ExcludeDuplicates' => $exclude_duplicates_product
-
-                    )
-                );
+                $templateData['ProductId'] = $params['product']['id'];
             } else {
-
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'ProductId' => $params['product']->id,
-                        'ExcludeDuplicates' => $exclude_duplicates_product
-
-                    )
-                );
+                $templateData['ProductId'] = $params['product']->id;
             }
-
-
+            $this->context->smarty->assign($templateData);
             return $this->display(__FILE__, 'related-products.tpl');
         }
     }
@@ -3712,10 +3680,10 @@ CLERKJS;
                     $PackParents = Pack::getPacksContainingItem($_product_id, $_product->id_pack_product_attribute, $this->context->language->id);
                     foreach ($PackParents as $PackParent) {
                         $productRaw = new Product($PackParent->id, $this->context->language->id);
-                        $this->api->addProduct($productRaw, $productRaw->id);
+                        $this->api->updateProduct($productRaw, $productRaw->id);
                     }
                 }
-                $this->api->addProduct($_product, $_product_id);
+                $this->api->updateProduct($_product, $_product_id);
             }
 
             $this->context->smarty->assign(
@@ -3814,49 +3782,26 @@ CLERKJS;
 
     public function hookActionProductDelete($params)
     {
-
-        if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
-
-            $product_id = $params['id_product'];
-
-            $this->api->removeProduct($product_id);
-        }
+        $product_id = $params['id_product'];
+        $this->api->updateProduct(null, $product_id, true);
     }
 
     public function hookActionProductSave($params)
     {
-
         $product_id = $params['id_product'];
         $product = $params['product'];
-
-        // group product get and update parent
         if (Pack::isPacked($product_id) && method_exists(Pack::class, 'getPacksContainingItem')) {
             $PackParents = Pack::getPacksContainingItem($product_id, $product->id_pack_product_attribute, $this->language_id);
             foreach ($PackParents as $PackParent) {
-                $productRaw = new Product($PackParent->id, $this->language_id);
-                $this->api->addProduct($productRaw, $productRaw->id);
+                $this->api->updateProduct(null, $PackParent->id);
             }
         }
 
-        $this->api->addProduct($product, $product_id);
+        $this->api->updateProduct(null, $product_id);
     }
 
     public function hookActionUpdateQuantity($params)
     {
-        if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
-
-            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) != '0') {
-                if ($params['quantity'] <= 0) {
-                    $this->api->removeProduct($params['id_product']);
-                } else {
-                    $this->api->addProduct(0, $params['id_product'], $params['quantity']);
-                }
-            }
-        }
-    }
-
-    function isJSON($string)
-    {
-        return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+        $this->api->updateProduct(null, $params['id_product']);
     }
 }
