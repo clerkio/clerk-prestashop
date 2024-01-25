@@ -169,9 +169,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         }
 
         if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id)) {
-
-            /* Heavier quantity sorted query ensures no intermittent empty pages are returned */
-
             return "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
                 pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity',
                 ps.active as 'shop_active', p.active as 'product_active',
@@ -190,7 +187,6 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 GROUP BY p.id_product
                 ORDER BY quantity desc
                 LIMIT " . $offset . "," . $limit;
-
         }
 
         return "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,

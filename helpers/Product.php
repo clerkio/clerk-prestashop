@@ -522,7 +522,7 @@ class ProductHelper {
     public static function buildData($context, $shop_id, $language_id, $product_id, $product = null, $product_stock = null){
 
         if (!$product && !$product_id) {
-            return;
+            return ['NO DATA'];
         }
 
         if (!$product && $product_id) {
@@ -534,7 +534,7 @@ class ProductHelper {
         }
 
         if (!$product->active) {
-            return;
+            return ['NOT ACTIVE'];
         }
         if (isset($product->id_product_attribute) && (!Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $language_id, null, $shop_id) || null === $product_stock || version_compare(_PS_VERSION_, '1.7.8', '>='))){
             $product_stock = StockAvailable::getQuantityAvailableByProduct($product_id, $product->id_product_attribute, $shop_id);
@@ -543,11 +543,11 @@ class ProductHelper {
         }
 
         if (!Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $language_id, null, $shop_id) && $product_stock <= 0) {
-            return;
+            return ['NOT IN STOCK'];
         }
 
         if (!Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $language_id, null, $shop_id) && $product_stock <= 0 && !$product->out_of_stock) {
-            return;
+            return ['NOT IN LOCAL STOCK'];
         }
 
         $product_data = [
