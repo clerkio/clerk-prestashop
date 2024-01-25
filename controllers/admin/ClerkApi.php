@@ -27,7 +27,7 @@ class Clerk_Api
 
     public function __construct()
     {
-
+        require_once(_PS_MODULE_DIR_ . '/clerk/helpers/Context.php');
         require_once(_PS_MODULE_DIR_ . '/clerk/helpers/Product.php');
         $context = Context::getContext();
         $this->shop_id = $context->shop->id;
