@@ -3788,24 +3788,20 @@ CLERKJS;
 
     public function hookActionProductSave($params)
     {
-
         $product_id = $params['id_product'];
         $product = $params['product'];
-
-        // group product get and update parent
         if (Pack::isPacked($product_id) && method_exists(Pack::class, 'getPacksContainingItem')) {
             $PackParents = Pack::getPacksContainingItem($product_id, $product->id_pack_product_attribute, $this->language_id);
             foreach ($PackParents as $PackParent) {
-                $productRaw = new Product($PackParent->id, $this->language_id);
-                $this->api->updateProduct($productRaw, $productRaw->id);
+                $this->api->updateProduct(null, $PackParent->id);
             }
         }
 
-        $this->api->updateProduct($product, $product_id);
+        $this->api->updateProduct(null, $product_id);
     }
 
     public function hookActionUpdateQuantity($params)
     {
-        $this->api->updateProduct(null, $params['id_product'], $params['quantity']);
+        $this->api->updateProduct(null, $params['id_product']);
     }
 }
