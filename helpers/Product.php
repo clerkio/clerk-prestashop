@@ -94,7 +94,7 @@ class ProductHelper {
      * @param $product
      * @return array
      */
-    private static function getVariantImageUrls($context, $shop_id, $language_id, $product){
+    private static function getVariantImageUrls($context, $shop_id, $language_id, $product, $product_id){
         $variant_images = [];
         $size = ProductHelper::getImageSize($shop_id, $language_id);
         $link_rewrite = ProductHelper::getFieldMultiLang($product->link_rewrite, $language_id);
@@ -103,7 +103,7 @@ class ProductHelper {
                         SELECT i.`id_image` as id
                         FROM `' . _DB_PREFIX_ . 'image` i
                         ' . Shop::addSqlAssociation('image', 'i') . '
-                        WHERE i.`id_product` = ' . (int)$product['id_product'] . '
+                        WHERE i.`id_product` = ' . (int) $product_id . '
                         ORDER BY i.`position`');
             foreach ($variant_image_ids as $vid_column){
                 foreach ($vid_column as $_ => $image_id){
@@ -451,7 +451,7 @@ class ProductHelper {
             }
         }
 
-        $product_data['variant_images'] = ProductHelper::getVariantImageUrls($context, $shop_id, $language_id, $product);
+        $product_data['variant_images'] = ProductHelper::getVariantImageUrls($context, $shop_id, $language_id, $product, $product_id);
 
         return $product_data;
     }
