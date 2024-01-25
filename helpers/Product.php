@@ -526,7 +526,7 @@ class ProductHelper {
         }
 
         if (!$product && $product_id) {
-            $product = new Product($product_id);
+            $product = new Product($product_id, $language_id);
         }
 
         if(!$product_id && $product){

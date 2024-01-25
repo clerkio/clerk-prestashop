@@ -21,7 +21,7 @@ class Clerk_Api
      */
     private $shop_id;
     /**
-     * @var array[]|int[]
+     * @var array[]
      */
     protected $all_contexts;
 
