@@ -318,30 +318,6 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     }
 
     /**
-     * Get mapped field name
-     *
-     * @param $field
-     *
-     * @return mixed
-     */
-    protected function getFieldName($field)
-    {
-        try {
-
-            if (isset($this->fieldMap[$field])) {
-                return $this->fieldMap[$field];
-            }
-            $this->logger->log('Fetched file name', ['response' => $field]);
-            return $field;
-
-        } catch (Exception $e) {
-
-            $this->logger->error('ERROR getFieldName', ['error' => $e->getMessage()]);
-
-        }
-    }
-
-    /**
      * Parse request arguments
      */
     protected function getArguments()

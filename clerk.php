@@ -3488,7 +3488,6 @@ CLERKJS;
 
             $this->context->smarty->assign(
                 array(
-
                     'Contents' => $Contents,
                     'ProductId' => $ProductsIds,
                     'ExcludeDuplicates' => $exclude_duplicates_cart
@@ -3518,11 +3517,9 @@ CLERKJS;
 
             $this->context->smarty->assign(
                 array(
-
                     'Contents' => $Contents,
                     'CategoryId' => $category_id,
                     'ExcludeDuplicates' => $exclude_duplicates_category
-
                 )
             );
 
@@ -3540,35 +3537,19 @@ CLERKJS;
         $context = Context::getContext();
 
         if (Configuration::get('CLERK_PRODUCT_ENABLED', $context->language->id, null, $this->context->shop->id)) {
-
-            $Contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
-
+            $contents = explode(',', Configuration::get('CLERK_PRODUCT_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
             $exclude_duplicates_product = (bool) Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $templateData = [
+                'Contents' => $contents,
+                'ExcludeDuplicates' => $exclude_duplicates_product
+            ];
 
             if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'ProductId' => $params['product']['id'],
-                        'ExcludeDuplicates' => $exclude_duplicates_product
-
-                    )
-                );
+                $templateData['ProductId'] = $params['product']['id'];
             } else {
-
-                $this->context->smarty->assign(
-                    array(
-
-                        'Contents' => $Contents,
-                        'ProductId' => $params['product']->id,
-                        'ExcludeDuplicates' => $exclude_duplicates_product
-
-                    )
-                );
+                $templateData['ProductId'] = $params['product']->id;
             }
-
-
+            $this->context->smarty->assign($templateData);
             return $this->display(__FILE__, 'related-products.tpl');
         }
     }
@@ -3801,13 +3782,8 @@ CLERKJS;
 
     public function hookActionProductDelete($params)
     {
-
-        if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
-
-            $product_id = $params['id_product'];
-
-            $this->api->removeProduct($product_id);
-        }
+        $product_id = $params['id_product'];
+        $this->api->updateProduct(null, $product_id, true);
     }
 
     public function hookActionProductSave($params)
@@ -3830,16 +3806,6 @@ CLERKJS;
 
     public function hookActionUpdateQuantity($params)
     {
-
-        if (Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->language_id, null, $this->shop_id) != '0') {
-
-            if (Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->language_id, null, $this->shop_id) != '1' && Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->language_id, null, $this->shop_id) != '0') {
-                if ($params['quantity'] <= 0) {
-                    $this->api->removeProduct($params['id_product']);
-                } else {
-                    $this->api->updateProduct(0, $params['id_product'], $params['quantity']);
-                }
-            }
-        }
+        $this->api->updateProduct(null, $params['id_product'], $params['quantity']);
     }
 }
