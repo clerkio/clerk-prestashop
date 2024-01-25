@@ -82,6 +82,9 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $response = [];
             foreach ($products as $product) {
                 $item = ProductHelper::buildData($context, $shop_id, $language_id, $product['id_product']);
+                if(!$item){
+                    continue;
+                }
                 $response[] = $item;
             }
 
