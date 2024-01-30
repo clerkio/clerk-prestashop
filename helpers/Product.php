@@ -575,6 +575,9 @@ class ProductHelper {
         $product_data['image'] = ProductHelper::getImageUrl($product, $product_id, $shop_id, $language_id, $context);
         $product_data['supplier'] = ProductHelper::getSupplierNames($product_id);
         $product_data['atc_enabled'] = ProductHelper::getAtcStatus($product, $product_id);
+        if( isset($product->condition) ){
+          $product_data['condition'] = $product->condition;
+        }
 
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
