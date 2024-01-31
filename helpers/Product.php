@@ -110,7 +110,7 @@ class ProductHelper {
                     $variant_images[] = $context->link->getImageLink($link_rewrite, $image_id, $size);
                 }
             }
-        } catch (PrestaShopDatabaseException|PrestaShopException $e) {
+        } catch (Exception $e) {
             return $variant_images;
         }
         return $variant_images;
@@ -482,7 +482,7 @@ class ProductHelper {
                                 }
                             }
                         }
-                    } catch (PrestaShopDatabaseException|PrestaShopException $e) {}
+                    } catch (Exception $e) {}
                 }
 
                 if(isset($c->{ $f })){
