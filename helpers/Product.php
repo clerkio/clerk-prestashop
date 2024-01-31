@@ -510,6 +510,13 @@ class ProductHelper {
         return $product_data;
     }
 
+    private static function getProductCondition($product, $product_data){
+        if( property_exists( $product, 'condition' ) ) {
+            $product_data['condition'] =  $product->condition;
+        }
+        return $product_data;
+    }
+
     /**
      * @param $context
      * @param $shop_id
@@ -566,6 +573,7 @@ class ProductHelper {
         $product_data = ProductHelper::getPriceInfo($shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getProductFeatures($shop_id, $language_id, $product_id, $product_data);
         $product_data = ProductHelper::getProductTags($shop_id, $language_id, $product_id, $product_data);
+        $product_data = ProductHelper::getProductCondition($product, $product_data);
 
         $product_data['name'] = ProductHelper::getFieldMultiLang($product->name, $language_id, true);
         $product_data['description'] = ProductHelper::getFieldMultiLang($product->description_short, $language_id, true);
@@ -575,9 +583,6 @@ class ProductHelper {
         $product_data['image'] = ProductHelper::getImageUrl($product, $product_id, $shop_id, $language_id, $context);
         $product_data['supplier'] = ProductHelper::getSupplierNames($product_id);
         $product_data['atc_enabled'] = ProductHelper::getAtcStatus($product, $product_id);
-        if( isset($product->condition) ){
-          $product_data['condition'] = $product->condition;
-        }
 
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
