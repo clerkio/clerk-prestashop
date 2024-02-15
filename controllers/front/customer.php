@@ -81,7 +81,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
             LEFT JOIN " . _DB_PREFIX_ . "gender_lang gl ON (g.id_gender = gl.id_gender AND gl.id_lang = " . $this->getLanguageId() . ")
             WHERE c.`id_shop` = " . $this->getShopId() . " AND c.`id_lang` = " . $this->getLanguageId() . "
             AND c.`email` NOT LIKE '%marketplace.amazon.%'
-            AND c.`date_upd` BETWEEN CAST(" . $start_date . " AS DATE) AND CAST(" . $end_date . " AS DATE)
+            AND c.`date_upd` > '" . $start_date . "' AND c.`date_upd` < '" . $end_date . "'
             ORDER BY c.`id_customer` asc
             LIMIT " . $this->offset . "," . $this->limit;
 
