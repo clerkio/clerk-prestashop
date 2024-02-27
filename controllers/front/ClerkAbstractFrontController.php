@@ -221,6 +221,14 @@ abstract class ClerkAbstractFrontController extends ModuleFrontController
     {
         try {
 
+            $public_controllers = ['unsubscribe'];
+
+            $invoked_controller = Tools::getValue('controller');
+
+            if(in_array($invoked_controller, $public_controllers)){
+              return true;
+            }
+
             // Exit if not POST
             if ('POST' !== $_SERVER['REQUEST_METHOD']) {
                 return false;
