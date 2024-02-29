@@ -327,16 +327,20 @@ class ProductHelper {
      * @param $product_data
      * @return array
      */
-    private static function getCategoryInfo($product_id, $product_data)
+    private static function getCategoryInfo($product, $product_id, $product_data)
     {
+        $default_category_id = $product->id_category_default;
         $categories = Product::getProductCategoriesFull($product_id);
         foreach ($categories as $category) {
-            if (array_key_exists('id_category', $category)) {
-                $product_data['categories'][] = (int) $category['id_category'];
+            if (!array_key_exists('id_category', $category) || !array_key_exists('name', $category)) {
+              continue;
             }
-            if (array_key_exists('name', $category)) {
-                $product_data['category_names'][] = $category['name'];
+            if($category['id_category'] == $default_category_id){
+              $product_data['default_category_id'] = (int) $category['id_category'];
+              $product_data['default_category_name'] = $category['name'];
             }
+            $product_data['categories'][] = (int) $category['id_category'];
+            $product_data['category_names'][] = $category['name'];
         }
         return $product_data;
     }
@@ -569,7 +573,7 @@ class ProductHelper {
             'created_at' => strtotime($product->date_add),
         ];
 
-        $product_data = ProductHelper::getCategoryInfo($product_id, $product_data);
+        $product_data = ProductHelper::getCategoryInfo($product, $product_id, $product_data);
         $product_data = ProductHelper::getPriceInfo($shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getProductFeatures($shop_id, $language_id, $product_id, $product_data);
         $product_data = ProductHelper::getProductTags($shop_id, $language_id, $product_id, $product_data);
