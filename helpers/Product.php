@@ -176,9 +176,15 @@ class ProductHelper {
             $address->id_country = (int) Configuration::get('PS_COUNTRY_DEFAULT', $language_id, 0, 0);
             $address->id_state = 0;
             $address->postcode = 0;
-            $tax_rate = Tax::getProductTaxRate($product_id, $address);
-            $tax_rate = ($tax_rate / 100) + 1;
-
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=') === true) {
+              if(property_exists($address, 'id_address') && is_numeric($address->id_address)){
+                $tax_rate = Tax::getProductTaxRate($product_id, $address->id_address);
+                $tax_rate = ($tax_rate / 100) + 1;
+              }
+            } else {
+              $tax_rate = Tax::getProductTaxRate($product_id, $address);
+              $tax_rate = ($tax_rate / 100) + 1;
+            }
             $product_data['price'] = Product::getPriceStatic($product_id, false) * $tax_rate;
             $product_data['list_price'] = Product::getPriceStatic($product_id, false, null, 6, null, false, false) * $tax_rate;
         } else {
