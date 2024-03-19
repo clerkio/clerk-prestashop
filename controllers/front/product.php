@@ -168,7 +168,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $active .= ' AND ((ps.available_for_order IS NULL AND p.available_for_order = 1) OR (p.available_for_order IS NULL AND ps.available_for_order = 1) OR (p.available_for_order = 1 AND ps.available_for_order = 1))';
         }
 
-        if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $language_id, null, $->shop_id)) {
+        if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $language_id, null, $shop_id)) {
             return "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
                 pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity',
                 ps.active as 'shop_active', p.active as 'product_active', p.ean13,
