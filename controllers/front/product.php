@@ -168,10 +168,10 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
             $active .= ' AND ((ps.available_for_order IS NULL AND p.available_for_order = 1) OR (p.available_for_order IS NULL AND ps.available_for_order = 1) OR (p.available_for_order = 1 AND ps.available_for_order = 1))';
         }
 
-        if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $language_id, null, $shop_id)) {
+        if (Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $language_id, null, $->shop_id)) {
             return "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
                 pl.description, pl.description_short, pl.name, p.visibility, psa.quantity as 'quantity',
-                ps.active as 'shop_active', p.active as 'product_active',
+                ps.active as 'shop_active', p.active as 'product_active', p.ean13,
                 ps.available_for_order as 'shop_available', p.available_for_order as 'product_available',
                 ps.show_price as 'shop_show_price', p.show_price as 'product_show_price'
                 FROM " . _DB_PREFIX_ . "product p
@@ -190,7 +190,7 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
         }
 
         return "SELECT p.id_product, p.reference, m.name as 'manufacturer_name', pl.link_rewrite, p.date_add,
-            pl.description, pl.description_short, pl.name, p.visibility,
+            pl.description, pl.description_short, pl.name, p.visibility, p.ean13,
             ps.active as 'shop_active', p.active as 'product_active',
             ps.available_for_order as 'shop_available', p.available_for_order as 'product_available',
             ps.show_price as 'shop_show_price', p.show_price as 'product_show_price'
