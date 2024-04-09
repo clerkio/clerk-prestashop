@@ -199,11 +199,62 @@ class ProductHelper {
         $product_data['on_sale'] = $product_data['price'] < $product_data['list_price'];
 
         $product_data = ProductHelper::getCustomerGroupPrices($product_id, $product, $product_data);
-        $product_data = ProductHelper::getSpecificPriceOverride($shop_id, $language_id, $product_id, $product, $product_data);
-        return ProductHelper::getUnitPrices($product, $product_data);
+        $product_data = ProductHelper::getSpecificPriceOverride($shop_id, $product_id, $product, $product_data);
+        $product_data = ProductHelper::getUnitPrices($product, $product_data);
+        $product_data = ProductHelepr::getTierPrices($shop_id, $product_id, $product, $product_data);
+        return $product_data;
     }
 
-    private static function getSpecificPriceOverride($shop_id, $language_id, $product_id, $product, $product_data)
+    private static function getTierPrices($shop_id, $product_id, $product, $product_data) {
+        $qtyPrices = SpecificPrice::getQuantityDiscounts($product_id, $shop_id, null, null, null, null, true, 0);
+        $bp = $product->base_price ?: $product->price;
+        if(empty($qtyPrices)){
+            return $product_data;
+        }
+        $quantities = [];
+        $prices = [];
+        foreach ($qtyPrices as $p){
+            if(!is_array($p)){
+                continue;
+            }
+            if(!array_key_exists('reduction_type', $p) || !array_key_exists('reduction', $p) || !array_key_exists('id_group', $p)){
+                continue;
+            }
+            if (array_key_exists('id_shop_group', $p) && $p['id_shop_group'] != 0) {
+                continue;
+            }
+            if (array_key_exists('id_currency', $p) && $p['id_currency'] != 0) {
+                continue;
+            }
+            if (array_key_exists('id_country', $p) && $p['id_country'] != 0) {
+                continue;
+            }
+            if ($p['id_group'] != 0) {
+                continue;
+            }
+            if (array_key_exists('id_customer', $p) && $p['id_customer'] != 0) {
+                continue;
+            }
+            if($p['reduction_type'] == 'percentage'){
+                $tax = ($product->tax_rate / 100) + 1;
+                $reduction = 1 - $p['reduction'];
+                $prices[] = $bp * $tax * $reduction;
+                $quantities[] = $p['from_quantity'];
+            }
+            if($p['reduction_type'] == 'amount'){
+                $red = $p['reduction_tax'] ? ($p['reduction_tax'] * (($product->tax_rate / 100) + 1)) : $p['reduction_tax'];
+                $prices[] = $p['price'] - $red;
+                $quantities[] = $p['from_quantity'];
+            }
+        }
+        if(!empty($prices) && !empty($quantities)) {
+            $product_data['tier_price_quantities'] = $quantities;
+            $product_data['tier_price_values'] = $prices;
+        }
+        return $product_data;
+    }
+
+    private static function getSpecificPriceOverride($shop_id, $product_id, $product, $product_data)
     {
         $sp = SpecificPrice::getSpecificPrice($product_id, $shop_id, null, null, null, 1);
         $bp = $product->base_price ?: $product->price;
@@ -227,7 +278,7 @@ class ProductHelper {
             if (array_key_exists('id_country', $p) && $p['id_country'] != 0) {
                 continue;
             }
-            if (array_key_exists('id_group', $p) && $p['id_group'] != 0) {
+            if ($p['id_group'] != 0) {
                 continue;
             }
             if (array_key_exists('id_customer', $p) && $p['id_customer'] != 0) {
