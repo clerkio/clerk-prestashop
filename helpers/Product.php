@@ -201,19 +201,18 @@ class ProductHelper {
         $product_data = ProductHelper::getCustomerGroupPrices($product_id, $product, $product_data);
         $product_data = ProductHelper::getSpecificPriceOverride($shop_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getUnitPrices($product, $product_data);
-        $product_data = ProductHelepr::getTierPrices($shop_id, $product_id, $product, $product_data);
         return $product_data;
     }
 
-    private static function getTierPrices($shop_id, $product_id, $product, $product_data) {
+    private static function getTierPrices($shop_id, $product_id, $product_data) {
         $qtyPrices = SpecificPrice::getQuantityDiscounts($product_id, $shop_id, null, null, null, null, true, 0);
-        $bp = $product->base_price ?: $product->price;
         if(empty($qtyPrices)){
             return $product_data;
         }
         $quantities = [];
         $prices = [];
         foreach ($qtyPrices as $p){
+            $price = 0;
             if(!is_array($p)){
                 continue;
             }
@@ -235,16 +234,12 @@ class ProductHelper {
             if (array_key_exists('id_customer', $p) && $p['id_customer'] != 0) {
                 continue;
             }
-            if($p['reduction_type'] == 'percentage'){
-                $tax = ($product->tax_rate / 100) + 1;
-                $reduction = 1 - $p['reduction'];
-                $prices[] = $bp * $tax * $reduction;
-                $quantities[] = $p['from_quantity'];
+            if( ($p['reduction_type'] == 'amount' && $p['id_product_attribute'] && in_array($p['id_product_attribute'], $product_data['variants'])) || ($p['reduction_type'] == 'amount' && !$p['id_product_attribute'])){
+                $price = (float) $p['price'];
             }
-            if($p['reduction_type'] == 'amount'){
-                $red = $p['reduction_tax'] ? ($p['reduction_tax'] * (($product->tax_rate / 100) + 1)) : $p['reduction_tax'];
-                $prices[] = $p['price'] - $red;
+            if($price > 0){
                 $quantities[] = $p['from_quantity'];
+                $prices[] = $price;
             }
         }
         if(!empty($prices) && !empty($quantities)) {
@@ -648,6 +643,7 @@ class ProductHelper {
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
+        $product_data = ProductHelper::getTierPrices($shop_id, $product_id, $product_data);
         return $product_data;
 
 }
