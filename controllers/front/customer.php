@@ -74,11 +74,12 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
             $language_iso = Language::getIsoById($this->getLanguageId()) ? strtoupper(Language::getIsoById($this->getLanguageId())) : null;
 
-            $sql = "SELECT c.`id_customer` AS `id`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`
+            $sql = "SELECT c.`id_customer` AS `id`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`optin`, cg.id_group AS `customer_group_id`
             FROM " . _DB_PREFIX_ . "customer c
             LEFT JOIN " . _DB_PREFIX_ . "shop s ON (s.id_shop = c.id_shop)
             LEFT JOIN " . _DB_PREFIX_ . "gender g ON (g.id_gender = c.id_gender)
             LEFT JOIN " . _DB_PREFIX_ . "gender_lang gl ON (g.id_gender = gl.id_gender AND gl.id_lang = " . $this->getLanguageId() . ")
+            LEFT JOIN " . _DB_PREFIX_ . "customer_group cg ON (cg.id_customer = c.id_customer)
             WHERE c.`id_shop` = " . $this->getShopId() . " AND c.`id_lang` = " . $this->getLanguageId() . "
             AND c.`email` NOT LIKE '%marketplace.amazon.%'
             AND c.`date_upd` > '" . $start_date . "' AND c.`date_upd` < '" . $end_date . "'
