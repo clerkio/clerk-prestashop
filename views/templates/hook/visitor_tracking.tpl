@@ -25,87 +25,51 @@
 
 <script>
 
-function checkcart(){
-
-    data = "action=get_cart";
-    const request = new XMLHttpRequest();
-
-    request.addEventListener('load', function () {
-    if (this.readyState === 4 && this.status === 200) {
-        var response = this.responseText.replace('[', '').replace(']', '');
-        var clerk_productids = [];
-        clerk_productids = response.split(",")
-        clerk_productids = clerk_productids.map(Number);
-        var clerk_last_productids = [];
-        if( localStorage.getItem('clerk_productids') !== null ){
-            clerk_last_productids = localStorage.getItem('clerk_productids').split(",");
-            clerk_last_productids = clerk_last_productids.map(Number);
-        }
-        //sort
-        clerk_productids = clerk_productids.sort((a, b) => a - b);
-        clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
-        // compare
-        if(JSON.stringify(clerk_productids) == JSON.stringify(clerk_last_productids)){
-            // if equal - do nothing
-            // console.log('testing equal: ', clerk_productids, clerk_last_productids)
-        }else{
-            // if not equal send cart to clerk
-            // console.log('testing not equal: ', clerk_productids, clerk_last_productids)
-            Clerk('cart', 'set', clerk_productids);
-        }
-        // save for next compare
-        localStorage.setItem("clerk_productids", clerk_productids);
+async function checkcart(){
+    const cartRes = await fetch("${clerk_basket_link}");
+    let clerk_productids = await cartRes.json();
+    clerk_productids = clerk_productids.map(Number);
+    var clerk_last_productids = [];
+    if( localStorage.getItem('clerk_productids') !== null ){
+        clerk_last_productids = await localStorage.getItem('clerk_productids');
+        clerk_last_productids = clerk_last_productids.split(",").map(Number);
     }
-    });
-
-    request.open('POST', "{$clerk_basket_link}", true);
-    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    request.send(data);
-
+    clerk_productids = clerk_productids.sort((a, b) => a - b);
+    clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
+    if(JSON.stringify(clerk_productids) !== JSON.stringify(clerk_last_productids)){
+        Clerk('cart', 'set', clerk_productids);
+    }
+    localStorage.setItem("clerk_productids", clerk_productids);
 }
 
-    {if ($clerk_collect_cart ==true && $isv17) }
-
+    {if ($clerk_collect_cart ==true && $isv16) }
         let open = XMLHttpRequest.prototype.open; 
-
-        XMLHttpRequest.prototype.open = function() {
-            
-            this.addEventListener("load", function(){
-
-            if( this.responseURL.includes("cart") ){
-                 if (this.readyState === 4 && this.status === 200) {
-                    checkcart();
-                 } 
-            }
-
+        XMLHttpRequest.prototype.open = async function() {
+            this.addEventListener("load", async function(){
+              if( this.responseURL.includes("cart") ){
+                  if (this.readyState === 4 && this.status === 200) {
+                      await checkcart();
+                  }
+              }
             }, false);
-            
             open.apply(this, arguments);
         };
-
-
     {/if}
 
 
-    window.onload = function() {
-
+    window.onload = async function() {
         {if ($clerk_collect_cart == true) }
-
-            {if ($clerk_cart_update == true && $isv17)}              
-                checkcart();
+            {if ($clerk_cart_update == true && $isv16)}
+                await checkcart();
             {/if}
-
-            {if (!$isv17) }       
-                prestashop.on("updateCart", function (e) {
-                    checkcart();   
+            {if (!$isv16) }
+                prestashop.on("updateCart", async function (e) {
+                    await checkcart();
                 });
-
             {/if}
-
         {/if}
-        
-        {if ($powerstep_enabled && !$isv17)}
 
+        {if ($powerstep_enabled && $isv16)}
         //Handle powerstep
         prestashop.on("updateCart", function (e) {
             if (e.resp.success) {
@@ -122,22 +86,18 @@ function checkcart(){
                 data.append('id_product', product_id);
                 data.append('id_product_attribute', product_id_attribute);
                 data.append('popup', '1');
-                   
+
                 clerkgetpower.onreadystatechange = function() {
                     if (clerkgetpower.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                         if (clerkgetpower.status == 200) {
 
                             res = clerkgetpower.responseText;
-                            var count = 0;      
+                            var count = 0;
 
                             setTimeout(function(){ //dont know why but its needed
 
                                 var modals = document.querySelectorAll(".modal-body");
-
-                                console.log('modals',modals);
-
                                 modals.forEach(function(el, index, array){
-                                    console.log(el);
                                 count = count+1;
                                     if (count === 1) {
                                         var modal = el;
@@ -161,7 +121,6 @@ function checkcart(){
 
                 clerkgetpower.open("POST", "{$clerk_powerstep_link}", true);
                 clerkgetpower.send(data);
-
                 {/if}
             }
         });

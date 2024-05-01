@@ -3449,7 +3449,7 @@ CLERKJS;
                 'clerk_cart_products' => $clerk_cart_products,
                 'templates' => $templates,
                 'unix' => time(),
-                'isv17' => $is_v16,
+                'isv16' => $is_v16,
                 'clerk_basket_link' => $template_links->getModuleLink('clerk', 'clerkbasket'),
                 'clerk_added_link' => $template_links->getModuleLink('clerk', 'added'),
                 'clerk_powerstep_link' => $template_links->getModuleLink('clerk', 'powerstep')
