@@ -57,7 +57,7 @@ async function checkcart(){
     {/if}
 
 
-    window.onload = async function() {
+    document.addEventListener('DOMContentLoaded', async (event) => {
         {if ($clerk_collect_cart == true) }
             {if ($clerk_cart_update == true && $isv16)}
                 await checkcart();
@@ -125,7 +125,7 @@ async function checkcart(){
             }
         });
         {/if}
-    }
+    })
 </script>
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
 {if ($exit_intent_enabled)}
