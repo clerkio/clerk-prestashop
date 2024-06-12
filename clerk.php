@@ -285,6 +285,8 @@ class Clerk extends Module
             $this->registerHook('header') &&
             $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('displayHome') &&
+            $this->registerHook('displayHeader') &&
+            $this->registerHook('displayFooter') &&
             $this->registerHook('actionProductSave') &&
             $this->registerHook('actionProductDelete') &&
             $this->registerHook('actionUpdateQuantity') &&
@@ -1051,6 +1053,14 @@ class Clerk extends Module
                                 array(
                                     'value' => 'footer',
                                     'name' => $this->l('Footer')
+                                ),
+                                array(
+                                    'value' => 'displayHeader',
+                                    'name' => $this->l('displayHeader')
+                                ),
+                                array(
+                                    'value' => 'displayFooter',
+                                    'name' => $this->l('displayFooter')
                                 )
                             ),
                             'id' => 'value',
@@ -2856,157 +2866,7 @@ CLERKJS;
             return;
         }
 
-        switch ($this->context->language->iso_code) {
-
-            case 'da':
-                $this->language = 'danish';
-                break;
-            case 'nl':
-                $this->language = 'dutch';
-                break;
-            case 'en':
-                $this->language = 'english';
-                break;
-            case 'fi':
-                $this->language = 'finnish';
-                break;
-            case 'fr':
-                $this->language = 'french';
-                break;
-            case 'de':
-                $this->language = 'german';
-                break;
-            case 'hu':
-                $this->language = 'hungarian';
-                break;
-            case 'it':
-                $this->language = 'italian';
-                break;
-            case 'no':
-                $this->language = 'norwegian';
-                break;
-            case 'pt':
-                $this->language = 'portuguese';
-                break;
-            case 'ro':
-                $this->language = 'romanian';
-                break;
-            case 'ru':
-                $this->language = 'russian';
-                break;
-            case 'es':
-                $this->language = 'spanish';
-                break;
-            case 'sv':
-                $this->language = 'swedish';
-                break;
-            case 'tr':
-                $this->language = 'turkish';
-                break;
-        }
-
-        if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
-
-            $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
-        }
-
-        if (Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-            $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id);
-        } else {
-            $additional_scripts = '';
-        }
-
-        $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
-        $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
-        $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
-
-        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
-            $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
-        } else {
-            $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
-        }
-
-        $this->context->smarty->assign(
-            array(
-                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-                'custom_clerk_js' => $custom_clerk_js_path,
-                'clerk_language' => $this->language,
-                'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => $currency_conversion_rate,
-                'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
-                'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
-                'clerk_additional_scripts' => $additional_scripts
-            )
-        );
-        $View = $this->display(__FILE__, 'clerk_js.tpl');
-
-        if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-            $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
-            $this->smarty->assign(
-                array(
-                    'clerksearch_type' => 'top',
-                    'search_query' => (string) Tools::getValue('search_query', ''),
-                    'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
-                    'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
-                    'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
-                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-                )
-            );
-
-            $View .= $this->display(__FILE__, 'search-top.tpl', $key);
-        }
-        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
-            $context = Context::getContext();
-            $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
-            if ($enabled) {
-                $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
-                if ($correctType) {
-
-                    $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
-
-                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
-
-                    $this->context->smarty->assign(
-                        array(
-                            'Contents' => $Contents,
-                            'ProductId' => Tools::getValue('id_product'),
-                            'ExcludeDuplicates' => $exclude_duplicates_powerstep
-                        )
-                    );
-                    $View .= $this->display(__FILE__, 'powerstep_embedded_blockcart.tpl');
-                }
-            }
-            if (Configuration::get('CLERK_CATEGORY_ENABLED', $context->language->id, null, $this->context->shop->id)) {
-                $category_id = Tools::getValue("id_category");
-
-                if ($category_id) {
-                    $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
-
-                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
-
-                    $this->context->smarty->assign(
-                        array(
-                            'Contents' => $Contents,
-                            'CategoryId' => $category_id,
-                            'ExcludeDuplicates' => $exclude_duplicates_category
-                        )
-                    );
-
-                    $View .= $this->display(__FILE__, 'category_products_embedded.tpl');
-                }
-            }
-        }
-        return $View;
+        return $this->trackingScriptContent($params);
     }
 
     public function hookDisplayTop($params)
@@ -3016,156 +2876,27 @@ CLERKJS;
             return;
         }
 
-        switch ($this->context->language->iso_code) {
+        return $this->trackingScriptContent($params);
+    }
 
-            case 'da':
-                $this->language = 'danish';
-                break;
-            case 'nl':
-                $this->language = 'dutch';
-                break;
-            case 'en':
-                $this->language = 'english';
-                break;
-            case 'fi':
-                $this->language = 'finnish';
-                break;
-            case 'fr':
-                $this->language = 'french';
-                break;
-            case 'de':
-                $this->language = 'german';
-                break;
-            case 'hu':
-                $this->language = 'hungarian';
-                break;
-            case 'it':
-                $this->language = 'italian';
-                break;
-            case 'no':
-                $this->language = 'norwegian';
-                break;
-            case 'pt':
-                $this->language = 'portuguese';
-                break;
-            case 'ro':
-                $this->language = 'romanian';
-                break;
-            case 'ru':
-                $this->language = 'russian';
-                break;
-            case 'es':
-                $this->language = 'spanish';
-                break;
-            case 'sv':
-                $this->language = 'swedish';
-                break;
-            case 'tr':
-                $this->language = 'turkish';
-                break;
+    public function hookDisplayHeader($params)
+    {
+
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayHeader') {
+            return;
         }
 
-        if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
-            $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+        return $this->trackingScriptContent($params);
+    }
+
+    public function hookDisplayFooter($params)
+    {
+
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayFooter') {
+            return;
         }
 
-        if (Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-            $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id);
-        } else {
-            $additional_scripts = '';
-        }
-
-        $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
-        $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
-        $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
-
-        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
-            $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
-        } else {
-            $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
-        }
-
-        $this->context->smarty->assign(
-            array(
-                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
-                'custom_clerk_js' => $custom_clerk_js_path,
-                'clerk_language' => $this->language,
-                'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
-                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
-                'currency_conversion_rate' => $currency_conversion_rate,
-                'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
-                'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
-                'clerk_additional_scripts' => $additional_scripts
-                )
-        );
-        $View = $this->display(__FILE__, 'clerk_js.tpl');
-
-        if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
-            $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
-            $this->smarty->assign(
-                array(
-                    'clerksearch_type' => 'top',
-                    'search_query' => (string) Tools::getValue('search_query', ''),
-                    'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
-                    'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
-                    'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
-                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
-                )
-            );
-
-            $View .= $this->display(__FILE__, 'search-top.tpl', $key);
-        }
-        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
-            $context = Context::getContext();
-            $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
-            if ($enabled) {
-                $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
-                if ($correctType) {
-
-                    $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
-
-                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
-
-                    $this->context->smarty->assign(
-                        array(
-                            'Contents' => $Contents,
-                            'ProductId' => Tools::getValue('id_product'),
-                            'ExcludeDuplicates' => $exclude_duplicates_powerstep
-                        )
-                    );
-                    $View .= $this->display(__FILE__, 'powerstep_embedded_blockcart.tpl');
-                }
-            }
-            if (Configuration::get('CLERK_CATEGORY_ENABLED', $context->language->id, null, $this->context->shop->id)) {
-                $category_id = Tools::getValue("id_category");
-
-                if ($category_id) {
-                    $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
-
-                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
-
-                    $this->context->smarty->assign(
-                        array(
-                            'Contents' => $Contents,
-                            'CategoryId' => $category_id,
-                            'ExcludeDuplicates' => $exclude_duplicates_category
-                        )
-                    );
-
-                    $View .= $this->display(__FILE__, 'category_products_embedded.tpl');
-                }
-            }
-        }
-        return $View;
+        return $this->trackingScriptContent($params);
     }
 
     /**
@@ -3803,5 +3534,163 @@ CLERKJS;
     public function hookActionUpdateQuantity($params)
     {
         $this->api->updateProduct(null, $params['id_product']);
+    }
+
+    /**
+     * Content for tracking
+     **/
+    public function trackingScriptContent($params)
+    {
+        switch ($this->context->language->iso_code) {
+
+            case 'da':
+                $this->language = 'danish';
+                break;
+            case 'nl':
+                $this->language = 'dutch';
+                break;
+            case 'en':
+                $this->language = 'english';
+                break;
+            case 'fi':
+                $this->language = 'finnish';
+                break;
+            case 'fr':
+                $this->language = 'french';
+                break;
+            case 'de':
+                $this->language = 'german';
+                break;
+            case 'hu':
+                $this->language = 'hungarian';
+                break;
+            case 'it':
+                $this->language = 'italian';
+                break;
+            case 'no':
+                $this->language = 'norwegian';
+                break;
+            case 'pt':
+                $this->language = 'portuguese';
+                break;
+            case 'ro':
+                $this->language = 'romanian';
+                break;
+            case 'ru':
+                $this->language = 'russian';
+                break;
+            case 'es':
+                $this->language = 'spanish';
+                break;
+            case 'sv':
+                $this->language = 'swedish';
+                break;
+            case 'tr':
+                $this->language = 'turkish';
+                break;
+        }
+
+        if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
+
+            $this->language = Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+        }
+
+        if (Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+            $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id);
+        } else {
+            $additional_scripts = '';
+        }
+
+        $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
+        $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
+        $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
+
+        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
+            $currency_conversion_rate = Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1;
+        } else {
+            $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
+        }
+
+        $this->context->smarty->assign(
+            array(
+                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'custom_clerk_js' => $custom_clerk_js_path,
+                'clerk_language' => $this->language,
+                'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
+                'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
+                'currency_conversion_rate' => $currency_conversion_rate,
+                'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
+                'clerk_additional_scripts' => $additional_scripts
+            )
+        );
+        $View = $this->display(__FILE__, 'clerk_js.tpl');
+
+        if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+            $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
+            $this->smarty->assign(
+                array(
+                    'clerksearch_type' => 'top',
+                    'search_query' => (string) Tools::getValue('search_query', ''),
+                    'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                    'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
+                    'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
+                    'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+                )
+            );
+
+            $View .= $this->display(__FILE__, 'search-top.tpl', $key);
+        }
+        if (version_compare(_PS_VERSION_, '1.7.0', '<')) {
+            $context = Context::getContext();
+            $enabled = (Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id) ? true : false);
+            if ($enabled) {
+                $correctType = (Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id) == self::TYPE_EMBED) ? true : false;
+                if ($correctType) {
+
+                    $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
+
+                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+
+                    $this->context->smarty->assign(
+                        array(
+                            'Contents' => $Contents,
+                            'ProductId' => Tools::getValue('id_product'),
+                            'ExcludeDuplicates' => $exclude_duplicates_powerstep
+                        )
+                    );
+                    $View .= $this->display(__FILE__, 'powerstep_embedded_blockcart.tpl');
+                }
+            }
+            if (Configuration::get('CLERK_CATEGORY_ENABLED', $context->language->id, null, $this->context->shop->id)) {
+                $category_id = Tools::getValue("id_category");
+
+                if ($category_id) {
+                    $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
+
+                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+
+                    $this->context->smarty->assign(
+                        array(
+                            'Contents' => $Contents,
+                            'CategoryId' => $category_id,
+                            'ExcludeDuplicates' => $exclude_duplicates_category
+                        )
+                    );
+
+                    $View .= $this->display(__FILE__, 'category_products_embedded.tpl');
+                }
+            }
+        }
+        return $View;
     }
 }
