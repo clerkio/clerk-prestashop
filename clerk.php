@@ -3455,7 +3455,11 @@ CLERKJS;
      */
     public function renderModal(Cart $cart, $id_product, $id_product_attribute)
     {
-        $CartPresenter = PrestaShop\PrestaShop\Adapter\Cart\CartPresenter;
+        if (version_compare(_PS_VERSION_, '9.0.0', '>=') === true) {
+          $CartPresenter = PrestaShop\PrestaShop\Adapter\Presenter\Cart;
+        } else {
+          $CartPresenter = PrestaShop\PrestaShop\Adapter\Cart\CartPresenter;
+        }
         $data = (new $CartPresenter)->present($cart);
         $product = null;
 
