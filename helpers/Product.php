@@ -192,6 +192,9 @@ class ProductHelper {
             $product_data['list_price'] = Product::getPriceStatic($product_id, true, null, 6, null, false, false);
         }
 
+        $product_data['price_excl_vat'] = Product::getPriceStatic($product_id, false);
+        $product_data['list_price_excl_vat'] = Product::getPriceStatic($product_id, false, null, 6, null, false, false);
+
         if($current_currency->iso_code !== $default_currency->iso_code){
             $product_data['price'] = $product_data['price'] / (float) $current_currency->conversion_rate;
             $product_data['list_price'] = $product_data['list_price'] / (float) $current_currency->conversion_rate;
