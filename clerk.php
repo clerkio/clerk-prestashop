@@ -199,7 +199,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_PRIVATE_KEY', $emptyValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LEGACY_AUTH', $falseValues, false, null, $shop['id_shop']);
 
-            // Adding option to switch header hook due to people removing hooks form their themes files. :)
+            // Adding an option to switch header hook due to people removing hooks form their themes files. :)
             Configuration::updateValue('CLERK_TRACKING_HOOK_POSITION', $defaultHookPositions, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_SEARCH_ENABLED', $falseValues, false, null, $shop['id_shop']);
@@ -2999,7 +2999,6 @@ CLERKJS;
             if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
                 $this->smarty->assign(
                     array(
-                        'clerksearch_type' => 'top',
                         'search_query' => (string) Tools::getValue('search_query', ''),
                         'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
@@ -3635,7 +3634,6 @@ CLERKJS;
             $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
             $this->smarty->assign(
                 array(
-                    'clerksearch_type' => 'top',
                     'search_query' => (string) Tools::getValue('search_query', ''),
                     'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                     'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
@@ -3697,4 +3695,121 @@ CLERKJS;
         }
         return $View;
     }
+
+    public function renderPowerstep($params){
+        $context = Context::getContext();
+        $enabled = (bool) Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
+
+        $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
+        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+        $powerstep_type = Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
+        $this->context->smarty->assign(
+            array(
+                'Contents' => $Contents,
+                'ProductId' => Tools::getValue('id_product'),
+                'ExcludeDuplicates' => $exclude_duplicates_powerstep,
+                'Enabled' => $enabled,
+                'Type' => $powerstep_type
+            )
+        );
+        $is_version_16 = version_compare(_PS_VERSION_, '1.7.0', '<');
+        $is_version_17 = version_compare(_PS_VERSION_, '1.7.0', '>=');
+        if($powerstep_type == self::TYPE_EMBED && $is_version_16){
+            return $this->display(__FILE__, 'powerstep_embedded_blockcart.tpl');
+        }
+        if($powerstep_type == self::TYPE_EMBED && $is_version_17){
+            return $this->display(__FILE__, 'powerstep_embedded17.tpl');
+        }
+
+    }
+
+    /**
+     * @param $params
+     * @return string
+     */
+    public function renderSearchTop($params){
+        // TODO: Only trigger the form action overwrite if search page is active.
+        $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
+        $this->smarty->assign(
+            array(
+                'search_query' => (string) Tools::getValue('search_query', ''),
+                'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
+                'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
+                'baseUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__,
+                'livesearch_template' => Tools::strtolower(str_replace(' ', '-', Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->context->language->id, null, $this->context->shop->id))),
+            )
+        );
+        return $this->display(__FILE__, 'search-top.tpl', $key);
+    }
+
+
+
+    /**
+     * @param $params
+     * @return string
+     */
+    public function renderClerkJs($params){
+        $this->language = $this->mapIsoToLanguage($this->context->language->iso_code);
+        $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id) ? Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id) : '';
+
+        $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
+        $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
+        $custom_clerk_js_path = '://custom.clerk.io/' . $site_slug . '.js';
+
+        $currency_conversion_rate = version_compare(_PS_VERSION_, '1.7.0', '<') ? (Context::getContext()->currency->getConversationRate() !== null ? Context::getContext()->currency->getConversationRate() : 1) : (Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1);
+
+        $this->context->smarty->assign(
+            [
+                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'custom_clerk_js' => $custom_clerk_js_path,
+                'clerk_language' => $this->language,
+                'customer_logged_in' => $this->context->customer->logged == 1,
+                'customer_group_id' => (Customer::getDefaultGroupId($this->context->customer->id) !== null) ? Customer::getDefaultGroupId($this->context->customer->id) : false,
+                'currency_conversion_rate' => $currency_conversion_rate,
+                'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
+                'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
+                'clerk_additional_scripts' => $additional_scripts
+            ]
+        );
+
+        return $this->display(__FILE__, 'clerk_js.tpl');
+    }
+
+    /**
+     * @param $lang_iso
+     * @return string
+     */
+    public function mapIsoToLanguage($lang_iso)
+    {
+        $map = [
+            'da' => 'danish',
+            'nl' => 'dutch',
+            'en' => 'english',
+            'fi' => 'finnish',
+            'fr' => 'french',
+            'de' => 'german',
+            'hu' => 'hungarian',
+            'no' => 'norwegian',
+            'pt' => 'portuguese',
+            'ro' => 'romanian',
+            'ru' => 'russian',
+            'es' => 'spanish',
+            'sv' => 'swedish',
+            'tr' => 'turkish'
+        ];
+        if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
+            return Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+        }
+        return array_key_exists($lang_iso, $map) ? $map[$lang_iso] : 'english';
+    }
+
 }
