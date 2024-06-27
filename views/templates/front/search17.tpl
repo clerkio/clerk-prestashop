@@ -44,24 +44,13 @@
             class="clerk"
             data-template="@{$search_template|escape:'html':'UTF-8'}"
             data-target="#clerk-search-results"
-
-            {if $faceted_navigation && $facets_enabled != '[]' }
-           
             data-facets-target="#clerk-search-filters" 
             data-facets-attributes='{$facets_enabled}'
             data-facets-titles='{$facets_title|replace:'[':''|replace:']':''}'
             data-facets-design='{$facets_design}'
-
-            {/if}
-
-            {if $search_categories}
-           
             data-search-categories = '{$search_number_categories}'
             data-search-pages = '{$search_number_pages}'
             data-search-pages-type = '{$search_pages_type}'
-
-            {/if}
-
             data-query="{$search_query|escape:'html':'UTF-8'}">
     </span>
     <ul id="clerk-search-results" style="overflow: hidden;"></ul>
