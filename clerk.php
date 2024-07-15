@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ALL */
 
 /**
  * @author Clerk.io
@@ -80,16 +80,8 @@ class Clerk extends Module
         $this->displayName = $this->l('Clerk');
         $this->description = $this->l('Clerk.io Turns More Browsers Into Buyers');
 
-
         //Set shop id
-        if (!isset($_SESSION["shop_id"])) {
-
-            $this->shop_id = (Tools::getValue('clerk_shop_select')) ? (int) Tools::getValue('clerk_shop_select') : $this->context->shop->id;
-        } else {
-
-            $this->shop_id = $_SESSION["shop_id"];
-        }
-
+        $this->shop_id = !isset($_SESSION["shop_id"]) ? ((Tools::getValue('clerk_shop_select')) ? (int)Tools::getValue('clerk_shop_select') : $this->context->shop->id) : $_SESSION["shop_id"];
         //Set language id
         $this->language_id = (Tools::getValue('clerk_language_select')) ? (int) Tools::getValue('clerk_language_select') : $this->context->language->id;
     }
@@ -565,10 +557,6 @@ class Clerk extends Module
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_facets_design', ''))
                 ), false, null, $this->shop_id);
 
-                /**
-                 * kky facets sorting arrays for position
-                 */
-
                 $facetPos = Tools::getValue('clerk_facets_position', []);
                 $facetTitle = Tools::getValue('clerk_facets_title', []);
                 $enabledfacets = Tools::getValue('clerk_facets_attributes', []);
@@ -580,10 +568,6 @@ class Clerk extends Module
                 Configuration::updateValue('CLERK_FACETS_ATTRIBUTES', array(
                     $this->language_id => json_encode($enabledfacets)
                 ), false, null, $this->shop_id);
-
-                /**
-                 * kky facets cleaning clerk_facets_title array and removing empty for better smarty compatibility
-                 */
 
                 Configuration::updateValue('CLERK_FACETS_TITLE', array(
                     $this->language_id => json_encode($facetTitle)
@@ -2861,42 +2845,42 @@ CLERKJS;
 
     public function hookTop($params)
     {
-
-        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'top') {
-            return;
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) == 'top') {
+            return $this->trackingScriptContent($params);
         }
-
-        return $this->trackingScriptContent($params);
     }
 
+    /**
+     * @param $params
+     * @return string|void
+     */
     public function hookDisplayTop($params)
     {
-
-        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayTop') {
-            return;
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) === 'displayTop') {
+            return $this->trackingScriptContent($params);
         }
-
-        return $this->trackingScriptContent($params);
     }
 
+    /**
+     * @param $params
+     * @return string|void
+     */
     public function hookDisplayHeader($params)
     {
-
-        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayHeader') {
-            return;
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) === 'displayHeader') {
+            return $this->trackingScriptContent($params);
         }
-
-        return $this->trackingScriptContent($params);
     }
 
+    /**
+     * @param $params
+     * @return string|void
+     */
     public function hookDisplayFooter($params)
     {
-
-        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) !== 'displayFooter') {
-            return;
+        if (Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->context->shop->id) === 'displayFooter') {
+            return $this->trackingScriptContent($params);
         }
-
-        return $this->trackingScriptContent($params);
     }
 
     /**
@@ -3696,7 +3680,19 @@ CLERKJS;
         return $View;
     }
 
+    public function renderCategoryRecommendations($params) {
+        $enabled = (bool) Configuration::get('CLERK_CATEGORY_ENABLED', $this->context->language->id, null, $this->context->shop->id);
+        $category_id = Tools::getValue("id_category");
+        // INFO: Return if no category id or not enabled in context
+        if(!$enabled || !$category_id){
+            return;
+        }
+        $exclude_duplicates = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+
+    }
+
     public function renderPowerstep($params){
+        // TODO: Handle modal for 1.7 +
         $context = Context::getContext();
         $enabled = (bool) Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
 
@@ -3758,7 +3754,7 @@ CLERKJS;
      */
     public function renderClerkJs($params){
         $this->language = $this->mapIsoToLanguage($this->context->language->iso_code);
-        $additional_scripts = Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->context->language->id, null, $this->context->shop->id) ? Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $this->context->language->id, null, $this->context->shop->id) : '';
+        $additional_scripts = $this->getSettingBool('CLERK_ADDITIONAL_SCRIPTS_ENABLED') ? $this->getSettingString('CLERK_ADDITIONAL_SCRIPTS_JS') : '';
 
         $site_slug = strtolower(Configuration::get('PS_SHOP_NAME'));
         $site_slug = preg_replace('/[^a-zA-Z]/', '', $site_slug);
@@ -3768,8 +3764,8 @@ CLERKJS;
 
         $this->context->smarty->assign(
             [
-                'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_public_key' => $this->getSettingString('CLERK_PUBLIC_KEY'),
+                'clerk_datasync_collect_emails' => $this->getSettingBool('CLERK_DATASYNC_COLLECT_EMAILS'),
                 'custom_clerk_js' => $custom_clerk_js_path,
                 'clerk_language' => $this->language,
                 'customer_logged_in' => $this->context->customer->logged == 1,
@@ -3806,10 +3802,53 @@ CLERKJS;
             'sv' => 'swedish',
             'tr' => 'turkish'
         ];
-        if (Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id) != 'auto') {
-            return Configuration::get('CLERK_LANGUAGE', $this->language_id, null, $this->shop_id);
+        $setting_lang = $this->getSettingString('CLERK_LANGUAGE');
+        if ($setting_lang) {
+            return $setting_lang;
         }
         return array_key_exists($lang_iso, $map) ? $map[$lang_iso] : 'english';
     }
 
+    /**
+     * Get string value for settings field
+     *
+     * @param $setting_key
+     * @return string
+     */
+    public function getSettingString($setting_key){
+        return (string) Configuration::get($setting_key, $this->language_id, null, $this->shop_id);
+    }
+
+    /**
+     * Get boolean value for settings field
+     *
+     * @param $setting_key
+     * @return void
+     */
+    public function getSettingBool($setting_key){
+        return (bool) Configuration::get($setting_key, $this->language_id, null, $this->shop_id);
+    }
+
+    /**
+     * Get templates defined in a settings field, as a trimmed array
+     *
+     * @param $setting_key
+     * @return array
+     */
+    public function getSettingList($setting_key){
+        $contents = [];
+        $value = Configuration::get($setting_key, $this->language_id, null, $this->shop_id);
+        if(empty($value)){
+            return $contents;
+        }
+        $value = explode(',', $value);
+        foreach ($value as $v){
+            $v = trim($v);
+            if(!$v){
+               continue;
+            }
+            $contents[] = trim($v);
+        }
+        return $contents;
+    }
 }
