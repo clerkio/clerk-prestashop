@@ -2996,7 +2996,7 @@ CLERKJS;
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
 
-            if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+            if (Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
                 $this->smarty->assign(
                     array(
                         'clerksearch_type' => 'top',
@@ -3631,7 +3631,7 @@ CLERKJS;
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
 
-        if (Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
+        if (Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id)) {
             $key = $this->getCacheId('clerksearch-top' . ((!isset($params['hook_mobile']) || !$params['hook_mobile']) ? '' : '-hook_mobile'));
             $this->smarty->assign(
                 array(
