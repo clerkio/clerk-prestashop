@@ -88,6 +88,8 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
             $customers = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
+            $customers_map = [];
+
             foreach ($customers as $index => $customer) {
                 $customer_id = $customer['id'];
                 $address_id = Address::getFirstCustomerAddressId($customer_id);
@@ -116,7 +118,27 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                     unset($customers[$index]['subscribed']);
                     unset($customers[$index]['optin']);
                 }
+
+                if(!array_key_exists($customer_id, $customers_map)){
+                  $customers_map[$customer_id] = $customer;
+                } else {
+                  foreach ($customer as $key => $value) {
+                    if(array_key_exists($key, $customers_map[$customer_id]) && $customers_map[$customer_id][$key] != $value){
+                      $first_value = $customers_map[$customer_id][$key];
+                      if(!is_array($first_value)){
+                        $customers_map[$customer_id][$key] = [$first_value];
+                      }
+                      if(is_array($value)){
+                        $customers_map[$customer_id][$key] = array_merge($customers_map[$customer_id][$key], $value);
+                      } else {
+                        $customers_map[$customer_id][$key][] = $value;
+                      }
+                    }
+                  }
+                }
             }
+
+            $customers = array_values($customers_map);
 
             if($get_sub_status && $get_email){
                 if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
