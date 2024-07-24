@@ -2988,11 +2988,12 @@ CLERKJS;
                     'clerk_language' => $this->language,
                     'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                     'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
+                    'customer_email' => $this->context->customer->email,
                     'currency_conversion_rate' => $currency_conversion_rate,
                     'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                     'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
                     'clerk_additional_scripts' => $additional_scripts
-                    )
+                )
             );
             $templateOutput .= $this->display(__FILE__, 'clerk_js.tpl');
 
@@ -3623,6 +3624,7 @@ CLERKJS;
                 'clerk_language' => $this->language,
                 'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
+                'customer_email' => $this->context->customer->email,
                 'currency_conversion_rate' => $currency_conversion_rate,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                 'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',

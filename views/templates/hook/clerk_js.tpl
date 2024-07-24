@@ -55,6 +55,13 @@ formatters: {
 {if isset($clerk_additional_scripts)}
   {$clerk_additional_scripts nofilter}
 {/if}
+{if isset($customer_email)}
+if(typeof window.Clerk == 'function'){
+  Clerk('call', 'log/email', {
+    email: '{$customer_email}'
+  });
+}
+{/if}
 </script>
 
 <!-- End of Clerk.io E-commerce Personalisation tool - www.clerk.io -->
