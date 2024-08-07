@@ -204,49 +204,76 @@ class ProductHelper {
         return $product_data;
     }
 
-    private static function getTierPrices($shop_id, $product_id, $product_data) {
-        $qtyPrices = SpecificPrice::getQuantityDiscounts($product_id, $shop_id, null, null, null, null, true, 0);
-        if(empty($qtyPrices)){
+    private static function getTierPrices($shop_id, $language_id, $product_id, $product, $product_data) {
+        try {
+            $qtyPrices = SpecificPrice::getQuantityDiscounts($product_id, $shop_id, null, null, null, null, true, 0);
+            if(empty($qtyPrices)){
+                return $product_data;
+            }
+
+            $roundType = (int)Configuration::get('PS_ROUND_TYPE');
+            $precision = (int)(
+                Configuration::hasKey('PS_PRICE_DISPLAY_PRECISION')
+                ? Configuration::get('PS_PRICE_DISPLAY_PRECISION')
+                : _PS_PRICE_DISPLAY_PRECISION_
+            );
+
+            $quantities = [];
+            $prices = [];
+            foreach ($qtyPrices as $p){
+                $price = 0;
+
+                if(!is_array($p)){
+                    continue;
+                }
+                if(!array_key_exists('reduction_type', $p) || !array_key_exists('reduction', $p) || !array_key_exists('id_group', $p)){
+                    continue;
+                }
+                if (array_key_exists('id_shop_group', $p) && $p['id_shop_group'] != 0) {
+                    continue;
+                }
+                if (array_key_exists('id_currency', $p) && $p['id_currency'] != 0) {
+                    continue;
+                }
+                if (array_key_exists('id_country', $p) && $p['id_country'] != 0) {
+                    continue;
+                }
+                if ($p['id_group'] != 0) {
+                    continue;
+                }
+                if (array_key_exists('id_customer', $p) && $p['id_customer'] != 0) {
+                    continue;
+                }
+
+                $qty = $p['from_quantity'];
+                $taxed = false;
+                // $taxed = (bool) $p['reduction_tax'];
+                $id_product_attribute = (int) $p['id_product_attribute'];
+
+                $price = $product->getPrice(
+                    $taxed,
+                    $id_product_attribute,
+                    _PS_PRICE_DISPLAY_PRECISION_,
+                    null,
+                    false,
+                    true,
+                    $qty
+                );
+
+                if(isset($price)){
+                    $price = Tools::ps_round($price, $precision);
+                    $quantities[] = $qty;
+                    $prices[] = $price;
+                }
+            }
+            if(!empty($prices) && !empty($quantities)) {
+                $product_data['tier_price_quantities'] = $quantities;
+                $product_data['tier_price_values'] = $prices;
+            }
+            return $product_data;
+        } catch (Exception $e) {
             return $product_data;
         }
-        $quantities = [];
-        $prices = [];
-        foreach ($qtyPrices as $p){
-            $price = 0;
-            if(!is_array($p)){
-                continue;
-            }
-            if(!array_key_exists('reduction_type', $p) || !array_key_exists('reduction', $p) || !array_key_exists('id_group', $p)){
-                continue;
-            }
-            if (array_key_exists('id_shop_group', $p) && $p['id_shop_group'] != 0) {
-                continue;
-            }
-            if (array_key_exists('id_currency', $p) && $p['id_currency'] != 0) {
-                continue;
-            }
-            if (array_key_exists('id_country', $p) && $p['id_country'] != 0) {
-                continue;
-            }
-            if ($p['id_group'] != 0) {
-                continue;
-            }
-            if (array_key_exists('id_customer', $p) && $p['id_customer'] != 0) {
-                continue;
-            }
-            if( ($p['reduction_type'] == 'amount' && $p['id_product_attribute'] && in_array($p['id_product_attribute'], $product_data['variants'])) || ($p['reduction_type'] == 'amount' && !$p['id_product_attribute'])){
-                $price = (float) $p['price'];
-            }
-            if($price > 0){
-                $quantities[] = $p['from_quantity'];
-                $prices[] = $price;
-            }
-        }
-        if(!empty($prices) && !empty($quantities)) {
-            $product_data['tier_price_quantities'] = $quantities;
-            $product_data['tier_price_values'] = $prices;
-        }
-        return $product_data;
     }
 
     private static function getSpecificPriceOverride($shop_id, $product_id, $product, $product_data)
