@@ -192,9 +192,14 @@ class ProductHelper {
             $product_data['list_price'] = Product::getPriceStatic($product_id, true, null, 6, null, false, false);
         }
 
+        $product_data['price_excl_tax'] = Product::getPriceStatic($product_id, false);
+        $product_data['list_price_excl_tax'] = Product::getPriceStatic($product_id, false, null, 6, null, false, false);
+
         if($current_currency->iso_code !== $default_currency->iso_code){
             $product_data['price'] = $product_data['price'] / (float) $current_currency->conversion_rate;
             $product_data['list_price'] = $product_data['list_price'] / (float) $current_currency->conversion_rate;
+            $product_data['price_excl_tax'] = $product_data['price_excl_tax'] / (float) $current_currency->conversion_rate;
+            $product_data['list_price_excl_tax'] = $product_data['list_price_excl_tax'] / (float) $current_currency->conversion_rate;
         }
         $product_data['on_sale'] = $product_data['price'] < $product_data['list_price'];
 
@@ -220,6 +225,7 @@ class ProductHelper {
 
             $quantities = [];
             $prices = [];
+            $prices_excl_tax = [];
             foreach ($qtyPrices as $p){
                 $price = 0;
 
@@ -246,8 +252,7 @@ class ProductHelper {
                 }
 
                 $qty = $p['from_quantity'];
-                $taxed = false;
-                // $taxed = (bool) $p['reduction_tax'];
+                $taxed = (bool) $p['reduction_tax'];
                 $id_product_attribute = (int) $p['id_product_attribute'];
 
                 $price = $product->getPrice(
@@ -260,15 +265,27 @@ class ProductHelper {
                     $qty
                 );
 
+                $price_excl_tax = $product->getPrice(
+                    false,
+                    $id_product_attribute,
+                    _PS_PRICE_DISPLAY_PRECISION_,
+                    null,
+                    false,
+                    true,
+                    $qty
+                );
+
                 if(isset($price)){
                     $price = Tools::ps_round($price, $precision);
                     $quantities[] = $qty;
                     $prices[] = $price;
+                    $prices_excl_tax[] = $price_excl_tax;
                 }
             }
-            if(!empty($prices) && !empty($quantities)) {
+            if(!empty($prices) && !empty($quantities) && !empty($prices_excl_tax)) {
                 $product_data['tier_price_quantities'] = $quantities;
                 $product_data['tier_price_values'] = $prices;
+                $product_data['tier_price_values_excl_tax'] = $prices_excl_tax;
             }
             return $product_data;
         } catch (Exception $e) {
@@ -359,6 +376,8 @@ class ProductHelper {
         $u = $product->unity;
         $product_data['unit_price'] = (float) $product_data['price'] / $n;
         $product_data['unit_list_price'] = (float) $product_data['list_price'] / $n;
+        $product_data['unit_price_excl_tax'] = (float) $product_data['price_excl_tax'] / $n;
+        $product_data['unit_list_price_excl_tax'] = (float) $product_data['list_price_excl_tax'] / $n;
         $product_data['unit_price_label'] = $u;
         $product_data['base_unit'] = strval(number_format((float)$n, 2)) . " / " . $u;
 
@@ -495,7 +514,14 @@ class ProductHelper {
         $product_data['variants'] = [];
         $product_data['variant_skus'] = [];
         $product_data['variant_prices'] = [];
+        $product_data['variant_prices_excl_tax'] = [];
         $product_data['variant_stocks'] = [];
+
+        $precision = (int)(
+            Configuration::hasKey('PS_PRICE_DISPLAY_PRECISION')
+            ? Configuration::get('PS_PRICE_DISPLAY_PRECISION')
+            : _PS_PRICE_DISPLAY_PRECISION_
+        );
 
         $attributeIds = [];
         $attributeLabels = [];
@@ -507,8 +533,29 @@ class ProductHelper {
             if (isset($c['id_product_attribute']) && !in_array($c['id_product_attribute'], $product_data['variants'])) {
                 $product_data['variants'][] = $c['id_product_attribute'];
             }
-            if (isset($c['price'])) {
-                $product_data['variant_prices'][] = (float) $c['price'];
+            $price = $product->getPrice(
+                true,
+                $c['id_product_attribute'],
+                $precision,
+                null,
+                false,
+                true,
+                1
+            );
+            $price_excl_tax = $product->getPrice(
+                false,
+                $c['id_product_attribute'],
+                $precision,
+                null,
+                false,
+                true,
+                1
+            );
+            if (isset($price)) {
+                $product_data['variant_prices'][] = (float) Tools::ps_round($price, $precision);
+            }
+            if (isset($price_excl_tax)) {
+                $product_data['variant_prices_excl_tax'][] = (float) Tools::ps_round($price_excl_tax, $precision);
             }
             if (isset($c['quantity'])) {
                 $product_data['variant_stocks'][] = (int) $c['quantity'];
@@ -670,7 +717,7 @@ class ProductHelper {
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
-        $product_data = ProductHelper::getTierPrices($shop_id, $product_id, $product_data);
+        $product_data = ProductHelper::getTierPrices($shop_id, $language_id, $product_id, $product, $product_data);
         return $product_data;
 
 }
