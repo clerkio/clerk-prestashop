@@ -717,7 +717,7 @@ class ProductHelper {
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
-        $product_data = ProductHelper::getTierPrices($shop_id, $product_id, $product_data);
+        $product_data = ProductHelper::getTierPrices($shop_id, $language_id, $product_id, $product, $product_data);
         return $product_data;
 
 }
