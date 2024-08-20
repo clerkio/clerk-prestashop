@@ -713,6 +713,8 @@ class ProductHelper {
         $product_data['image'] = ProductHelper::getImageUrl($product, $product_id, $shop_id, $language_id, $context);
         $product_data['supplier'] = ProductHelper::getSupplierNames($product_id);
         $product_data['atc_enabled'] = ProductHelper::getAtcStatus($product, $product_id);
+        $product_data['available_now'] = ProductHelper::getFieldMultiLang($product->available_now, $language_id, true);
+        $product_data['available_later'] = ProductHelper::getFieldMultiLang($product->available_later, $language_id, true);
 
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
