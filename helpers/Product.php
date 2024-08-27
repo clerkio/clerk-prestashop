@@ -29,6 +29,34 @@ class ProductHelper {
         }
     }
 
+    private static function sanitizeAttributeKeys($product_data)
+    {
+        if(empty($product_data)){
+            return $product_data;
+        }
+
+        $formatted_product_data = [];
+        $custom_attribute_count = 0;
+        foreach ($product_data as $key => $value) {
+            $key = ProductHelper::transliterateKey($key);
+            if (!preg_match('/[^_]/', $key) || strlen($key) == 0) {
+                $key = "custom_attr_" . (string) $custom_attribute_count;
+                $custom_attribute_count += 1;
+            }
+            $formatted_product_data[ProductHelper::handleizeName($key)] = $value;
+        }
+        return $formatted_product_data;
+    }
+
+    private static function transliterateKey($key)
+    {
+        if(!function_exists('transliterator_transliterate')){
+            return $key;
+        }
+        return transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $key);
+    }
+
+
     /**
      * @param $shop_id
      * @param $language_id
@@ -720,6 +748,7 @@ class ProductHelper {
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
         $product_data = ProductHelper::getTierPrices($shop_id, $language_id, $product_id, $product, $product_data);
+        $product_data = ProductHelper::sanitizeAttributeKeys($product_data);
         return $product_data;
 
 }
