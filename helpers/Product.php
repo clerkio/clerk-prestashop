@@ -126,20 +126,31 @@ class ProductHelper {
         $variant_images = [];
         $size = ProductHelper::getImageSize($shop_id, $language_id);
         $link_rewrite = ProductHelper::getFieldMultiLang($product->link_rewrite, $language_id);
+
         try {
-            $variant_image_ids = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-                        SELECT i.`id_image` as id
-                        FROM `' . _DB_PREFIX_ . 'image` i
-                        ' . Shop::addSqlAssociation('image', 'i') . '
-                        WHERE i.`id_product` = ' . (int) $product_id . '
-                        ORDER BY i.`position`');
-            foreach ($variant_image_ids as $vid_column){
-                foreach ($vid_column as $_ => $image_id){
-                    $variant_images[] = $context->link->getImageLink($link_rewrite, $image_id, $size);
+            $images_combinations = (array) $product->getCombinationImages($language_id);
+            foreach ($images_combinations as $id_attribute => $image_associations) {
+                if(!empty($image_associations)){
+                    $variant_image_id = $image_associations[0]['id_image'];
+                    $variant_images[] = $context->link->getImageLink($link_rewrite, $variant_image_id, $size);
                 }
             }
         } catch (Exception $e) {
-            return $variant_images;
+            try {
+                $variant_image_ids = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+                            SELECT i.`id_image` as id
+                            FROM `' . _DB_PREFIX_ . 'image` i
+                            ' . Shop::addSqlAssociation('image', 'i') . '
+                            WHERE i.`id_product` = ' . (int) $product_id . '
+                            ORDER BY i.`position`');
+                foreach ($variant_image_ids as $vid_column){
+                    foreach ($vid_column as $_ => $image_id){
+                        $variant_images[] = $context->link->getImageLink($link_rewrite, $image_id, $size);
+                    }
+                }
+            } catch (Exception $e) {
+                return $variant_images;
+            }
         }
         return $variant_images;
     }
@@ -553,6 +564,7 @@ class ProductHelper {
 
         $attributeIds = [];
         $attributeLabels = [];
+        $attributeLabelsRaw = [];
 
         foreach ($combos as $c){
             if (isset($c['reference']) && !in_array($c['reference'], $product_data['variant_skus'])) {
@@ -560,35 +572,36 @@ class ProductHelper {
             }
             if (isset($c['id_product_attribute']) && !in_array($c['id_product_attribute'], $product_data['variants'])) {
                 $product_data['variants'][] = $c['id_product_attribute'];
-            }
-            $price = $product->getPrice(
-                true,
-                $c['id_product_attribute'],
-                $precision,
-                null,
-                false,
-                true,
-                1
-            );
-            $price_excl_tax = $product->getPrice(
-                false,
-                $c['id_product_attribute'],
-                $precision,
-                null,
-                false,
-                true,
-                1
-            );
-            if (isset($price)) {
-                $product_data['variant_prices'][] = (float) Tools::ps_round($price, $precision);
-            }
-            if (isset($price_excl_tax)) {
-                $product_data['variant_prices_excl_tax'][] = (float) Tools::ps_round($price_excl_tax, $precision);
-            }
-            if (isset($c['quantity'])) {
-                $product_data['variant_stocks'][] = (int) $c['quantity'];
+                $price = $product->getPrice(
+                    true,
+                    $c['id_product_attribute'],
+                    $precision,
+                    null,
+                    false,
+                    true,
+                    1
+                );
+                $price_excl_tax = $product->getPrice(
+                    false,
+                    $c['id_product_attribute'],
+                    $precision,
+                    null,
+                    false,
+                    true,
+                    1
+                );
+                if (isset($price)) {
+                    $product_data['variant_prices'][] = (float) Tools::ps_round($price, $precision);
+                }
+                if (isset($price_excl_tax)) {
+                    $product_data['variant_prices_excl_tax'][] = (float) Tools::ps_round($price_excl_tax, $precision);
+                }
+                if (isset($c['quantity'])) {
+                    $product_data['variant_stocks'][] = (int) $c['quantity'];
+                }
             }
             $setGroupField = ProductHelper::handleizeName($c['group_name']);
+            $attributeLabelsRaw[$c['group_name']] = $setGroupField;
             // ATTRIBUTE VARIATION NAMES, NORMALLY COLORS AND SIZES
             if(!array_key_exists($setGroupField, $attributeLabels)){
                 $attributeIds[$setGroupField][] = $c['id_attribute'];
@@ -603,9 +616,10 @@ class ProductHelper {
         $af = ProductHelper::getAdditionalFields($shop_id, $language_id);
 
         foreach ( $af as $f ){
-            if(array_key_exists($f, $attributeLabels)){
-                $product_data[$f . "_ids"] = $attributeIds[$f];
-                $product_data[$f] = $attributeLabels[$f];
+            if(array_key_exists($f, $attributeLabelsRaw)){
+                $clean_key = $attributeLabelsRaw[$f];
+                $product_data[$clean_key . "_ids"] = $attributeIds[$clean_key];
+                $product_data[$clean_key] = $attributeLabels[$clean_key];
             }
         }
 
