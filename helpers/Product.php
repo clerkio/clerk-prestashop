@@ -16,6 +16,7 @@ class ProductHelper {
      * @return array|string|string[]|null
      */
     private static function handleizeName($string){
+        $string = ProductHelper::transliterateKey($string);
         $string = str_replace([' ', '-'], '_', $string);
         return preg_replace('/([^0-9a-zA-Z_]+)/', '', $string);
     }
@@ -762,7 +763,7 @@ class ProductHelper {
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
         $product_data = ProductHelper::getTierPrices($shop_id, $language_id, $product_id, $product, $product_data);
-        $product_data = ProductHelper::sanitizeAttributeKeys($product_data);
+        /* $product_data = ProductHelper::sanitizeAttributeKeys($product_data); */
         return $product_data;
 
 }
