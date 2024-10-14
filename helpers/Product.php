@@ -110,10 +110,11 @@ class ProductHelper {
         $image_instance = Image::getCover($product_id);
         $size = ProductHelper::getImageSize($shop_id, $language_id);
         $link_rewrite = ProductHelper::getFieldMultiLang($product->link_rewrite, $language_id);
-        $product_image = $context->link->getImageLink($link_rewrite, $image_instance['id_image'], $size);
-
-        // Run through placeholder function to fix bad paths before return
-        return ProductHelper::getPlaceholderImageUrl($context, $product_image, $size);
+        if(is_array($image_instance) && array_key_exists('id_image', $image_instance)){
+          $product_image = $context->link->getImageLink($link_rewrite, $image_instance['id_image'], $size);
+          return ProductHelper::getPlaceholderImageUrl($context, $product_image, $size, false);
+        }
+        return ProductHelper::getPlaceholderImageUrl($context, "", $size, true);
     }
 
     /**
@@ -170,13 +171,18 @@ class ProductHelper {
         }
     }
 
-    private static function getPlaceholderImageUrl($context, $product_image, $image_type)
+    private static function getPlaceholderImageUrl($context, $product_image, $image_type, $force_placeholder = false)
     {
+        $placeholder_image = _PS_BASE_URL_ . '/img/p/' . $context->language->iso_code . '-default-' . $image_type . '.jpg';
+        if($force_placeholder){
+          return $placeholder_image;
+        }
+
         // Set placeholder image if bad pattern
         $base_domain = explode('//', _PS_BASE_URL_)[1];
         $image_check = substr(explode($base_domain, $product_image)[1], 0, 2);
         if ('/-' === $image_check) {
-            $product_image = _PS_BASE_URL_ . '/img/p/' . $context->language->iso_code . '-default-' . $image_type . '.jpg';
+            $product_image = $placeholder_image;
         }
         return $product_image;
     }
