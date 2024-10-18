@@ -67,7 +67,6 @@ class ClerkLogger extends ModuleAdminController
      */
     public function log($Message, $Metadata)
     {
-        header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
             $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
@@ -144,7 +143,6 @@ class ClerkLogger extends ModuleAdminController
      */
     public function error($Message, $Metadata)
     {
-        header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
             $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
@@ -216,7 +214,6 @@ class ClerkLogger extends ModuleAdminController
      */
     public function warn($Message, $Metadata)
     {
-        header('User-Agent: ClerkExtensionBot Prestashop/v' ._PS_VERSION_. ' Clerk/v'.Module::getInstanceByName('clerk')->version. ' PHP/v'.phpversion());
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
 
             $Metadata['uri'] = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
