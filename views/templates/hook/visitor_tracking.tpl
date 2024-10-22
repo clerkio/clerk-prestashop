@@ -24,51 +24,7 @@
 *}
 
 <script>
-
-async function checkcart(){
-    const cartRes = await fetch("${clerk_basket_link}");
-    let clerk_productids = await cartRes.json();
-    clerk_productids = clerk_productids.map(Number);
-    var clerk_last_productids = [];
-    if( localStorage.getItem('clerk_productids') !== null ){
-        clerk_last_productids = await localStorage.getItem('clerk_productids');
-        clerk_last_productids = clerk_last_productids.split(",").map(Number);
-    }
-    clerk_productids = clerk_productids.sort((a, b) => a - b);
-    clerk_last_productids = clerk_last_productids.sort((a, b) => a - b);
-    if(JSON.stringify(clerk_productids) !== JSON.stringify(clerk_last_productids)){
-        Clerk('cart', 'set', clerk_productids);
-    }
-    localStorage.setItem("clerk_productids", clerk_productids);
-}
-
-    {if ($clerk_collect_cart ==true && $isv16) }
-        let open = XMLHttpRequest.prototype.open; 
-        XMLHttpRequest.prototype.open = async function() {
-            this.addEventListener("load", async function(){
-              if( this.responseURL.includes("cart") ){
-                  if (this.readyState === 4 && this.status === 200) {
-                      await checkcart();
-                  }
-              }
-            }, false);
-            open.apply(this, arguments);
-        };
-    {/if}
-
-
     window.onload = async function() {
-        {if ($clerk_collect_cart == true) }
-            {if ($clerk_cart_update == true && $isv16)}
-                await checkcart();
-            {/if}
-            {if (!$isv16) }
-                prestashop.on("updateCart", async function (e) {
-                    await checkcart();
-                });
-            {/if}
-        {/if}
-
         {if ($powerstep_enabled && $isv16)}
         //Handle powerstep
         prestashop.on("updateCart", function (e) {
