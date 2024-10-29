@@ -3332,7 +3332,12 @@ CLERKJS;
 
             if ($this->context->cart) {
 
-                $cart_products = $this->context->cart->getProducts();
+                $cart_products = [];
+                try {
+                    $cart_products = $this->context->cart->getProducts();
+                } catch (Exception $e) {
+                    return;
+                }
 
                 $cart_product_ids = [];
 
