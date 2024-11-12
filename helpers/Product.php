@@ -770,6 +770,7 @@ class ProductHelper {
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
         $product_data = ProductHelper::getTierPrices($shop_id, $language_id, $product_id, $product, $product_data);
         /* $product_data = ProductHelper::sanitizeAttributeKeys($product_data); */
+        $product_data['raw_product_features'] = Product::getFrontFeaturesStatic($language_id, $product_id);
         return $product_data;
 
 }
