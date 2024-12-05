@@ -34,15 +34,8 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
     public function __construct()
     {
         parent::__construct();
-
         require_once (_PS_MODULE_DIR_. $this->module->name . '/controllers/admin/ClerkLogger.php');
-
-        $context = Context::getContext();
-
         $this->logger = new ClerkLogger();
-
-        //Needed for PHP 5.3 support
-        $context = $this->context;
 
     }
     /**
@@ -93,7 +86,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
             foreach ($customers as $index => $customer) {
                 $customer_id = $customer['id'];
                 $address_id = Address::getFirstCustomerAddressId($customer_id);
-                $country_object = $this->getCustomerAddress($address_id, $customer_id);
+                $country_object = $this->getCustomerAddress($customer_id, $address_id);
                 if (count($country_object) === 1) {
                     $country_object = $country_object[0];
                 }
@@ -112,8 +105,8 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 if($get_sub_status){
-                    $customers[$index]['subscribed'] = ($customers[$index]['subscribed'] == 1) ? true : false;
-                    $customers[$index]['optin'] = ($customers[$index]['optin'] == 1) ? true : false;
+                    $customers[$index]['subscribed'] = $customers[$index]['subscribed'] == 1;
+                    $customers[$index]['optin'] = $customers[$index]['optin'] == 1;
                 } else {
                     unset($customers[$index]['subscribed']);
                     unset($customers[$index]['optin']);
@@ -142,26 +135,26 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
 
             if($get_sub_status && $get_email){
                 if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
-                    // Default newletter table for ^1.7.0 is ps_emailsubscription
-                    $dbquery = new DbQuery();
-                    $dbquery->select('CONCAT(\'N\', e.`id`) AS `id`, e.`email`, e.`active` AS `subscribed`');
-                    $dbquery->from('emailsubscription', 'e');
-                    $dbquery->leftJoin('shop', 's', 's.id_shop = e.id_shop');
-                    $dbquery->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
-                    $dbquery->where('e.id_shop = ' . $this->getShopId() . ' AND e.id_lang = ' . $this->getLanguageId());
-                    $non_customers = Db::getInstance()->executeS($dbquery->build());
-                }elseif(version_compare(_PS_VERSION_, '1.6.2', '>=')) {
-                    // Default newletter table for ^1.6.2 is ps_newsletter
-                    $dbquery = new DbQuery();
-                    $dbquery->select('CONCAT(\'N\', n.`id`) AS `id`, n.`email`, n.`active` AS `subscribed`');
-                    $dbquery->from('newsletter', 'n');
-                    $dbquery->leftJoin('shop', 's', 's.id_shop = n.id_shop');
-                    $dbquery->where('n.id_shop = ' . $this->getShopId());
-                    $non_customers = Db::getInstance()->executeS($dbquery->build());
+                    // Default newsletter table for ^1.7.0 is ps_emailsubscription
+                    $query = new DbQuery();
+                    $query->select('CONCAT(\'N\', e.`id`) AS `id`, e.`email`, e.`active` AS `subscribed`');
+                    $query->from('emailsubscription', 'e');
+                    $query->leftJoin('shop', 's', 's.id_shop = e.id_shop');
+                    $query->leftJoin('lang', 'l', 'l.id_lang = e.id_lang');
+                    $query->where('e.id_shop = ' . $this->getShopId() . ' AND e.id_lang = ' . $this->getLanguageId());
+                    $non_customers = Db::getInstance()->executeS($query->build());
+                }elseif(version_compare(_PS_VERSION_, '1.6.0', '>=')) {
+                    // Default newsletter table for ^1.6.0 is ps_newsletter
+                    $query = new DbQuery();
+                    $query->select('CONCAT(\'N\', n.`id`) AS `id`, n.`email`, n.`active` AS `subscribed`');
+                    $query->from('newsletter', 'n');
+                    $query->leftJoin('shop', 's', 's.id_shop = n.id_shop');
+                    $query->where('n.id_shop = ' . $this->getShopId());
+                    $non_customers = Db::getInstance()->executeS($query->build());
                 }
-                if(isset($non_customers) && !empty($non_customers)){
+                if(!empty($non_customers)){
                     foreach ($non_customers as $index => $subscriber){
-                        $non_customers[$index]['subscribed'] = ($non_customers[$index]['subscribed'] == 1) ? true : false;
+                        $non_customers[$index]['subscribed'] = $subscriber['subscribed'] == 1;
                     }
                     $customers = array_merge($customers, $non_customers);
                 }
@@ -178,52 +171,42 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
         }
     }
 
-    public function getCustomerAddress($idAddress = null, $idCustomer)
+    /**
+     * @param $id_customer
+     * @param $id_address
+     * @return array|void
+     */
+    public function getCustomerAddress($id_customer, $id_address = null)
     {
 
-        $idLang = $this->getLanguageId();
-        $shareOrder = (bool) Context::getContext()->shop->getGroup()->share_order;
+        $id_lang = $this->getLanguageId();
+        $share_order = (bool) Context::getContext()->shop->getGroup()->share_order;
 
-        $csql = 'SELECT DISTINCT
-                    a.`id_address` AS `id`,
-                    a.`alias`,
-                    a.`firstname`,
-                    a.`lastname`,
-                    a.`company`,
-                    a.`address1`,
-                    a.`address2`,
-                    a.`postcode`,
-                    a.`city`,
-                    a.`id_state`,
-                    s.name AS state,
-                    s.`iso_code` AS state_iso,
-                    a.`id_country`,
-                    cl.`name` AS country,
-                    co.`iso_code` AS country_iso,
-                    a.`other`,
-                    a.`phone`,
-                    a.`phone_mobile`,
-                    a.`vat_number`,
-                    a.`dni`
+        $query = 'SELECT DISTINCT
+                    a.`id_address` AS `id`, a.`alias`, a.`firstname`, a.`lastname`, a.`company`, a.`address1`,
+                    a.`address2`, a.`postcode`, a.`city`, a.`id_state`, s.name AS state, s.`iso_code` AS state_iso,
+                    a.`id_country`, cl.`name` AS country, co.`iso_code` AS country_iso, a.`other`, a.`phone`,
+                    a.`phone_mobile`, a.`vat_number`, a.`dni`
                     FROM `' . _DB_PREFIX_ . 'address` a
                     LEFT JOIN `' . _DB_PREFIX_ . 'country` co ON (a.`id_country` = co.`id_country`)
                     LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl ON (co.`id_country` = cl.`id_country`)
                     LEFT JOIN `' . _DB_PREFIX_ . 'state` s ON (s.`id_state` = a.`id_state`)
-                    ' . ($shareOrder ? '' : Shop::addSqlAssociation('country', 'co')) . '
+                    ' . ($share_order ? '' : Shop::addSqlAssociation('country', 'co')) . '
                     WHERE
-                        `id_lang` = ' . (int) $idLang . '
-                        AND `id_customer` = ' . (int) $idCustomer . '
+                        `id_lang` = ' . (int) $id_lang . '
+                        AND `id_customer` = ' . (int) $id_customer . '
                         AND a.`deleted` = 0
                         AND a.`active` = 1';
 
-        if (null !== $idAddress) {
-            $csql .= ' AND a.`id_address` = ' . (int) $idAddress;
+        if (null !== $id_address) {
+            $query .= ' AND a.`id_address` = ' . (int) $id_address;
         }
 
-        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($csql);
-
-        return $result;
+        try {
+            return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+        } catch (PrestaShopDatabaseException $e) {
+            $this->logger->log('PrestaShopDatabaseException', ['error' => $e->getMessage()]);
+        }
     }
-
-
 }
+

@@ -54,8 +54,17 @@ class Clerk extends Module
      * @var int
      */
     protected $shop_id;
+    /**
+     * @var Clerk_Api
+     */
     protected $api;
+    /**
+     * @var ClerkLogger
+     */
     private $logger;
+    /**
+     * @var
+     */
     protected $language;
 
     /**
@@ -2322,10 +2331,9 @@ class Clerk extends Module
         }
 
         $ClerkConfirm = <<<CLERKJS
-
         <script>
         function DOMready(fn) {
-            if (document.readyState != "loading") {
+            if (document.readyState !== "loading") {
                 fn();
             } else if (document.addEventListener) {
                 document.addEventListener("DOMContentLoaded", fn);
@@ -2459,7 +2467,7 @@ class Clerk extends Module
             }
         }
 
-        var before_logging_level;
+        let before_logging_level;
 
         window.DOMready(function() {
 
@@ -2514,7 +2522,7 @@ CLERKJS;
                 'name' => 'Debug message',
                 'html_content' => '<hr><strong>PrestaShop Debug Mode is disabled</strong>' .
                 '<p>When debug mode is disabled, PrestaShop hides a lot of errors and making it impossible for Clerk logger to detect and catch these errors.</p>' .
-                '<p>To make it possibel for Clerk logger to catch all errors you have to enable debug mode.</p>' .
+                '<p>To make it possible for Clerk logger to catch all errors you have to enable debug mode.</p>' .
                 '<p>Debug is not recommended in production in a longer period of time.</p>' .
                 '</br><p><strong>When you store is in debug mode</strong></p>' .
                 '<ul>' .
@@ -3318,63 +3326,65 @@ CLERKJS;
      */
     public function hookActionCartSave()
     {
+        try {
+            $cookie = $this->context->cookie;
 
-        $cookie = $this->context->cookie;
+            if (Tools::getValue('add')) {
+                $this->context->cookie->clerk_show_powerstep = true;
+                $this->context->cookie->clerk_last_product = Tools::getValue('id_product');
+            }
 
-        if (Tools::getValue('add')) {
-            $this->context->cookie->clerk_show_powerstep = true;
-            $this->context->cookie->clerk_last_product = Tools::getValue('id_product');
-        }
+            $collect_baskets = Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id);
 
-        $collect_baskets = Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id);
+            if ($collect_baskets) {
+                if ($this->context->cart) {
 
-        if ($collect_baskets) {
+                    $cart_products = [];
+                    try {
+                        $cart_products = $this->context->cart->getProducts();
+                    } catch (Exception $e) {
+                        return;
+                    }
 
-            if ($this->context->cart) {
+                    $cart_product_ids = [];
 
-                $cart_products = [];
-                try {
-                    $cart_products = $this->context->cart->getProducts();
-                } catch (Exception $e) {
-                    return;
-                }
+                    foreach ($cart_products as $product)
+                        $cart_product_ids[] = (int) $product['id_product'];
 
-                $cart_product_ids = [];
+                    if ($this->context->customer->email) {
+                        $Endpoint = 'https://api.clerk.io/v2/log/basket/set';
 
-                foreach ($cart_products as $product)
-                    $cart_product_ids[] = (int) $product['id_product'];
+                        $data_string = json_encode([
+                            'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
+                            'products' => $cart_product_ids,
+                            'email' => $this->context->customer->email
+                        ]);
 
-                if ($this->context->customer->email) {
-                    $Endpoint = 'https://api.clerk.io/v2/log/basket/set';
+                        $curl = curl_init();
 
-                    $data_string = json_encode([
-                        'key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                        'products' => $cart_product_ids,
-                        'email' => $this->context->customer->email
-                    ]);
+                        curl_setopt($curl, CURLOPT_URL, $Endpoint);
+                        curl_setopt($curl, CURLOPT_POST, true);
+                        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+                        curl_exec($curl);
+                    } else {
+                        if (isset($cookie->clerk_cart_products)) {
 
-                    $curl = curl_init();
+                            if ($cookie->clerk_cart_products != json_encode($cart_product_ids)) {
 
-                    curl_setopt($curl, CURLOPT_URL, $Endpoint);
-                    curl_setopt($curl, CURLOPT_POST, true);
-                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-                    curl_exec($curl);
-                } else {
-                    if (isset($cookie->clerk_cart_products)) {
-
-                        if ($cookie->clerk_cart_products != json_encode($cart_product_ids)) {
+                                $this->context->cookie->clerk_cart_update = true;
+                                $this->context->cookie->clerk_cart_products = json_encode($cart_product_ids);
+                            }
+                        } else {
 
                             $this->context->cookie->clerk_cart_update = true;
                             $this->context->cookie->clerk_cart_products = json_encode($cart_product_ids);
                         }
-                    } else {
-
-                        $this->context->cookie->clerk_cart_update = true;
-                        $this->context->cookie->clerk_cart_products = json_encode($cart_product_ids);
                     }
                 }
             }
+        } catch (Exception $e) {
+            $this->logger->log("Collect Baskets Exception", $e->getMessage());
         }
     }
 
@@ -3439,7 +3449,7 @@ CLERKJS;
     /**
      * Add clerk css to backend
      *
-     * @param $arr
+     * @param $params
      */
     public function hookActionAdminControllerSetMedia($params)
     {
@@ -3627,7 +3637,7 @@ CLERKJS;
                 'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->context->language->id, null, $this->context->shop->id),
                 'custom_clerk_js' => $custom_clerk_js_path,
                 'clerk_language' => $this->language,
-                'customer_logged_in' => ($this->context->customer->logged == 1) ? true : false,
+                'customer_logged_in' => $this->context->customer->logged == 1,
                 'customer_group_id' => (Customer::getDefaultGroupId((int) $this->context->customer->id) !== null) ? Customer::getDefaultGroupId((int) $this->context->customer->id) : false,
                 'customer_email' => $this->context->customer->email,
                 'currency_conversion_rate' => $currency_conversion_rate,
@@ -3704,3 +3714,4 @@ CLERKJS;
         return $View;
     }
 }
+
