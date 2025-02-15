@@ -98,7 +98,7 @@ class Clerk_Api
             $params = [
                 'key' => Configuration::get('CLERK_PUBLIC_KEY', $language_id, null, $shop_id),
                 'private_key' => Configuration::get('CLERK_PRIVATE_KEY', $language_id, null, $shop_id),
-                'products' => [$product_id],
+                'products' => json_encode([(string) $product_id]),
             ];
 
             $this->delete('products', $params);
