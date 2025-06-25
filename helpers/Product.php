@@ -764,12 +764,16 @@ class ProductHelper {
         $product_data['atc_enabled'] = ProductHelper::getAtcStatus($product, $product_id);
         $product_data['available_now'] = ProductHelper::getFieldMultiLang($product->available_now, $language_id, true);
         $product_data['available_later'] = ProductHelper::getFieldMultiLang($product->available_later, $language_id, true);
-
+        $out_of_stock_behavior = StockAvailable::outOfStock((int)$product_id);
+        $product_data['allow_orders'] = ($product->available_for_order && $out_of_stock_behavior == 1);
         $product_data = ProductHelper::getCustomFields($shop_id, $language_id, $product, $product_data);
         $product_data = ProductHelper::getVariantData($context, $shop_id, $language_id, $product_id, $product, $product_data);
         $product_data = ProductHelper::getChildData($shop_id, $language_id, $product_id, $product_data);
         $product_data = ProductHelper::getTierPrices($shop_id, $language_id, $product_id, $product, $product_data);
         /* $product_data = ProductHelper::sanitizeAttributeKeys($product_data); */
+
+
+
         return $product_data;
 
 }
