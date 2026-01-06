@@ -3631,6 +3631,39 @@ CLERKJS;
             $currency_conversion_rate = Context::getContext()->currency->getConversionRate() !== null ? Context::getContext()->currency->getConversionRate() : 1;
         }
 
+        // Detect page context for Clerk.js context tracking
+        $clerk_context_product = null;
+        $clerk_context_category = null;
+        $clerk_context_page = null;
+        $clerk_context_page_is_string = 0;
+
+        // Get the current controller name
+        $controller_name = Tools::getValue('controller');
+
+        // product page
+        if (Tools::getValue('id_product')) {
+            $clerk_context_product = (int) Tools::getValue('id_product');
+        }
+        // category page
+        elseif (Tools::getValue('id_category')) {
+            $clerk_context_category = (int) Tools::getValue('id_category');
+        }
+        // CMS page (has numeric ID)
+        elseif (Tools::getValue('id_cms')) {
+            $clerk_context_page = (int) Tools::getValue('id_cms');
+        }
+        // all pages, use the controller name
+        // 'index' controller = homepage
+        elseif (!empty($controller_name)) {
+            $clerk_context_page = ($controller_name === 'index') ? 'homepage' : $controller_name;
+            $clerk_context_page_is_string = 1;
+        }
+        // Fallback for homepage (empty controller)
+        else {
+            $clerk_context_page = 'homepage';
+            $clerk_context_page_is_string = 1;
+        }
+
         $this->context->smarty->assign(
             array(
                 'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
@@ -3643,7 +3676,11 @@ CLERKJS;
                 'currency_conversion_rate' => $currency_conversion_rate,
                 'currency_symbol' => Context::getContext()->currency->getSign() !== null ? Context::getContext()->currency->getSign() : '',
                 'currency_iso' => Context::getContext()->currency->iso_code !== null ? Context::getContext()->currency->iso_code !== null : '',
-                'clerk_additional_scripts' => $additional_scripts
+                'clerk_additional_scripts' => $additional_scripts,
+                'clerk_context_product' => $clerk_context_product,
+                'clerk_context_category' => $clerk_context_category,
+                'clerk_context_page' => $clerk_context_page,
+                'clerk_context_page_is_string' => $clerk_context_page_is_string
             )
         );
         $View = $this->display(__FILE__, 'clerk_js.tpl');
