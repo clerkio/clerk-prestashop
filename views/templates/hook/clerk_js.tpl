@@ -55,6 +55,14 @@ formatters: {
 {if isset($clerk_additional_scripts)}
   {$clerk_additional_scripts nofilter}
 {/if}
+
+// Clerk.js Context - Track current page context (product, category, or page)
+Clerk('context', {
+  product: {if isset($clerk_context_product) && $clerk_context_product}{$clerk_context_product}{else}null{/if},
+  category: {if isset($clerk_context_category) && $clerk_context_category}{$clerk_context_category}{else}null{/if},
+  page: {if isset($clerk_context_page) && $clerk_context_page}{if $clerk_context_page_is_string == 1}'{$clerk_context_page}'{else}{$clerk_context_page}{/if}{else}null{/if}
+});
+
 {if isset($customer_email)}
 if(typeof window.Clerk == 'function'){
   Clerk('call', 'log/email', {
