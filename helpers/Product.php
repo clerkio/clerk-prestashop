@@ -523,7 +523,7 @@ class ProductHelper {
             if( is_array($v) && count($v) === 0 ){
                 continue;
             }
-            $product_data[$f] = $v;
+            $product_data['feature_' . $f] = $v;
         }
         return $product_data;
     }
