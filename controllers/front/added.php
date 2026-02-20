@@ -70,7 +70,7 @@ class ClerkAddedModuleFrontController extends ModuleFrontController
             Tools::redirect('index.php');
         }
 
-        $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+        $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
         $image = Image::getCover($id_product);
 

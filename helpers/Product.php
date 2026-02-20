@@ -8,7 +8,7 @@ class ProductHelper {
      * @return false|string
      */
     public static function shouldLiveUpdate($shop_id, $language_id){
-         return Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $language_id, null, $shop_id);
+         return Configuration::get('CLERK_DSYNC_REALTIME_UPDATES', $language_id, null, $shop_id);
     }
 
     /**
@@ -728,11 +728,11 @@ class ProductHelper {
             $product_stock = (int) $product->quantity;
         }
 
-        if (!Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $language_id, null, $shop_id) && $product_stock <= 0) {
+        if (!Configuration::get('CLERK_DSYNC_INCL_OOS_PRODUCTS', $language_id, null, $shop_id) && $product_stock <= 0) {
             return;
         }
 
-        if (!Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $language_id, null, $shop_id) && $product_stock <= 0 && !$product->out_of_stock && !Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $language_id, null, $shop_id)) {
+        if (!Configuration::get('CLERK_DSYNC_ONLY_LOCAL_STOCK', $language_id, null, $shop_id) && $product_stock <= 0 && !$product->out_of_stock && !Configuration::get('CLERK_DSYNC_INCL_OOS_PRODUCTS', $language_id, null, $shop_id)) {
             return;
         }
 
