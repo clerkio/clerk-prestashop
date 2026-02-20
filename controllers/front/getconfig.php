@@ -66,11 +66,11 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_tracking_hook_position' => Configuration::get('CLERK_TRACKING_HOOK_POSITION', $this->context->language->id, null, $this->shop_id),
 
             // DATA-SYNC SETTINGS (10)
-            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->shop_id),
+            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DSYNC_REALTIME_UPDATES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $this->context->language->id, null, $this->shop_id),
-            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->shop_id),
-            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->shop_id),
+            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DSYNC_INCL_OOS_PRODUCTS', $this->context->language->id, null, $this->shop_id),
+            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DSYNC_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_status_scope_shop' => Configuration::get('CLERK_DATASYNC_STATUS_SCOPE_SHOP', $this->context->language->id, null, $this->shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id),
             'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->language_id, null, $this->shop_id),
@@ -82,7 +82,7 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_datasync_product_tags' => Configuration::get('CLERK_DATASYNC_PRODUCT_TAGS', $this->language_id, null, $this->shop_id),
             'clerk_image_size' => Configuration::get('CLERK_IMAGE_SIZE', $this->language_id, null, $this->shop_id),
             'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->language_id, null, $this->shop_id),
-            'clerk_datasync_disable_customer_sync' => Configuration::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $this->language_id, null, $this->shop_id),
+            'clerk_datasync_disable_customer_sync' => Configuration::get('CLERK_DSYNC_DISABLE_CUST_SYNC', $this->language_id, null, $this->shop_id),
 
             // SEARCH SETTINGS (6)
             'clerk_search_enabled' => Configuration::get('CLERK_SEARCH_ENABLED', $this->language_id, null, $this->shop_id),
@@ -105,11 +105,11 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
             'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_form_selector' => Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->language_id, null, $this->shop_id),
-            'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->language_id, null, $this->shop_id),
-            'clerk_livesearch_number_categories' => Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LS_NUM_SUGGESTIONS', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_number_categories' => Configuration::get('CLERK_LS_NUM_CATEGORIES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->language_id, null, $this->shop_id),
             'clerk_livesearch_pages_type' => Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->language_id, null, $this->shop_id),
-            'clerk_livesearch_dropdown_position' => Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->language_id, null, $this->shop_id),
+            'clerk_livesearch_dropdown_position' => Configuration::get('CLERK_LS_DROPDOWN_POSITION', $this->language_id, null, $this->shop_id),
 
             // POWERSTEP SETTINGS (3)
             'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $this->language_id, null, $this->shop_id),
@@ -139,9 +139,9 @@ class ClerkGetConfigModuleFrontController extends ClerkAbstractFrontController
 
 
             'clerk_cart_exclude_duplicates' => Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
-            'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
+            'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->language_id, null, $this->shop_id),
             'clerk_product_exclude_duplicates' => Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
-            'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->language_id, null, $this->shop_id),
+            'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CAT_EXCL_DUPLICATES', $this->language_id, null, $this->shop_id),
 
 
             'clerk_additional_scripts_enabled' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $this->language_id, null, $this->shop_id),

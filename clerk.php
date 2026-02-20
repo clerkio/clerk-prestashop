@@ -78,7 +78,7 @@ class Clerk extends Module
         $this->api = new Clerk_Api();
         $this->name = 'clerk';
         $this->tab = 'advertising_marketing';
-        $this->version = '6.9.2';
+        $this->version = '6.9.3';
         $this->author = 'Clerk';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
@@ -114,9 +114,10 @@ class Clerk extends Module
             Shop::setContext(Shop::CONTEXT_ALL);
         }
 
-        //Install tab
-
-        $tabId = (int) Tab::getIdFromClassName('AdminClerkDashboard');
+        //Install tab — query DB directly to avoid stale class_index.php cache
+        $tabId = (int) Db::getInstance()->getValue(
+            "SELECT `id_tab` FROM `" . _DB_PREFIX_ . "tab` WHERE `class_name` = 'AdminClerkDashboard'"
+        );
         if (!$tabId) {
             $tabId = null;
         }
@@ -230,21 +231,21 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LIVESEARCH_TEMPLATE', $liveSearchTemplateValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_SELECTOR', $liveSearchSelector, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', $liveSearchFormSelector, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $dropdownNumberValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LS_NUM_SUGGESTIONS', $dropdownNumberValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LS_NUM_CATEGORIES', $dropdownNumberValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', $dropdownNumberValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', $pagesTypeValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', $dropdownPositioningValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_LS_DROPDOWN_POSITION', $dropdownPositioningValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_POWERSTEP_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TYPE', $powerstepTypeValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_POWERSTEP_TEMPLATES', $powerstepTemplateValues, false, null, $shop['id_shop']);
 
-            Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DSYNC_REALTIME_UPDATES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', $emptyValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DSYNC_INCL_OOS_PRODUCTS', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DSYNC_ONLY_LOCAL_STOCK', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_STATUS_SCOPE_SHOP', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_CONTEXTUAL_VAT', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_QUERY_BY_STOCK', $falseValues, false, null, $shop['id_shop']);
@@ -257,7 +258,7 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_DATASYNC_PRODUCT_FEATURES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_DATASYNC_PRODUCT_TAGS', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_IMAGE_SIZE', $imageValue, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_DSYNC_DISABLE_CUST_SYNC', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_EXIT_INTENT_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_EXIT_INTENT_TEMPLATE', $exitIntentTemplateValues, false, null, $shop['id_shop']);
@@ -276,9 +277,9 @@ class Clerk extends Module
             Configuration::updateValue('CLERK_LOGGING_TO', $loggingToValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_PWRSTEP_EXCL_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
-            Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
+            Configuration::updateValue('CLERK_CAT_EXCL_DUPLICATES', $falseValues, false, null, $shop['id_shop']);
 
             Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $falseValues, false, null, $shop['id_shop']);
             Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_JS', $emptyValues, false, null, $shop['id_shop']);
@@ -443,23 +444,23 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LIVESEARCH_TEMPLATE');
         Configuration::deleteByName('CLERK_LIVESEARCH_SELECTOR');
         Configuration::deleteByName('CLERK_LIVESEARCH_FORM_SELECTOR');
-        Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS');
-        Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_CATEGORIES');
+        Configuration::deleteByName('CLERK_LS_NUM_SUGGESTIONS');
+        Configuration::deleteByName('CLERK_LS_NUM_CATEGORIES');
         Configuration::deleteByName('CLERK_LIVESEARCH_NUMBER_PAGES');
         Configuration::deleteByName('CLERK_LIVESEARCH_PAGES_TYPE');
-        Configuration::deleteByName('CLERK_LIVESEARCH_DROPDOWN_POSITION');
+        Configuration::deleteByName('CLERK_LS_DROPDOWN_POSITION');
         Configuration::deleteByName('CLERK_POWERSTEP_ENABLED');
         Configuration::deleteByName('CLERK_POWERSTEP_TYPE');
         Configuration::deleteByName('CLERK_POWERSTEP_TEMPLATES');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_EMAILS');
         Configuration::deleteByName('CLERK_DATASYNC_COLLECT_BASKETS');
         Configuration::deleteByName('CLERK_DATASYNC_SYNC_SUBSCRIBERS');
-        Configuration::deleteByName('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC');
-        Configuration::deleteByName('CLERK_DATASYNC_USE_REAL_TIME_UPDATES');
+        Configuration::deleteByName('CLERK_DSYNC_DISABLE_CUST_SYNC');
+        Configuration::deleteByName('CLERK_DSYNC_REALTIME_UPDATES');
         Configuration::deleteByName('CLERK_DATASYNC_PAGE_FIELDS');
         Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_PAGES');
-        Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS');
-        Configuration::deleteByName('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK');
+        Configuration::deleteByName('CLERK_DSYNC_INCL_OOS_PRODUCTS');
+        Configuration::deleteByName('CLERK_DSYNC_ONLY_LOCAL_STOCK');
         Configuration::deleteByName('CLERK_DATASYNC_STATUS_SCOPE_SHOP');
         Configuration::deleteByName('CLERK_DATASYNC_QUERY_BY_STOCK');
         Configuration::deleteByName('CLERK_DATASYNC_CONTEXTUAL_VAT');
@@ -481,9 +482,9 @@ class Clerk extends Module
         Configuration::deleteByName('CLERK_LOGGING_LEVEL');
         Configuration::deleteByName('CLERK_LOGGING_TO');
         Configuration::deleteByName('CLERK_CART_EXCLUDE_DUPLICATES');
-        Configuration::deleteByName('CLERK_POWERSTEP_EXCLUDE_DUPLICATES');
+        Configuration::deleteByName('CLERK_PWRSTEP_EXCL_DUPLICATES');
         Configuration::deleteByName('CLERK_PRODUCT_EXCLUDE_DUPLICATES');
-        Configuration::deleteByName('CLERK_CATEGORY_EXCLUDE_DUPLICATES');
+        Configuration::deleteByName('CLERK_CAT_EXCL_DUPLICATES');
         Configuration::deleteByName('CLERK_ADDITIONAL_SCRIPTS_ENABLED');
         Configuration::deleteByName('CLERK_ADDITIONAL_SCRIPTS_JS');
 
@@ -618,11 +619,11 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_livesearch_form_selector', '#search_widget > form')
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', array(
+                Configuration::updateValue('CLERK_LS_NUM_SUGGESTIONS', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_suggestions', ''))
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', array(
+                Configuration::updateValue('CLERK_LS_NUM_CATEGORIES', array(
                     $this->language_id => str_replace(' ', '', Tools::getValue('clerk_livesearch_number_categories', ''))
                 ), false, null, $this->shop_id);
 
@@ -634,7 +635,7 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_livesearch_pages_type', 'CMS Page')
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', array(
+                Configuration::updateValue('CLERK_LS_DROPDOWN_POSITION', array(
                     $this->language_id => Tools::getValue('clerk_livesearch_dropdown_position', 'left')
                 ), false, null, $this->shop_id);
 
@@ -662,11 +663,11 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_datasync_sync_subscribers', 1)
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', array(
+                Configuration::updateValue('CLERK_DSYNC_DISABLE_CUST_SYNC', array(
                     $this->language_id => Tools::getValue('clerk_datasync_disable_customer_sync', 1)
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array(
+                Configuration::updateValue('CLERK_DSYNC_REALTIME_UPDATES', array(
                     $this->language_id => Tools::getValue('clerk_datasync_use_real_time_updates', 1)
                 ), false, null, $this->shop_id);
 
@@ -678,11 +679,11 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_datasync_include_pages', 1)
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', array(
+                Configuration::updateValue('CLERK_DSYNC_INCL_OOS_PRODUCTS', array(
                     $this->language_id => Tools::getValue('clerk_datasync_include_out_of_stock_products', 0)
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', array(
+                Configuration::updateValue('CLERK_DSYNC_ONLY_LOCAL_STOCK', array(
                     $this->language_id => Tools::getValue('clerk_datasync_include_only_local_stock', 0)
                 ), false, null, $this->shop_id);
 
@@ -768,7 +769,7 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_cart_exclude_duplicates', 0)
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', array(
+                Configuration::updateValue('CLERK_PWRSTEP_EXCL_DUPLICATES', array(
                     $this->language_id => Tools::getValue('clerk_powerstep_exclude_duplicates', 0)
                 ), false, null, $this->shop_id);
 
@@ -776,7 +777,7 @@ class Clerk extends Module
                     $this->language_id => Tools::getValue('clerk_product_exclude_duplicates', 0)
                 ), false, null, $this->shop_id);
 
-                Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', array(
+                Configuration::updateValue('CLERK_CAT_EXCL_DUPLICATES', array(
                     $this->language_id => Tools::getValue('clerk_category_exclude_duplicates', 0)
                 ), false, null, $this->shop_id);
 
@@ -809,9 +810,9 @@ class Clerk extends Module
 
             $powerstep_initiated = Configuration::get('CLERK_LOGGING_POWERSTEPFIRST', $this->language_id, null, $this->shop_id);
 
-            $datasync_collect_emails_initiated = Configuration::get('CLERK_LOGGING_DATASYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id);
+            $datasync_collect_emails_initiated = Configuration::get('CLERK_LOG_DSYNC_COLLECT_EMAILS', $this->language_id, null, $this->shop_id);
 
-            $datasync_disable_order_synchronization_initiated = Configuration::get('CLERK_LOGGING_DATASYNC_DISABLE_ORDER_SYNCHRONIZATION', $this->language_id, null, $this->shop_id);
+            $datasync_disable_order_synchronization_initiated = Configuration::get('CLERK_LOG_DSYNC_NO_ORDER_SYNC', $this->language_id, null, $this->shop_id);
 
             $exit_intent_initiated = Configuration::get('CLERK_LOGGING_EXIT_INTENT', $this->language_id, null, $this->shop_id);
 
@@ -851,7 +852,7 @@ class Clerk extends Module
 
             if ($datasync_disable_order_synchronization_enabled == '1' && $datasync_disable_order_synchronization_initiated !== '1') {
 
-                Configuration::updateValue('CLERK_LOGGING_DATASYNC_DISABLE_ORDER_SYNCHRONIZATION', array(
+                Configuration::updateValue('CLERK_LOG_DSYNC_NO_ORDER_SYNC', array(
                     $this->language_id => 1
                 ), false, null, $this->shop_id);
 
@@ -860,7 +861,7 @@ class Clerk extends Module
 
             if ($datasync_disable_order_synchronization_enabled !== '1' && $datasync_disable_order_synchronization_initiated == '1') {
 
-                Configuration::updateValue('CLERK_LOGGING_DATASYNC_DISABLE_ORDER_SYNCHRONIZATION', array(
+                Configuration::updateValue('CLERK_LOG_DSYNC_NO_ORDER_SYNC', array(
                     $this->language_id => 0
                 ), false, null, $this->shop_id);
 
@@ -869,7 +870,7 @@ class Clerk extends Module
 
             if ($datasync_collect_emails_enabled == '1' && $datasync_collect_emails_initiated !== '1') {
 
-                Configuration::updateValue('CLERK_LOGGING_DATASYNC_COLLECT_EMAILS', array(
+                Configuration::updateValue('CLERK_LOG_DSYNC_COLLECT_EMAILS', array(
                     $this->language_id => 1
                 ), false, null, $this->shop_id);
 
@@ -878,7 +879,7 @@ class Clerk extends Module
 
             if ($datasync_collect_emails_enabled !== '1' && $datasync_collect_emails_initiated == '1') {
 
-                Configuration::updateValue('CLERK_LOGGING_DATASYNC_COLLECT_EMAILS', array(
+                Configuration::updateValue('CLERK_LOG_DSYNC_COLLECT_EMAILS', array(
                     $this->language_id => 0
                 ), false, null, $this->shop_id);
 
@@ -2821,23 +2822,23 @@ CLERKJS;
             'clerk_livesearch_template' => Configuration::get('CLERK_LIVESEARCH_TEMPLATE', $_lang_id, null, $_shop_id),
             'clerk_livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $_lang_id, null, $_shop_id),
             'clerk_livesearch_form_selector' => Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $_lang_id, null, $_shop_id),
-            'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $_lang_id, null, $_shop_id),
-            'clerk_livesearch_number_categories' => Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $_lang_id, null, $_shop_id),
+            'clerk_livesearch_number_suggestions' => Configuration::get('CLERK_LS_NUM_SUGGESTIONS', $_lang_id, null, $_shop_id),
+            'clerk_livesearch_number_categories' => Configuration::get('CLERK_LS_NUM_CATEGORIES', $_lang_id, null, $_shop_id),
             'clerk_livesearch_number_pages' => Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $_lang_id, null, $_shop_id),
             'clerk_livesearch_pages_type' => Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $_lang_id, null, $_shop_id),
-            'clerk_livesearch_dropdown_position' => Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $_lang_id, null, $_shop_id),
+            'clerk_livesearch_dropdown_position' => Configuration::get('CLERK_LS_DROPDOWN_POSITION', $_lang_id, null, $_shop_id),
             'clerk_powerstep_enabled' => Configuration::get('CLERK_POWERSTEP_ENABLED', $_lang_id, null, $_shop_id),
             'clerk_powerstep_type' => Configuration::get('CLERK_POWERSTEP_TYPE', $_lang_id, null, $_shop_id),
             'clerk_powerstep_templates' => Configuration::get('CLERK_POWERSTEP_TEMPLATES', $_lang_id, null, $_shop_id),
             'clerk_datasync_collect_emails' => Configuration::get('CLERK_DATASYNC_COLLECT_EMAILS', $_lang_id, null, $_shop_id),
             'clerk_datasync_collect_baskets' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $_lang_id, null, $_shop_id),
             'clerk_datasync_sync_subscribers' => Configuration::get('CLERK_DATASYNC_SYNC_SUBSCRIBERS', $_lang_id, null, $_shop_id),
-            'clerk_datasync_disable_customer_sync' => Configuration::get('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', $_lang_id, null, $_shop_id),
-            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $_lang_id, null, $_shop_id),
+            'clerk_datasync_disable_customer_sync' => Configuration::get('CLERK_DSYNC_DISABLE_CUST_SYNC', $_lang_id, null, $_shop_id),
+            'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DSYNC_REALTIME_UPDATES', $_lang_id, null, $_shop_id),
             'clerk_datasync_include_pages' => Configuration::get('CLERK_DATASYNC_INCLUDE_PAGES', $_lang_id, null, $_shop_id),
             'clerk_datasync_page_fields' => Configuration::get('CLERK_DATASYNC_PAGE_FIELDS', $_lang_id, null, $_shop_id),
-            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $_lang_id, null, $_shop_id),
-            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $_lang_id, null, $_shop_id),
+            'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DSYNC_INCL_OOS_PRODUCTS', $_lang_id, null, $_shop_id),
+            'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DSYNC_ONLY_LOCAL_STOCK', $_lang_id, null, $_shop_id),
             'clerk_datasync_status_scope_shop' => Configuration::get('CLERK_DATASYNC_STATUS_SCOPE_SHOP', $_lang_id, null, $_shop_id),
             'clerk_datasync_contextual_vat' => Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $_lang_id, null, $_shop_id),
             'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $_lang_id, null, $_shop_id),
@@ -2859,9 +2860,9 @@ CLERKJS;
             'clerk_logging_level' => Configuration::get('CLERK_LOGGING_LEVEL', $_lang_id, null, $_shop_id),
             'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $_lang_id, null, $_shop_id),
             'clerk_cart_exclude_duplicates' => Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
-            'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
+            'clerk_powerstep_exclude_duplicates' => Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $_lang_id, null, $_shop_id),
             'clerk_product_exclude_duplicates' => Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
-            'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $_lang_id, null, $_shop_id),
+            'clerk_category_exclude_duplicates' => Configuration::get('CLERK_CAT_EXCL_DUPLICATES', $_lang_id, null, $_shop_id),
             'clerk_additional_scripts_enabled' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_ENABLED', $_lang_id, null, $_shop_id),
             'clerk_additional_scripts_js' => Configuration::get('CLERK_ADDITIONAL_SCRIPTS_JS', $_lang_id, null, $_shop_id),
         );
@@ -3012,11 +3013,11 @@ CLERKJS;
                         'search_query' => (string) Tools::getValue('search_query', ''),
                         'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                        'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                        'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_number_categories' => (int) Configuration::get('CLERK_LS_NUM_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LS_NUM_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
-                        'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                        'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LS_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
                         'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
                         'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
@@ -3036,7 +3037,7 @@ CLERKJS;
 
                         $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
-                        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                         $this->context->smarty->assign(
                             array(
@@ -3054,7 +3055,7 @@ CLERKJS;
                     if ($category_id) {
                         $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-                        $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                        $exclude_duplicates_category = (bool) Configuration::get('CLERK_CAT_EXCL_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                         $this->context->smarty->assign(
                             array(
@@ -3102,7 +3103,7 @@ CLERKJS;
                     $templatesConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
                     $templates = array_filter(explode(',', $templatesConfig));
 
-                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
                     $categories = $product->getCategories();
                     $category = reset($categories);
@@ -3158,9 +3159,9 @@ CLERKJS;
         $this->context->smarty->assign(
             array(
                 'clerk_public_key' => Configuration::get('CLERK_PUBLIC_KEY', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_use_real_time_updates' => Configuration::get('CLERK_DSYNC_REALTIME_UPDATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_include_out_of_stock_products' => Configuration::get('CLERK_DSYNC_INCL_OOS_PRODUCTS', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_datasync_include_only_local_stock' => Configuration::get('CLERK_DSYNC_ONLY_LOCAL_STOCK', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_status_scope_shop' => Configuration::get('CLERK_DATASYNC_STATUS_SCOPE_SHOP', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_query_by_stock' => Configuration::get('CLERK_DATASYNC_QUERY_BY_STOCK', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_datasync_contextual_vat' => Configuration::get('CLERK_DATASYNC_CONTEXTUAL_VAT', $this->context->language->id, null, $this->context->shop->id),
@@ -3182,9 +3183,9 @@ CLERKJS;
                 'clerk_logging_to' => Configuration::get('CLERK_LOGGING_TO', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_collect_cart' => Configuration::get('CLERK_DATASYNC_COLLECT_BASKETS', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_cart_exclude_duplicates' => (bool) Configuration::get('CLERK_CART_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_powerstep_exclude_duplicates' => (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_powerstep_exclude_duplicates' => (bool) Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_product_exclude_duplicates' => (bool) Configuration::get('CLERK_PRODUCT_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
-                'clerk_category_exclude_duplicates' => (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
+                'clerk_category_exclude_duplicates' => (bool) Configuration::get('CLERK_CAT_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id),
                 'clerk_cart_update' => $clerk_cart_update,
                 'clerk_cart_products' => $clerk_cart_products,
                 'templates' => $templates,
@@ -3251,7 +3252,7 @@ CLERKJS;
 
             $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-            $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $exclude_duplicates_category = (bool) Configuration::get('CLERK_CAT_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
             $category_id = Tools::getValue("id_category");
 
@@ -3303,7 +3304,7 @@ CLERKJS;
         $enabled = (bool) Configuration::get('CLERK_POWERSTEP_ENABLED', $context->language->id, null, $this->context->shop->id);
         $type = (string) Configuration::get('CLERK_POWERSTEP_TYPE', $context->language->id, null, $this->context->shop->id);
 
-        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
         if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
             $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
@@ -3488,7 +3489,7 @@ CLERKJS;
 
         $contentConfig = Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id);
         $contents = array_filter(explode(',', $contentConfig));
-        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+        $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
         foreach ($contents as $key => $content) {
 
@@ -3692,11 +3693,11 @@ CLERKJS;
                     'search_query' => (string) Tools::getValue('search_query', ''),
                     'livesearch_enabled' => (bool) Configuration::get('CLERK_LIVESEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                     'livesearch_categories' => (int) Configuration::get('CLERK_LIVESEARCH_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_categories' => (int) Configuration::get('CLERK_LS_NUM_CATEGORIES', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_number_suggestions' => (int) Configuration::get('CLERK_LS_NUM_SUGGESTIONS', $this->context->language->id, null, $this->context->shop->id),
                     'livesearch_number_pages' => (int) Configuration::get('CLERK_LIVESEARCH_NUMBER_PAGES', $this->context->language->id, null, $this->context->shop->id),
                     'livesearch_pages_type' => (string) Configuration::get('CLERK_LIVESEARCH_PAGES_TYPE', $this->context->language->id, null, $this->context->shop->id),
-                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LIVESEARCH_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
+                    'livesearch_dropdown_position' => (string) Configuration::get('CLERK_LS_DROPDOWN_POSITION', $this->context->language->id, null, $this->context->shop->id),
                     'search_enabled' => (bool) Configuration::get('CLERK_SEARCH_ENABLED', $this->context->language->id, null, $this->context->shop->id),
                     'livesearch_selector' => Configuration::get('CLERK_LIVESEARCH_SELECTOR', $this->context->language->id, null, $this->context->shop->id),
                     'livesearch_form_selector' => htmlspecialchars_decode(Configuration::get('CLERK_LIVESEARCH_FORM_SELECTOR', $this->context->language->id, null, $this->context->shop->id)),
@@ -3716,7 +3717,7 @@ CLERKJS;
 
                     $Contents = explode(',', Configuration::get('CLERK_POWERSTEP_TEMPLATES', $this->context->language->id, null, $this->context->shop->id));
 
-                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_powerstep = (bool) Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                     $this->context->smarty->assign(
                         array(
@@ -3734,7 +3735,7 @@ CLERKJS;
                 if ($category_id) {
                     $Contents = explode(',', Configuration::get('CLERK_CATEGORY_TEMPLATE', $this->context->language->id, null, $this->context->shop->id));
 
-                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CATEGORY_EXCLUDE_DUPLICATES', $context->language->id, null, $this->context->shop->id);
+                    $exclude_duplicates_category = (bool) Configuration::get('CLERK_CAT_EXCL_DUPLICATES', $context->language->id, null, $this->context->shop->id);
 
                     $this->context->smarty->assign(
                         array(

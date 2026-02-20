@@ -72,7 +72,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
 
             // DATA-SYNC SETTINGS (10)
             if ($key == "clerk_datasync_use_real_time_updates") {
-                Configuration::updateValue('CLERK_DATASYNC_USE_REAL_TIME_UPDATES', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_DSYNC_REALTIME_UPDATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_datasync_include_pages") {
                 Configuration::updateValue('CLERK_DATASYNC_INCLUDE_PAGES', array($this->language_id => $value), false, null, $this->shop_id);
@@ -81,10 +81,10 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
                 Configuration::updateValue('CLERK_DATASYNC_PAGE_FIELDS', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_datasync_include_out_of_stock_products") {
-                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_OUT_OF_STOCK_PRODUCTS', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_DSYNC_INCL_OOS_PRODUCTS', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_datasync_include_only_local_stock") {
-                Configuration::updateValue('CLERK_DATASYNC_INCLUDE_ONLY_LOCAL_STOCK', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_DSYNC_ONLY_LOCAL_STOCK', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_datasync_status_scope_shop") {
                 Configuration::updateValue('CLERK_DATASYNC_STATUS_SCOPE_SHOP', array($this->language_id => $value), false, null, $this->shop_id);
@@ -99,7 +99,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
                 Configuration::updateValue('CLERK_DATASYNC_SYNC_SUBSCRIBERS', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_datasync_disable_customer_sync") {
-                Configuration::updateValue('CLERK_DATASYNC_DISABLE_CUSTOMER_SYNC', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_DSYNC_DISABLE_CUST_SYNC', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_datasync_fields") {
                 Configuration::updateValue('CLERK_DATASYNC_FIELDS', array($this->language_id => $value), false, null, $this->shop_id);
@@ -177,10 +177,10 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
                 Configuration::updateValue('CLERK_LIVESEARCH_FORM_SELECTOR', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_livesearch_number_suggestions") {
-                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_SUGGESTIONS', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_LS_NUM_SUGGESTIONS', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_livesearch_number_categories") {
-                Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_CATEGORIES', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_LS_NUM_CATEGORIES', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_livesearch_number_pages") {
                 Configuration::updateValue('CLERK_LIVESEARCH_NUMBER_PAGES', array($this->language_id => $value), false, null, $this->shop_id);
@@ -189,7 +189,7 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
                 Configuration::updateValue('CLERK_LIVESEARCH_PAGES_TYPE', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_livesearch_dropdown_position") {
-                Configuration::updateValue('CLERK_LIVESEARCH_DROPDOWN_POSITION', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_LS_DROPDOWN_POSITION', array($this->language_id => $value), false, null, $this->shop_id);
             }
 
             // POWERSTEP SETTINGS (3)
@@ -250,13 +250,13 @@ class ClerkSetConfigModuleFrontController extends ClerkAbstractFrontController
                 Configuration::updateValue('CLERK_CART_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_powerstep_exclude_duplicates") {
-                Configuration::updateValue('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_PWRSTEP_EXCL_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_product_exclude_duplicates") {
                 Configuration::updateValue('CLERK_PRODUCT_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_category_exclude_duplicates") {
-                Configuration::updateValue('CLERK_CATEGORY_EXCLUDE_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
+                Configuration::updateValue('CLERK_CAT_EXCL_DUPLICATES', array($this->language_id => $value), false, null, $this->shop_id);
             }
             if ($key == "clerk_additional_scripts_enabled") {
                 Configuration::updateValue('CLERK_ADDITIONAL_SCRIPTS_ENABLED', array($this->language_id => $value), false, null, $this->shop_id);

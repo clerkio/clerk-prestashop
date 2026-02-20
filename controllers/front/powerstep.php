@@ -66,7 +66,7 @@ class ClerkPowerstepModuleFrontController extends ModuleFrontController
 
             }
 
-            $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_POWERSTEP_EXCLUDE_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
+            $exclude_duplicates_powerstep = (bool)Configuration::get('CLERK_PWRSTEP_EXCL_DUPLICATES', $this->context->language->id, null, $this->context->shop->id);
 
             $categories = $product->getCategories();
             $category = reset($categories);
