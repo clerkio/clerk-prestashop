@@ -114,9 +114,10 @@ class Clerk extends Module
             Shop::setContext(Shop::CONTEXT_ALL);
         }
 
-        //Install tab
-
-        $tabId = (int) Tab::getIdFromClassName('AdminClerkDashboard');
+        //Install tab — query DB directly to avoid stale class_index.php cache
+        $tabId = (int) Db::getInstance()->getValue(
+            "SELECT `id_tab` FROM `" . _DB_PREFIX_ . "tab` WHERE `class_name` = 'AdminClerkDashboard'"
+        );
         if (!$tabId) {
             $tabId = null;
         }
