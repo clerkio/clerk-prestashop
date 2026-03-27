@@ -1903,6 +1903,7 @@ class Clerk extends Module
             'type' => 'text',
             'placeholder' => 'Attribute name',
             'label' => $this->l('Add facet attributes'),
+            'name' => 'clerk_custom_facet_attribute',
             'id' => 'clerk_custom_facet_attribute'
         );
         $clerk_custom_facet_script = array(
@@ -2660,7 +2661,7 @@ CLERKJS;
                             )
                         )
                     ),
-                    'textarea' => array(
+                    array(
                         'type' => 'textarea',
                         'label' => $this->l('Custom JS'),
                         'rows' => 5,
@@ -2813,6 +2814,7 @@ CLERKJS;
             'clerk_search_pages_type' => Configuration::get('CLERK_SEARCH_PAGES_TYPE', $_lang_id, null, $_shop_id),
             'clerk_search_template' => Configuration::get('CLERK_SEARCH_TEMPLATE', $_lang_id, null, $_shop_id),
             'clerk_faceted_navigation_enabled' => Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $_lang_id, null, $_shop_id),
+            'clerk_custom_facet_attribute' => '',
             'clerk_facets_attributes' => Configuration::get('CLERK_FACETS_ATTRIBUTES', $_lang_id, null, $_shop_id),
             'clerk_facets_design' => Configuration::get('CLERK_FACETS_DESIGN', $_lang_id, null, $_shop_id),
             'clerk_facets_position' => Configuration::get('CLERK_FACETS_POSITION', $_lang_id, null, $_shop_id),
