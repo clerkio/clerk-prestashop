@@ -3463,6 +3463,11 @@ CLERKJS;
         }
     }
 
+    public function hookDisplayBackOfficeHeader($params)
+    {
+        return $this->hookActionAdminControllerSetMedia($params);
+    }
+
     /**
      * Render powerstep modal for PS 1.7
      *
