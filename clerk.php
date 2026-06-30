@@ -100,7 +100,14 @@ class Clerk extends Module
         }
 
         //Set language id
-        $this->language_id = (Tools::getValue('clerk_language_select')) ? (int) Tools::getValue('clerk_language_select') : $this->context->language->id;
+        if (Tools::getValue('clerk_language_select')) {
+            $this->language_id = (int) Tools::getValue('clerk_language_select');
+            $_SESSION['clerk_language_id'] = $this->language_id;
+        } elseif (isset($_SESSION['clerk_language_id'])) {
+            $this->language_id = $_SESSION['clerk_language_id'];
+        } else {
+            $this->language_id = $this->context->language->id;
+        }
     }
 
     /**
@@ -1948,9 +1955,10 @@ class Clerk extends Module
         array_push($facet_input, $facet_enable);
 
         $_shop_id = (!empty(Shop::getContextShopID())) ? Shop::getContextShopID() : $this->shop_id;
-        $_lang_id = (!empty(Language::getLanguages(true, $_shop_id, true))) ? Language::getLanguages(true, $_shop_id, true)[0] : $this->language_id;
         if (Tools::getValue('clerk_language_select')) {
             $_lang_id = (int) Tools::getValue('clerk_language_select');
+        } else {
+            $_lang_id = $this->language_id;
         }
 
         if (Configuration::get('CLERK_FACETED_NAVIGATION_ENABLED', $_lang_id, null, $_shop_id) == true && Configuration::get('CLERK_PUBLIC_KEY', $_lang_id, null, $_shop_id) !== "") {
@@ -2793,9 +2801,10 @@ CLERKJS;
     public function getConfigFieldsValues()
     {
         $_shop_id = (!empty(Shop::getContextShopID())) ? Shop::getContextShopID() : $this->shop_id;
-        $_lang_id = (!empty(Language::getLanguages(true, $_shop_id, true))) ? Language::getLanguages(true, $_shop_id, true)[0] : $this->language_id;
         if (Tools::getValue('clerk_language_select')) {
             $_lang_id = (int) Tools::getValue('clerk_language_select');
+        } else {
+            $_lang_id = $this->language_id;
         }
 
         $sync_url = explode("module/clerk/version", (string) Context::getContext()->link->getModuleLink('clerk', 'version', [], null, $_lang_id, $_shop_id, false))[0];
