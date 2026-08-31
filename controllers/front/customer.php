@@ -105,7 +105,7 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 }
 
                 if($get_sub_status){
-                    $customers[$index]['subscribed'] = $customers[$index]['subscribed'] == 1;
+                    $customers[$index]['subscribed'] = $this->getClerkSubscribedValue($customers[$index]['subscribed']);
                     $customers[$index]['optin'] = $customers[$index]['optin'] == 1;
                 } else {
                     unset($customers[$index]['subscribed']);
@@ -154,7 +154,10 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
                 }
                 if(!empty($non_customers)){
                     foreach ($non_customers as $index => $subscriber){
-                        $non_customers[$index]['subscribed'] = $subscriber['subscribed'] == 1;
+                        $non_customers[$index]['subscribed'] = $this->getClerkSubscribedValue(
+                            $subscriber['subscribed'],
+                            true
+                        );
                     }
                     $customers = array_merge($customers, $non_customers);
                 }
@@ -207,6 +210,32 @@ class ClerkCustomerModuleFrontController extends ClerkAbstractFrontController
         } catch (PrestaShopDatabaseException $e) {
             $this->logger->log('PrestaShopDatabaseException', ['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Map PrestaShop newsletter/active to Clerk subscribed.
+     * Active/subscribed (1) → true, inactive in a subscription list (0) → false,
+     * customer newsletter off (0) → "unknown".
+     *
+     * @param mixed $status
+     * @param bool $inactiveMeansUnsubscribed
+     * @return bool|string
+     */
+    protected function getClerkSubscribedValue($status, $inactiveMeansUnsubscribed = false)
+    {
+        if ($status === null || $status === '') {
+            return 'unknown';
+        }
+
+        $status = (int) $status;
+        if ($status === 1) {
+            return true;
+        }
+        if ($inactiveMeansUnsubscribed && $status === 0) {
+            return false;
+        }
+
+        return 'unknown';
     }
 }
 
