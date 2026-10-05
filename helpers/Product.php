@@ -118,40 +118,127 @@ class ProductHelper {
     }
 
     /**
+     * Cover image URL for each combination, in the same order as $variant_ids.
+     *
      * @param $context
      * @param $shop_id
      * @param $language_id
      * @param $product
+     * @param $product_id
+     * @param array $variant_ids
      * @return array
      */
-    private static function getVariantImageUrls($context, $shop_id, $language_id, $product, $product_id){
-        $variant_images = [];
+    private static function getVariantImageUrls($context, $shop_id, $language_id, $product, $product_id, $variant_ids = []){
         $size = ProductHelper::getImageSize($shop_id, $language_id);
         $link_rewrite = ProductHelper::getFieldMultiLang($product->link_rewrite, $language_id);
+        $image_ids_by_combination = [];
 
         try {
-            $images_combinations = (array) $product->getCombinationImages($language_id);
-            foreach ($images_combinations as $id_attribute => $image_associations) {
-                if(!empty($image_associations)){
-                    $variant_image_id = $image_associations[0]['id_image'];
-                    $variant_images[] = $context->link->getImageLink($link_rewrite, $variant_image_id, $size);
-                }
+            $images_combinations = $product->getCombinationImages($language_id);
+            if (is_array($images_combinations)) {
+                $image_ids_by_combination = ProductHelper::mapCombinationCoverImageIds($images_combinations);
             }
         } catch (Exception $e) {
-            try {
-                $variant_image_ids = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-                            SELECT i.`id_image` as id
-                            FROM `' . _DB_PREFIX_ . 'image` i
-                            ' . Shop::addSqlAssociation('image', 'i') . '
-                            WHERE i.`id_product` = ' . (int) $product_id . '
-                            ORDER BY i.`position`');
-                foreach ($variant_image_ids as $vid_column){
-                    foreach ($vid_column as $_ => $image_id){
-                        $variant_images[] = $context->link->getImageLink($link_rewrite, $image_id, $size);
-                    }
-                }
-            } catch (Exception $e) {
-                return $variant_images;
+            $image_ids_by_combination = [];
+        }
+
+        if (empty($image_ids_by_combination)) {
+            $image_ids_by_combination = ProductHelper::queryCombinationCoverImageIds($product_id);
+        }
+
+        $urls_by_combination = [];
+        foreach ($image_ids_by_combination as $combination_id => $image_id) {
+            $urls_by_combination[$combination_id] = $context->link->getImageLink($link_rewrite, $image_id, $size);
+        }
+
+        $fallback_image = ProductHelper::getImageUrl($product, $product_id, $shop_id, $language_id, $context);
+        return ProductHelper::alignVariantImages($variant_ids, $urls_by_combination, $fallback_image);
+    }
+
+    /**
+     * First image id per combination. Combination images are already ordered by position.
+     *
+     * @param array $images_combinations
+     * @return array
+     */
+    private static function mapCombinationCoverImageIds($images_combinations){
+        $image_ids_by_combination = [];
+        foreach ($images_combinations as $id_attribute => $image_associations) {
+            if (empty($image_associations) || !is_array($image_associations)) {
+                continue;
+            }
+            $first_image = reset($image_associations);
+            if (!is_array($first_image) || !isset($first_image['id_image']) || $first_image['id_image'] === '') {
+                continue;
+            }
+            $image_ids_by_combination[(int) $id_attribute] = $first_image['id_image'];
+        }
+        return $image_ids_by_combination;
+    }
+
+    /**
+     * First image id per combination from ps_product_attribute_image, ordered by image position.
+     *
+     * @param $product_id
+     * @return array
+     */
+    private static function queryCombinationCoverImageIds($product_id){
+        $image_ids_by_combination = [];
+        try {
+            $rows = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+                SELECT pai.`id_product_attribute`, pai.`id_image`
+                FROM `' . _DB_PREFIX_ . 'product_attribute_image` pai
+                INNER JOIN `' . _DB_PREFIX_ . 'product_attribute` pa
+                    ON pa.`id_product_attribute` = pai.`id_product_attribute`
+                INNER JOIN `' . _DB_PREFIX_ . 'image` i
+                    ON i.`id_image` = pai.`id_image`
+                WHERE pa.`id_product` = ' . (int) $product_id . '
+                ORDER BY i.`position` ASC, pai.`id_image` ASC');
+            return ProductHelper::firstImageIdsFromRows($rows);
+        } catch (Exception $e) {
+            return $image_ids_by_combination;
+        }
+    }
+
+    /**
+     * Keep the first image row for each combination. Rows must already be ordered by image position.
+     *
+     * @param array|false $rows
+     * @return array
+     */
+    private static function firstImageIdsFromRows($rows){
+        $image_ids_by_combination = [];
+        if (!is_array($rows)) {
+            return $image_ids_by_combination;
+        }
+        foreach ($rows as $row) {
+            if (!isset($row['id_product_attribute']) || !isset($row['id_image']) || $row['id_image'] === '') {
+                continue;
+            }
+            $combination_id = (int) $row['id_product_attribute'];
+            if (!array_key_exists($combination_id, $image_ids_by_combination)) {
+                $image_ids_by_combination[$combination_id] = $row['id_image'];
+            }
+        }
+        return $image_ids_by_combination;
+    }
+
+    /**
+     * One image per variant id. Missing combinations use the product cover.
+     *
+     * @param array $variant_ids
+     * @param array $images_by_combination
+     * @param string $fallback_image
+     * @return array
+     */
+    private static function alignVariantImages($variant_ids, $images_by_combination, $fallback_image){
+        $variant_images = [];
+        foreach ($variant_ids as $variant_id) {
+            $variant_id = (int) $variant_id;
+            if (isset($images_by_combination[$variant_id]) && $images_by_combination[$variant_id] !== '') {
+                $variant_images[] = $images_by_combination[$variant_id];
+            } else {
+                $variant_images[] = $fallback_image;
             }
         }
         return $variant_images;
@@ -561,6 +648,8 @@ class ProductHelper {
         $product_data['variant_skus'] = [];
         $product_data['variant_prices'] = [];
         $product_data['variant_prices_excl_tax'] = [];
+        $product_data['variant_list_prices'] = [];
+        $product_data['variant_list_prices_excl_tax'] = [];
         $product_data['variant_stocks'] = [];
 
         $precision = (int)(
@@ -597,11 +686,35 @@ class ProductHelper {
                     true,
                     1
                 );
+                $list_price = $product->getPrice(
+                    true,
+                    $c['id_product_attribute'],
+                    $precision,
+                    null,
+                    false,
+                    false,
+                    1
+                );
+                $list_price_excl_tax = $product->getPrice(
+                    false,
+                    $c['id_product_attribute'],
+                    $precision,
+                    null,
+                    false,
+                    false,
+                    1
+                );
                 if (isset($price)) {
                     $product_data['variant_prices'][] = (float) Tools::ps_round($price, $precision);
                 }
                 if (isset($price_excl_tax)) {
                     $product_data['variant_prices_excl_tax'][] = (float) Tools::ps_round($price_excl_tax, $precision);
+                }
+                if (isset($list_price)) {
+                    $product_data['variant_list_prices'][] = (float) Tools::ps_round($list_price, $precision);
+                }
+                if (isset($list_price_excl_tax)) {
+                    $product_data['variant_list_prices_excl_tax'][] = (float) Tools::ps_round($list_price_excl_tax, $precision);
                 }
                 if (isset($c['quantity'])) {
                     $product_data['variant_stocks'][] = (int) $c['quantity'];
@@ -630,7 +743,7 @@ class ProductHelper {
             }
         }
 
-        $product_data['variant_images'] = ProductHelper::getVariantImageUrls($context, $shop_id, $language_id, $product, $product_id);
+        $product_data['variant_images'] = ProductHelper::getVariantImageUrls($context, $shop_id, $language_id, $product, $product_id, $product_data['variants']);
 
         return $product_data;
     }

@@ -132,6 +132,8 @@ class ClerkProductModuleFrontController extends ClerkAbstractFrontController
                 $default[] = 'variant_images';
                 $default[] = 'variant_skus';
                 $default[] = 'variant_prices';
+                $default[] = 'variant_list_prices';
+                $default[] = 'variant_list_prices_excl_tax';
                 $default[] = 'variant_stocks';
             }
 
